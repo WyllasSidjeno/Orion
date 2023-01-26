@@ -1,1 +1,15 @@
 # Orion
+## Introduction
+ Incarnez une civilisation ayant frôlé la destruction totale aux suites d'un cataclysme ayant rasé la galaxie. Compétitionez contre d'autres civilisations dans la course à la conquête des étoiles.
+## Méchaniques de jeu
+Orion est un jeu de style RTS 4X. 
+### eXplore
+Explore une galaxie riche et vibrante. Partez à la découverte de nouvelles astres, soit-ils des astéroïdes, des nuages de gaz, d'autres systèmes solaires ou bien des artéfacts aliens anciens grâce à des unités scientifiques de reconnaissance. Partez à la découverte de la Galaxie !
+### eXpand
+Étandez l'influence de votre empire au-delà des frontières de votre Système-Mère par le biais de base stellaire et/ou de nouvelles colonies. Faites de votre civilisation la plus grandiôse de tous !
+### eXploit
+Grâce aux ressources qui vous sont fournies, faites avancer votre civilisation en les transformant en matériaux plus raffinés, en bâtiments uniques, ou afin de faire avancer la science pour améliorer votre civilisation. 
+### eXterminate
+Exterminez les ennemies de votre civilisation sans impunité afin d'assurer votre pérénité. Utilisez un mélange d'unité et de bâtiment stratégique afin de faire tourner la situation à votre avantage.
+
+[Lien vers le fichier![](https://mermaid.ink/img/pako:eNqFVNtuGjEQ_ZWRX0pUyAegvjStRCu1igTt20rIsYfFktfe-NKGUPie8h38WMd7gcWg1NJ6rTmeOWfGY2-ZsBLZlAnNvf-seOl4VRigYWxAWFkHM675ywYKNsfaHQ8eDQGaQ-OCUB3_OgSJEGwMoNFD2NQ0k6VMngp9wQrTBu1iffgzmcAX_qQCf9LYGjPWDM3oozlFh5pcTFCoNVa0gHXveZv2p1m_SXyFX2f-C51X1pCPObOBfJdUzVpV93Cbfcb9J22jvKpxa34jTWGr2vrjoeEBh6WzsW4zFtYI-rsEJodXwBcb1HNEUPJ44DoVKbok3aFYo6NvKDCvdaP0owtqpYTi-sHKvEiX4A3V1fFQ8okPLooQqT-eowJeqgBoIHDSnMRRpIAOqYvG4GselK3JMgYbgcfg8P4ssZ2bluvquW1NabxfBKdMCYZXeG21vw26Pk4DKOL36nW495vyYZ_sVGNFQsz-wqOB56SUyigQXL_y-3zTQiik0wDf_v0eLgKJNTclPiZJo0bYUsm7Ft_1G9sss0PZ5kQPUWmZ8nvqFkMtF5wntcvHGOoYRndnsJM5QIZirWlPcNmTjVKJesKz9DQmXMp8X7Yty_Dqpm0vCmWtx-UPektGc24kOJpsdTvS6frciNBl9t8YWUsPIqVc-AlNir7KQQg2ZhW6iitJ72jjVrCwpptZsCktqcnRh9TJO9pJfW0XGyPYlAqLYxZryQN2Dy-brrimy8BQqmDd9-5ptmalSrb7B0i_7qM?type=png)](https://mermaid.live/edit#pako:eNqFVNtuGjEQ_ZWRX0pUyAegvjStRCu1igTt20rIsYfFktfe-NKGUPie8h38WMd7gcWg1NJ6rTmeOWfGY2-ZsBLZlAnNvf-seOl4VRigYWxAWFkHM675ywYKNsfaHQ8eDQGaQ-OCUB3_OgSJEGwMoNFD2NQ0k6VMngp9wQrTBu1iffgzmcAX_qQCf9LYGjPWDM3oozlFh5pcTFCoNVa0gHXveZv2p1m_SXyFX2f-C51X1pCPObOBfJdUzVpV93Cbfcb9J22jvKpxa34jTWGr2vrjoeEBh6WzsW4zFtYI-rsEJodXwBcb1HNEUPJ44DoVKbok3aFYo6NvKDCvdaP0owtqpYTi-sHKvEiX4A3V1fFQ8okPLooQqT-eowJeqgBoIHDSnMRRpIAOqYvG4GselK3JMgYbgcfg8P4ssZ2bluvquW1NabxfBKdMCYZXeG21vw26Pk4DKOL36nW495vyYZ_sVGNFQsz-wqOB56SUyigQXL_y-3zTQiik0wDf_v0eLgKJNTclPiZJo0bYUsm7Ft_1G9sss0PZ5kQPUWmZ8nvqFkMtF5wntcvHGOoYRndnsJM5QIZirWlPcNmTjVKJesKz9DQmXMp8X7Yty_Dqpm0vCmWtx-UPektGc24kOJpsdTvS6frciNBl9t8YWUsPIqVc-AlNir7KQQg2ZhW6iitJ72jjVrCwpptZsCktqcnRh9TJO9pJfW0XGyPYlAqLYxZryQN2Dy-brrimy8BQqmDd9-5ptmalSrb7B0i_7qM)
