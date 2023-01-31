@@ -138,3 +138,6 @@ sphinx-*.exe
 /source
 make.bat
 Makefile
+
+# Database of the program
+RTS_serveur_DB.db
