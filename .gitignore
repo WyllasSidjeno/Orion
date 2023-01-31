@@ -140,4 +140,4 @@ make.bat
 Makefile
 
 # Database of the program
-RTS_serveur_DB.db
+RTS_serveur/RTS_serveur_DB.db
