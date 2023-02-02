@@ -5,16 +5,17 @@ from werkzeug.wrappers import Response
 import random
 import sqlite3
 
-app = Flask(__name__)
-"""" The flask server.
-:type: Flask"""
+app: Flask = Flask(__name__)
+""" Le serveur flask."""
 
 app.secret_key = "qwerasdf1234"
-"""" The flask server secret key.
-:type: str"""
+"""" The flask server secret key."""
 
 class Dbman():
-    """Gère la base de données."""
+    """Gère la base de données.
+
+    :type conn: sqlite3.Connection
+    :type curs: sqlite3.Cursor"""
     def __init__(self):
         """Initialise la base de donnée."""
         self.conn = sqlite3.connect("RTS_serveur_DB.db")
@@ -22,7 +23,7 @@ class Dbman():
         self.curs = self.conn.cursor()
         """Représente le curseur de la base de données."""
 
-    def setpartiecourante(self, chose):
+    def setpartiecourante(self, chose: str) -> None:
         """Choisis la partie courante.
         :param str chose: L'état choisis. todo: JM
 
@@ -32,7 +33,7 @@ class Dbman():
                           (chose,))
         self.conn.commit()
 
-    def setinitaleatoire(self, chose):
+    def setinitaleatoire(self, chose: str) -> None:
         """Initalise la partie avec une configuration aléatoire.
         :param str chose: L'état choisis todo: JM
 
@@ -43,7 +44,7 @@ class Dbman():
             (chose,))
         self.conn.commit()
 
-    def setnbrIA(self, chose):
+    def setnbrIA(self, chose: str) -> None:
         """Choisis le nombre d'IA.
         :param str chose: Le nombre d'IA choisis
 
@@ -52,7 +53,7 @@ class Dbman():
         self.curs.execute("Insert into nbrIA (nbrIA) VALUES(?);", (chose,))
         self.conn.commit()
 
-    def setcadrecourant(self, chose):
+    def setcadrecourant(self, chose: str) -> None:
         """Choisis le cadre courant.
         :param str chose: Le cadre courant choisis
 
@@ -62,7 +63,7 @@ class Dbman():
                           (chose,))
         self.conn.commit()
 
-    def ajouterjoueur(self, nom):
+    def ajouterjoueur(self, nom: str) -> None:
         """Ajoute un joueur à la base de données.
         :param str nom: Le nom du joueur à ajouter todo: JM
 
@@ -70,7 +71,8 @@ class Dbman():
         self.curs.execute("Insert into joueurs (nom) VALUES(?);", (nom,))
         self.conn.commit()
 
-    def ajouteractionaujoueur(self, nom, cadrejeu, action):
+    def ajouteractionaujoueur(self, nom: str,
+                              cadrejeu: str, action: str) -> None:
         """Ajoute une action à un joueur.
         :param str nom: Le nom du joueur.
         :param str cadrejeu: Le cadre de jeu.
@@ -83,7 +85,7 @@ class Dbman():
                           " VALUES(?,?,?);", (nom, cadrejeu, action))
         self.conn.commit()
 
-    def getinfo(self, table) -> list:
+    def getinfo(self, table: str) -> list:
         """"Sert à récupérer les informations d'une table.
 
         :param str table: Le nom de la table.
@@ -95,7 +97,8 @@ class Dbman():
         info = self.curs.fetchall()
         return info
 
-    def getinfoconditionel(self, table, champ, valeur) -> list:
+    def getinfoconditionel(self, table: str, champ: str,
+                           valeur: str) -> list:
         """Sert à récupérer les informations d'une table en fonction
         d'un champ.
 
@@ -110,7 +113,7 @@ class Dbman():
         info = self.curs.fetchall()
         return info
 
-    def resetdb(self):
+    def resetdb(self) -> None:
         """Réinitialise la base de données.
 
         :rtype: None"""
@@ -130,7 +133,7 @@ class Dbman():
         self.curs.execute("Insert into nbrIA (nbrIA) VALUES(?);", (0,))
         self.conn.commit()
 
-    def effaceractionsjoueur(self, joueur):
+    def effaceractionsjoueur(self, joueur: str)  -> None:
         """Efface les actions d'un joueur de la table.
 
         :param str joueur: Le nom du joueur.
@@ -139,7 +142,7 @@ class Dbman():
         self.curs.execute("DELETE from actionsenattente WHERE  nom=?", (joueur,))
         self.conn.commit()
 
-    def vidertable(self, table):
+    def vidertable(self, table: str)  -> None:
         """Vide une table.
 
         :param str table: Le nom de la table.
@@ -149,13 +152,13 @@ class Dbman():
         self.curs.execute("DELETE from " + table)
         self.conn.commit()
 
-    def fermerdb(self):
+    def fermerdb(self)  -> None:
         """Ferme la base de données.
 
         :rtype: None"""
         self.conn.close()
 
-    def updatejoueur(self, nomjoueur, cadre):
+    def updatejoueur(self, nomjoueur: str, cadre: str) -> None:
         """Met à jour le dernier cadre de jeu d'un joueur.
 
         :param str nomjoueur: Le nom du joueur.

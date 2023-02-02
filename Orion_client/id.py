@@ -2,11 +2,10 @@
 
 # -*- Encoding: UTF-8 -*-
 
-prochainid = 0
-""":type: int"""
+prochainid: int = 0
+"""Prochain identifiant a utiliser."""
 
-
-def get_prochain_id():
+def get_prochain_id() -> str:
     """Recupere le prochain id a utiliser.
 
     :return: L'ID a utiliser.

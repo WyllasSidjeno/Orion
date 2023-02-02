@@ -20,8 +20,6 @@ class Helper(object):
         :param cx: coordonnee x du centre
         :param cy: coordonnee y du centre
 
-        TODO: verifier avec JM.
-
         :return: le point calcule
         :rtype: tuple"""
 
@@ -40,7 +38,7 @@ class Helper(object):
         :param x2: coordonnee x du deuxieme point
         :param y2: coordonnee y du deuxieme point
 
-        :return: l'angle en radians TODO: verifier avec JM.
+        :return: l'angle en radians
         :rtype: float"""
 
         dx = x2 - x1

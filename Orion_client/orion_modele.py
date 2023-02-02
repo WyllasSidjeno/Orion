@@ -1,14 +1,41 @@
+"""Module des modeles de donnees du jeu
+
+Ce module contient les classes qui representent les objets du jeu ainsi
+que le modèle de base du jeu.
+"""
+from __future__ import annotations
+# Ajouté afin de permettre le type hinting sur les classes
+# qui se référencent mutuellement
+
 # -*- coding: utf-8 -*-
 ##  version 2022 14 mars - jmd
 
 import random
 import ast
+
+from _distutils_hack import override
+
 from id import *
 from helper import Helper as hlp
 
 
 class Porte_de_vers():
-    def __init__(self, parent, x, y, couleur, taille):
+    """Classe representant une porte de vers.
+
+    Une porte de vers est une partie d'un trou de vers. Il s'agit de
+    la partie visible de l'hyper-espace. Elle est representee par un
+    cercle qui se dilate et se contracte."""
+
+    def __init__(self, parent: Trou_de_vers, x: int, y: int,
+                 couleur: str, taille: int) -> None:
+        """Constructeur de la classe Porte_de_vers. todo : link
+
+        :param parent: le trou de vers auquel la porte appartient
+        :param x: coordonnee x du centre de la porte
+        :param y: coordonnee y du centre de la porte
+        :param couleur: la couleur de la porte
+        :param taille: la taille de la porte
+        """
         self.parent = parent
         self.id = get_prochain_id()
         self.x = x
@@ -17,30 +44,55 @@ class Porte_de_vers():
         self.pulse = random.randrange(self.pulsemax)
         self.couleur = couleur
 
-    def jouer_prochain_coup(self):
+    def jouer_prochain_coup(self) -> None:
+        """Incremente le compteur de pulsation de la porte ou le remet
+        a zero si il atteint la taille maximale."""
         self.pulse += 1
         if self.pulse >= self.pulsemax:
             self.pulse = 0
 
-
 class Trou_de_vers():
-    def __init__(self, x1, y1, x2, y2):
+    """Classe representant un trou de vers.
+
+    Un trou de vers est un lien entre deux systemes stellaires. Il
+    permet de voyager d'un systeme a l'autre en passant par l'hyper-espace
+    via une porte de vers vers une autre porte de vers. todo: link"""
+    def __init__(self, x1: int, y1: int, x2: int, y2: int) -> None:
+        """Constructeur de la classe Trou_de_vers.
+
+        :param x1: coordonnee x de la premiere porte de vers
+        :param y1: coordonnee y de la premiere porte de vers
+        :param x2: coordonnee x de la deuxieme porte de vers
+        :param y2: coordonnee y de la deuxieme porte de vers
+        """
         self.id = get_prochain_id()
         taille = random.randrange(6, 20)
         self.porte_a = Porte_de_vers(self, x1, y1, "red", taille)
         self.porte_b = Porte_de_vers(self, x2, y2, "orange", taille)
         self.liste_transit = []  # pour mettre les vaisseaux qui ne sont plus dans l'espace mais maintenant l'hyper-espace
 
-    def jouer_prochain_coup(self):
+    def jouer_prochain_coup(self) -> None:
+        """Envoie le signal de jouer_prochain_coup
+        aux deux portes de vers du trou de vers."""
         self.porte_a.jouer_prochain_coup()
         self.porte_b.jouer_prochain_coup()
 
 
 class Etoile():
-    def __init__(self, parent, x, y):
-        self.id = get_prochain_id()
+    """Classe representant une etoile.
+
+    Une etoile est un objet celeste qui contient des ressources et
+    potentiellement un propriétaire."""
+    def __init__(self, parent: Modele, x: int, y: int) -> None:
+        """Constructeur de la classe Etoile.
+
+        :param parent: le modele auquel l'etoile appartient
+        :param x: coordonnee x de l'etoile
+        :param y: coordonnee y de l'etoile
+        """
+        self.id: str = get_prochain_id()
         self.parent = parent
-        self.proprietaire = ""
+        self.proprietaire: str = ""
         self.x = x
         self.y = y
         self.taille = random.randrange(4, 8)
@@ -50,39 +102,60 @@ class Etoile():
 
 
 class Vaisseau():
-    def __init__(self, parent, nom, x, y):
+    """Classe representant un vaisseau.
+
+    Un vaisseau est un objet qui peut se deplacer dans l'espace une fois
+    une location cible est definie."""
+    def __init__(self, parent: Modele, nom: str, x: int, y: int) -> None:
+        """"
+        Constructeur de la classe Vaisseau.
+
+        :param parent: le modele auquel le vaisseau appartient
+        :param nom: le nom du proprietaire du vaisseau
+        :param x: coordonnee x du vaisseau
+        :param y: coordonnee y du vaisseau
+        """
         self.parent = parent
-        self.id = get_prochain_id()
+        self.id: str = get_prochain_id()
         self.proprietaire = nom
         self.x = x
         self.y = y
-        self.espace_cargo = 0
-        self.energie = 100
-        self.taille = 5
-        self.vitesse = 2
-        self.cible = 0
-        self.type_cible = None
-        self.angle_cible = 0
+        self.espace_cargo: int = 0
+        self.energie: int = 100
+        self.taille: int = 5
+        self.vitesse: int = 2
+        self.cible = 0 # todo: find type : Porte_de_vers, Etoile, Vaisseau ?
+        self.type_cible = None # todo : find type : Porte_de_vers, Etoile, Vaisseau ?
+        self.angle_cible: float = 0
         self.arriver = {"Etoile": self.arriver_etoile,
                         "Porte_de_vers": self.arriver_porte}
 
     def jouer_prochain_coup(self, trouver_nouveau=0):
+        """Fait avancer le vaisseau vers sa cible si elle existe,
+        sinon il en cherche une nouvelle aleatoirement et la cible."""
         if self.cible != 0:
             return self.avancer()
         elif trouver_nouveau:
             cible = random.choice(self.parent.parent.etoiles)
             self.acquerir_cible(cible, "Etoile")
 
-    def acquerir_cible(self, cible, type_cible):
+    def acquerir_cible(self, cible, type_cible: str): # todo: cible
         self.type_cible = type_cible
         self.cible = cible
-        self.angle_cible = hlp.calcAngle(self.x, self.y, self.cible.x, self.cible.y)
+        self.angle_cible: float = hlp.calcAngle(self.x, self.y,
+                                                self.cible.x, self.cible.y)
+        """L'angle de la cible est calcule par rapport a la position du vaisseau
+        et de la cible."""
 
     def avancer(self):
+        """Fait avancer le vaisseau vers sa cible.""" #todo: Grainus
         if self.cible != 0:
             x = self.cible.x
             y = self.cible.y
-            self.x, self.y = hlp.getAngledPoint(self.angle_cible, self.vitesse, self.x, self.y)
+            
+            self.x, self.y = hlp.getAngledPoint(
+                self.angle_cible, self.vitesse, self.x, self.y)
+
             if hlp.calcDistance(self.x, self.y, x, y) <= self.vitesse:
                 type_obj = type(self.cible).__name__
                 rep = self.arriver[type_obj]()
