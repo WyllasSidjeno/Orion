@@ -52,12 +52,14 @@ class Porte_de_vers():
         if self.pulse >= self.pulsemax:
             self.pulse = 0
 
+
 class Trou_de_vers():
     """Classe representant un trou de vers.
 
     Un trou de vers est un lien entre deux systemes stellaires. Il
     permet de voyager d'un systeme a l'autre en passant par l'hyper-espace
     via une porte de vers vers une autre porte de vers. todo: link"""
+
     def __init__(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """Constructeur de la classe Trou_de_vers.
 
@@ -84,6 +86,7 @@ class Etoile():
 
     Une etoile est un objet celeste qui contient des ressources et
     potentiellement un propriétaire."""
+
     def __init__(self, parent: Modele, x: int, y: int) -> None:
         """Constructeur de la classe Etoile.
 
@@ -107,6 +110,7 @@ class Vaisseau():
 
     Un vaisseau est un objet qui peut se deplacer dans l'espace une fois
     une location cible est definie."""
+
     def __init__(self, parent: Joueur, nom: str, x: int, y: int) -> None:
         """"
         Constructeur de la classe Vaisseau.
@@ -129,18 +133,27 @@ class Vaisseau():
         self.type_cible: str | None = None
         self.angle_cible: float = 0
         self.arriver: dict[str, Callable] = {"Etoile": self.arriver_etoile,
-                        "Porte_de_vers": self.arriver_porte}
+                                             "Porte_de_vers": self.arriver_porte}
 
-    def jouer_prochain_coup(self, trouver_nouveau=0) -> callable[str] | None:
+    def jouer_prochain_coup(self, trouver_nouveau=0) \
+            -> list[str, Etoile | Porte_de_vers]:
         """Fait avancer le vaisseau vers sa cible si elle existe,
         sinon il en cherche une nouvelle aleatoirement et la cible."""
+        # todo: trouver_nouveau
         if self.cible != 0:
             return self.avancer()
         elif trouver_nouveau:
             cible = random.choice(self.parent.parent.etoiles)
             self.acquerir_cible(cible, "Etoile")
 
-    def acquerir_cible(self, cible, type_cible: str) -> None: # todo: cible
+    def acquerir_cible(self, cible: Etoile | Porte_de_vers,
+                       type_cible: str) -> None:  # todo: cible
+        """Acqueris une cible pour un vaisseau en changeant son type de cible,
+        sa cible et son angle de cible.
+
+        :param cible: la cible a acquerir
+        :param type_cible: le type de la cible a acquerir
+        """
         self.type_cible = type_cible
         self.cible = cible
         self.angle_cible: float = hlp.calcAngle(self.x, self.y,
@@ -148,8 +161,8 @@ class Vaisseau():
         """L'angle de la cible est calcule par rapport a la position du vaisseau
         et de la cible."""
 
-    def avancer(self):
-        """Fait avancer le vaisseau vers sa cible.""" #todo: Grainus
+    def avancer(self) -> None:
+        """Fait avancer le vaisseau vers sa cible."""  # todo: Grainus
         if self.cible != 0:
             x = self.cible.x
             y = self.cible.y
@@ -164,7 +177,8 @@ class Vaisseau():
 
     def arriver_etoile(self) -> list[str, Etoile]:
         self.parent.log.append(
-            ["Arrive:", self.parent.parent.cadre_courant, "Etoile", self.id, self.cible.id, self.cible.proprietaire])
+            ["Arrive:", self.parent.parent.cadre_courant, "Etoile", self.id,
+             self.cible.id, self.cible.proprietaire])
         if not self.cible.proprietaire:
             self.cible.proprietaire = self.proprietaire
         cible = self.cible
@@ -172,7 +186,9 @@ class Vaisseau():
         return ["Etoile", cible]
 
     def arriver_porte(self) -> list[str, Porte_de_vers]:
-        self.parent.log.append(["Arrive:", self.parent.parent.cadre_courant, "Porte", self.id, self.cible.id, ])
+        self.parent.log.append(
+            ["Arrive:", self.parent.parent.cadre_courant, "Porte", self.id,
+             self.cible.id, ])
         cible = self.cible
         trou = cible.parent
         if cible == trou.porte_a:
@@ -214,9 +230,11 @@ class Joueur():
     def creervaisseau(self, params):
         type_vaisseau = params[0]
         if type_vaisseau == "Cargo":
-            v = Cargo(self, self.nom, self.etoilemere.x + 10, self.etoilemere.y)
+            v = Cargo(self, self.nom, self.etoilemere.x + 10,
+                      self.etoilemere.y)
         else:
-            v = Vaisseau(self, self.nom, self.etoilemere.x + 10, self.etoilemere.y)
+            v = Vaisseau(self, self.nom, self.etoilemere.x + 10,
+                         self.etoilemere.y)
         self.flotte[type_vaisseau][v.id] = v
 
         if self.nom == self.parent.parent.mon_nom:
@@ -286,7 +304,8 @@ class IA(Joueur):
             v = self.creervaisseau(["Vaisseau"])
             cible = random.choice(self.parent.etoiles)
             v.acquerir_cible(cible, "Etoile")
-            self.cooldown = random.randrange(self.cooldownmax) + self.cooldownmax
+            self.cooldown = random.randrange(
+                self.cooldownmax) + self.cooldownmax
         else:
             self.cooldown -= 1
 
@@ -347,7 +366,9 @@ class Modele():
         couleursia = ["orange", "green", "cyan",
                       "SeaGreen1", "turquoise1", "firebrick1"]
         for i in range(ias):
-            self.joueurs["IA_" + str(i)] = IA(self, "IA_" + str(i), etoile_occupee.pop(0), couleursia.pop(0))
+            self.joueurs["IA_" + str(i)] = IA(self, "IA_" + str(i),
+                                              etoile_occupee.pop(0),
+                                              couleursia.pop(0))
 
     ##############################################################################
     def jouer_prochain_coup(self, cadre):
