@@ -6,6 +6,7 @@ que le modèle de base du jeu.
 from __future__ import annotations
 # Ajouté afin de permettre le type hinting sur les classes
 # qui se référencent mutuellement
+from typing import Callable
 
 # -*- coding: utf-8 -*-
 ##  version 2022 14 mars - jmd
@@ -106,7 +107,7 @@ class Vaisseau():
 
     Un vaisseau est un objet qui peut se deplacer dans l'espace une fois
     une location cible est definie."""
-    def __init__(self, parent: Modele, nom: str, x: int, y: int) -> None:
+    def __init__(self, parent: Joueur, nom: str, x: int, y: int) -> None:
         """"
         Constructeur de la classe Vaisseau.
 
@@ -124,13 +125,13 @@ class Vaisseau():
         self.energie: int = 100
         self.taille: int = 5
         self.vitesse: int = 2
-        self.cible = 0 # todo: find type : Porte_de_vers, Etoile, Vaisseau ?
-        self.type_cible = None # todo : find type : Porte_de_vers, Etoile, Vaisseau ?
+        self.cible: int | Porte_de_vers | Etoile = 0
+        self.type_cible: str | None = None
         self.angle_cible: float = 0
-        self.arriver = {"Etoile": self.arriver_etoile,
+        self.arriver: dict[str, Callable] = {"Etoile": self.arriver_etoile,
                         "Porte_de_vers": self.arriver_porte}
 
-    def jouer_prochain_coup(self, trouver_nouveau=0):
+    def jouer_prochain_coup(self, trouver_nouveau=0) -> callable[str] | None:
         """Fait avancer le vaisseau vers sa cible si elle existe,
         sinon il en cherche une nouvelle aleatoirement et la cible."""
         if self.cible != 0:
@@ -139,7 +140,7 @@ class Vaisseau():
             cible = random.choice(self.parent.parent.etoiles)
             self.acquerir_cible(cible, "Etoile")
 
-    def acquerir_cible(self, cible, type_cible: str): # todo: cible
+    def acquerir_cible(self, cible, type_cible: str) -> None: # todo: cible
         self.type_cible = type_cible
         self.cible = cible
         self.angle_cible: float = hlp.calcAngle(self.x, self.y,
@@ -152,7 +153,7 @@ class Vaisseau():
         if self.cible != 0:
             x = self.cible.x
             y = self.cible.y
-            
+
             self.x, self.y = hlp.getAngledPoint(
                 self.angle_cible, self.vitesse, self.x, self.y)
 
@@ -161,7 +162,7 @@ class Vaisseau():
                 rep = self.arriver[type_obj]()
                 return rep
 
-    def arriver_etoile(self):
+    def arriver_etoile(self) -> list[str, Etoile]:
         self.parent.log.append(
             ["Arrive:", self.parent.parent.cadre_courant, "Etoile", self.id, self.cible.id, self.cible.proprietaire])
         if not self.cible.proprietaire:
@@ -170,7 +171,7 @@ class Vaisseau():
         self.cible = 0
         return ["Etoile", cible]
 
-    def arriver_porte(self):
+    def arriver_porte(self) -> list[str, Porte_de_vers]:
         self.parent.log.append(["Arrive:", self.parent.parent.cadre_courant, "Porte", self.id, self.cible.id, ])
         cible = self.cible
         trou = cible.parent
