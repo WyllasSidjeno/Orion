@@ -6,6 +6,21 @@ et des angles a partir de coordonnees cartesiennes.
 import math
 
 
+class AlwaysInt(int):
+    """Classe qui permet de forcer un int a etre un int meme si on lui
+    donne un float.
+
+    Elle forme une boucle de surcharge sur l'ensemble des methodes de int
+    pour les appliquer sur l'objet lui-meme à l'exception des methodes
+    magiques (commencant par __) hormis les methodes magiques de division."""
+    for method in dir(int):
+        if not method.startswith('__'):
+            exec(f'def {method}(self, *args, **kwargs): '
+                 f'return int(self).__{method}__(*args, **kwargs)')
+        elif method.__contains__('div'):
+            exec(f'def {method}(self, *args, **kwargs): '
+                 f'return int(int(self).{method}(*args, **kwargs))')
+
 class Helper(object):
     """Classe de geometrie 2D
 
