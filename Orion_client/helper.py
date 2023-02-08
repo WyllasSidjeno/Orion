@@ -35,8 +35,7 @@ class Helper(object):
         :param cx: coordonnee x du centre
         :param cy: coordonnee y du centre
 
-        :return: le point calcule
-        :rtype: tuple"""
+        :return: le point calcule"""
 
         x = (math.cos(angle) * longueur) + cx
         y = (math.sin(angle) * longueur) + cy
@@ -53,8 +52,7 @@ class Helper(object):
         :param x2: coordonnee x du deuxieme point
         :param y2: coordonnee y du deuxieme point
 
-        :return: l'angle en radians
-        :rtype: float"""
+        :return: l'angle en radians"""
 
         dx = x2 - x1
         dy = y2 - y1
@@ -67,13 +65,12 @@ class Helper(object):
         """Calcule la distance entre deux points en utilisant
         le theoreme de Pythagore
 
-        :arg x1: coordonnee x du premier point
+        :param x1: coordonnee x du premier point
         :param y1: coordonnee y du premier point
         :param x2: coordonnee x du deuxieme point
         :param y2: coordonnee y du deuxieme point
 
-        :return: la distance entre les deux points
-        :rtype: float"""
+        :return: la distance entre les deux points"""
 
         dx = abs(x2 - x1) ** 2
         dy = abs(y2 - y1) ** 2
