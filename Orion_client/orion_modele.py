@@ -147,7 +147,7 @@ class Vaisseau():
             self.acquerir_cible(cible, "Etoile")
 
     def acquerir_cible(self, cible: Etoile | Porte_de_vers,
-                       type_cible: str) -> None:  # todo: cible
+                       type_cible: str) -> None:  # todo: Verifier type cible
         """Acqueris une cible pour un vaisseau en changeant son type de cible,
         sa cible et son angle de cible.
 
@@ -162,7 +162,7 @@ class Vaisseau():
         et de la cible."""
 
     def avancer(self) -> None:
-        """Fait avancer le vaisseau vers sa cible."""  # todo:What
+        """Fait avancer le vaisseau vers sa cible."""  # todo:JM
         if self.cible != 0:
             x = self.cible.x
             y = self.cible.y
@@ -176,7 +176,15 @@ class Vaisseau():
                 return rep
 
     def arriver_etoile(self) -> list[str, Etoile]:
-        """Fonction d'arriver à l'etoile."""
+        """Fonction d'arriver à l'etoile.
+
+        Si le proprietaire de l'etoile est vide, le joueur devient propriétaire
+        de l'etoile.
+        Par la suite, la cible devient 0
+
+        :return list of str and Etoile
+
+        :return: une liste contenant le type de l'objet et l'objet lui-meme"""
         self.parent.log.append(
             ["Arrive:", self.parent.parent.cadre_courant, "Etoile", self.id,
              self.cible.id, self.cible.proprietaire])
@@ -187,6 +195,15 @@ class Vaisseau():
         return ["Etoile", cible]
 
     def arriver_porte(self) -> list[str, Porte_de_vers]:
+        """Fonction d'arriver à la porte de vers.
+
+        Lorsqu'arrive à la porte de vers, le vaisseau se téléporte à l'autre
+        porte de vers de la même étoile, qui est liée à la porte de vers
+        grace au trou de vers.
+        Ensuite, la cible devient 0.
+
+        :return list of str and Porte_de_vers
+        """
         self.parent.log.append(
             ["Arrive:", self.parent.parent.cadre_courant, "Porte", self.id,
              self.cible.id, ])
@@ -203,32 +220,65 @@ class Vaisseau():
 
 
 class Cargo(Vaisseau):
-    def __init__(self, parent, nom, x, y):
+    """Classe du vaisseau cargo.
+
+    Le vaisseau cargo est un vaisseau qui peut transporter des ressources.
+    """
+    def __init__(self, parent: Joueur, nom: str, x: int, y: int) -> None:
+        """Initialise le vaisseau cargo.
+
+        :param parent: le joueur qui possede le vaisseau
+        :param nom: le nom du vaisseau
+        :param x: la position x du vaisseau
+        :param y: la position y du vaisseau
+        """
         Vaisseau.__init__(self, parent, nom, x, y)
-        self.cargo = 1000
-        self.energie = 500
-        self.taille = 6
-        self.vitesse = 1
-        self.cible = 0
-        self.ang = 0
+        self.cargo : int = 1000
+        self.energie : int = 500
+        self.taille: int = 6
+        self.vitesse: int = 1
+        self.cible = 0 # todo : verifier si c'est necessaire
+        self.ang = 0 # todo : verifier type (float?)
 
 
 class Joueur():
-    def __init__(self, parent, nom, etoilemere, couleur):
-        self.id = get_prochain_id()
+    """Classe du joueur.
+
+    Le joueur est le personnage qui joue le jeu.
+    Il possede une flotte de vaisseaux, une liste d'etoiles controlees et une
+    liste d'actions.
+    """
+    def __init__(self, parent: Modele, nom: str,
+                 etoilemere: Etoile, couleur: str):
+        """Initialise le joueur.
+
+        :param parent: le jeu auquel le joueur appartient
+        :param nom: le nom du joueur
+        :param etoilemere: l'etoile mere du joueur
+        :param couleur: la couleur du joueur
+        """
+        self.id : str = get_prochain_id()
         self.parent = parent
         self.nom = nom
         self.etoilemere = etoilemere
         self.etoilemere.proprietaire = self.nom
         self.couleur = couleur
-        self.log = []
-        self.etoilescontrolees = [etoilemere]
+        self.log: list = []
+        """Liste des actions du joueur."""
+        self.etoilescontrolees: list = [etoilemere]
+        """Liste des etoiles controlees par le joueur."""
         self.flotte = {"Vaisseau": {},
                        "Cargo": {}}
+        """Flotte du joueur."""
         self.actions = {"creervaisseau": self.creervaisseau,
                         "ciblerflotte": self.ciblerflotte}
+        """Liste des actions possible du joueur."""
 
-    def creervaisseau(self, params):
+    def creervaisseau(self, params: list) -> Vaisseau:
+        """Fonction de creation d'un vaisseau.
+
+        :param params: liste contenant le type de vaisseau a creer
+        """
         type_vaisseau = params[0]
         if type_vaisseau == "Cargo":
             v = Cargo(self, self.nom, self.etoilemere.x + 10,
@@ -242,7 +292,12 @@ class Joueur():
             self.parent.parent.lister_objet(type_vaisseau, v.id)
         return v
 
-    def ciblerflotte(self, ids):
+    def ciblerflotte(self, ids: tuple) -> None:
+        """Fonction de ciblage d'un vaisseau.
+
+        :param ids: tuple contenant l'id du vaisseau qui cible et l'id de la
+        cible et le type de cible (Etoile ou Porte_de_ver)
+        """
         idori, iddesti, type_cible = ids
         ori = None
         for i in self.flotte.keys():
@@ -267,9 +322,16 @@ class Joueur():
                         return
 
     def jouer_prochain_coup(self):
+        """Fonction de jeu du joueur pour un tour.
+        """
         self.avancer_flotte()
 
     def avancer_flotte(self, chercher_nouveau=0):
+        """Fonction d'avancement de la flotte du joueur.
+
+        :param chercher_nouveau: si 1, le joueur cherche une nouvelle cible
+        todo: ??? int only ???
+        """
         for i in self.flotte:
             for j in self.flotte[i]:
                 j = self.flotte[i][j]
@@ -287,12 +349,32 @@ class Joueur():
 
 # IA- nouvelle classe de joueur
 class IA(Joueur):
-    def __init__(self, parent, nom, etoilemere, couleur):
-        Joueur.__init__(self, parent, nom, etoilemere, couleur)
-        self.cooldownmax = 1000
-        self.cooldown = 20
+    """Classe de l'IA.
 
-    def jouer_prochain_coup(self):
+    L'IA est le personnage non-joueur qui joue le jeu.
+    """
+    def __init__(self, parent: Modele, nom: str,
+                 etoilemere: Etoile, couleur: str) -> None:
+        """Initialise l'IA.
+
+        :param parent: le jeu auquel l'IA appartient
+        :param nom: le nom de l'IA
+        :param etoilemere: l'etoile mere de l'IA
+        :param couleur: la couleur de l'IA
+        """
+        Joueur.__init__(self, parent, nom, etoilemere, couleur)
+        self.cooldownmax: int = 1000
+        """Cooldown max de l'IA avant son prochain vaisseau."""
+        self.cooldown: int = 20
+        """Cooldown en cours de l'IA avant son prochain vaisseau."""
+
+    def jouer_prochain_coup(self) -> None:
+        """Fonction de jeu de l'IA pour un tour.
+
+        Á chaque coup, L'IA avance ses flottes.
+        Si le cooldown est à 0, l'IA crée un vaisseau et lui donne une cible.
+        Sinon, le cooldown est décrémenté.
+        """
         # for i in self.flotte:
         #     for j in self.flotte[i]:
         #         j=self.flotte[i][j]
@@ -312,22 +394,39 @@ class IA(Joueur):
 
 
 class Modele():
+    """Classe du modèle.
+
+    Le modèle contient les données du jeu.
+    """
     def __init__(self, parent, joueurs):
-        self.parent = parent
-        self.largeur = 9000
-        self.hauteur = 9000
-        self.nb_etoiles = int((self.hauteur * self.largeur) / 500000)
-        self.joueurs = {}
-        self.actions_a_faire = {}
-        self.etoiles = []
-        self.trou_de_vers = []
-        self.cadre_courant = None
+        """Initialise le modèle.
+
+        :param parent: le jeu auquel le modèle appartient
+        :param joueurs: les joueurs du jeu
+        """
+        self.parent = parent  # todo: type
+        self.largeur: int = 9000
+        self.hauteur:int = 9000
+        self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
+        self.joueurs: dict = {}
+        self.actions_a_faire: dict = {}
+        self.etoiles: list = []
+        self.trou_de_vers : list = []
+        self.cadre_courant = None  # TODO: type
         self.creeretoiles(joueurs, 1)
-        nb_trou = int((self.hauteur * self.largeur) / 5000000)
+        nb_trou: int = int((self.hauteur * self.largeur) / 5000000)
         self.creer_troudevers(nb_trou)
 
-    def creer_troudevers(self, n):
-        bordure = 10
+    def creer_troudevers(self, n : int) -> None:
+        """Crée des trous de vers.
+
+        Créé n trous de vers aléatoirement dans le modèle.
+        Les trous de vers sont des portes de vers. Ils sont créés en deux points
+        aléatoires groupés en paires. Les trous de vers sont ajoutés à la liste
+        des trous de vers du modèle.
+
+        :param n: le nombre de trous de vers à créer"""
+        bordure : int = 10
         for i in range(n):
             x1 = random.randrange(self.largeur - (2 * bordure)) + bordure
             y1 = random.randrange(self.hauteur - (2 * bordure)) + bordure
@@ -335,7 +434,16 @@ class Modele():
             y2 = random.randrange(self.hauteur - (2 * bordure)) + bordure
             self.trou_de_vers.append(Trou_de_vers(x1, y1, x2, y2))
 
-    def creeretoiles(self, joueurs, ias=0):
+    def creeretoiles(self, joueurs: dict, ias: int = 0):
+        """Crée des étoiles, d'une certaine couleur dependant du joueur.
+
+        Créé des étoiles aléatoirement dans le modèle dependant du nombre
+        d'étoiles du modèle. Les étoiles sont ajoutées à la liste des étoiles
+        du modèle et retirée du compteur des étoiles à créer.
+
+        :param joueurs: les joueurs du jeu
+        :param ias: le nombre d'IA à créer
+        """
         bordure = 10
         for i in range(self.nb_etoiles):
             x = random.randrange(self.largeur - (2 * bordure)) + bordure
@@ -373,6 +481,13 @@ class Modele():
 
     ##############################################################################
     def jouer_prochain_coup(self, cadre):
+        """Joue le prochain coup pour chaque objet.
+
+        Joue le prochain coup pour chaque objet du modèle. Ils y vont dans cette ordre
+        : joueur, trou de vers.
+
+        :param cadre: le cadre à jouer
+        """
         #  NE PAS TOUCHER LES LIGNES SUIVANTES  ################
         self.cadre_courant = cadre
         # insertion de la prochaine action demandée par le joueur
@@ -396,12 +511,19 @@ class Modele():
         for i in self.trou_de_vers:
             i.jouer_prochain_coup()
 
-    def creer_bibittes_spatiales(self, nb_biittes=0):
+    def creer_bibittes_spatiales(self, nb_biittes: int=0):
+        """Crée des biittes spatiales. Non utilisé pour le moment.
+        """
         pass
 
     #############################################################################
     # ATTENTION : NE PAS TOUCHER
-    def ajouter_actions_a_faire(self, actionsrecues):
+    def ajouter_actions_a_faire(self, actionsrecues: list):
+        """Ajoute les actions reçue dans la liste des actions à faire
+         si et seulement si le cadre est plus petit que le cadre courant.
+
+        :param actionsrecues: la liste des actions reçues du serveur
+        """
         cadrecle = None
         for i in actionsrecues:
             cadrecle = i[0]
