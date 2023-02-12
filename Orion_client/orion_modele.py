@@ -162,7 +162,7 @@ class Vaisseau():
         et de la cible."""
 
     def avancer(self) -> None:
-        """Fait avancer le vaisseau vers sa cible."""  # todo: Grainus
+        """Fait avancer le vaisseau vers sa cible."""  # todo:What
         if self.cible != 0:
             x = self.cible.x
             y = self.cible.y
@@ -176,6 +176,7 @@ class Vaisseau():
                 return rep
 
     def arriver_etoile(self) -> list[str, Etoile]:
+        """Fonction d'arriver à l'etoile."""
         self.parent.log.append(
             ["Arrive:", self.parent.parent.cadre_courant, "Etoile", self.id,
              self.cible.id, self.cible.proprietaire])
