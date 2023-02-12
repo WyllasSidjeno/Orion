@@ -11,6 +11,7 @@ import json
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Any
 
 from orion_modele import *
 from orion_vue import *
@@ -20,6 +21,9 @@ class Controleur():
     """Controlleur du jeu Orion
 
     Cette classe contient les methodes pour gerer le jeu Orion.
+    Elle est responsable de la communication avec le serveur et de la gestion
+    des evenements de la fenetre de jeu. Elle est aussi responsable de la
+    creation du modele et de la vue.
     """
 
     def __init__(self):
@@ -65,15 +69,17 @@ class Controleur():
         """Connexion au serveur
 
         :param url_serveur: URL du serveur
-        :type url_serveur: str
-
-        :rtype: None"""
+        """
         self.urlserveur = url_serveur
         """le dernier avant le clic"""
         self.boucler_sur_splash()
 
     # a partir du splash
     def creer_partie(self, nom: str) -> None:
+        """Creation d'une partie
+
+        :param nom: Nom du joueur qui crée la partie
+        """
         if self.prochainsplash:
             # si on est dans boucler_sur_splash, on doit supprimer
             # le prochain appel
@@ -99,11 +105,8 @@ class Controleur():
         """Inscription d'un joueur à la partie
 
         :param nom: Nom du joueur
-        :type nom: str
         :param urljeu: URL du jeu
-        :type urljeu: str
-
-        :rtype: None"""
+        """
         # on quitte le splash et sa boucle
         if self.prochainsplash:
             self.vue.root.after_cancel(self.prochainsplash)
@@ -132,6 +135,8 @@ class Controleur():
     # Apres que le createur de la partie ait lancer_partie
     # boucler_sur_lobby a reçu code ('courant') et appel cette fonction pour tous
     def initialiser_partie(self, mondict: dict) -> None:
+        """Initialisation de la partie avec seed aléatoire ou non
+        """
         initaleatoire = mondict[1][0][0]
         """ Le seed aléatoire pour la partie si voulue"""
         random.seed(12471)  # random FIXE pour test ou ...
@@ -161,8 +166,7 @@ class Controleur():
     def boucler_sur_splash(self) -> None:
         """Boucle de communication intiale avec le serveur pour creer
         ou s'inscrire a la partie
-
-        :rtype: None"""
+        """
         url = self.urlserveur + "/tester_jeu"
         params = {"nom": self.mon_nom}
         mondict = self.appeler_serveur(url, params)
@@ -172,6 +176,10 @@ class Controleur():
 
     # on boucle sur le lobby en attendant le demarrage
     def boucler_sur_lobby(self) -> None:
+        """Boucle de communication avec le serveur pour mettre a jour
+        la liste des joueurs jusqu'a ce que la partie commence
+        (par appel "courante")
+        """
         url = self.urlserveur + "/boucler_sur_lobby"
         params = {"nom": self.mon_nom}
         mondict = self.appeler_serveur(url, params)
@@ -180,16 +188,16 @@ class Controleur():
         if "courante" in mondict[
             0]:  # courante, la partie doit etre initialiser
             self.initialiser_partie(mondict)
-        else: # sinon on met a jour la liste des joueurs todo: jm
+        else: # sinon on met a jour la liste des joueurs
             self.joueurs = mondict
             self.vue.update_lobby(mondict)
             self.vue.root.after(50, self.boucler_sur_lobby)
 
     # BOUCLE PRINCIPALE
     def boucler_sur_jeu(self) -> None:
-        """Boucle principale du jeu todo: Add more context here
-
-        :rtype: None"""
+        """Boucle principale du jeu
+        todo: Add more context here
+        """
         self.cadrejeu += 1
         # increment du compteur de boucle de jeu
 
@@ -233,7 +241,7 @@ class Controleur():
                             self.boucler_sur_jeu)
 
     ##############   FONCTIONS pour serveur #################
-    def reset_partie(self) -> list:
+    def reset_partie(self) -> dict:
         """methode speciale pour remettre les parametres du serveur
         a leurs valeurs par defaut"""
         leurl = self.urlserveur + "/reset_jeu"
@@ -241,8 +249,11 @@ class Controleur():
         self.vue.update_splash(reptext[0][0])
         return reptext
 
-    def tester_etat_serveur(self) -> str:
-        """retour de l'etat du serveur"""
+    def tester_etat_serveur(self) -> [str | Any]:
+        """Fonction qui sert a tester l'etat du serveur
+
+        :return: Un string representant l'etat du serveur, ainsi
+         que son code de reponse."""
         leurl = self.urlserveur + "/tester_jeu"
         repdecode = self.appeler_serveur(leurl, None)[0]
         if "dispo" in repdecode:  # on peut creer une partie
@@ -254,17 +265,15 @@ class Controleur():
         else:
             return "impossible"
 
-    def appeler_serveur(self, url: str, params: dict) -> dict:
-        """fonction d'appel normalisee d'appel pendant le jeu
+    def appeler_serveur(self, url: str, params: dict[str, str]) -> dict:
+        """fonction normalisee d'appel pendant le jeu
 
         :param url: url du serveur
-        :type url: str
-        :param params: parametres a envoyer
-        :type params: dict
+        :param params: parametres a envoyer au serveur
+        :type params: dict de string a string ('nom' : player_id)
 
-
-        :return: dictionnaire de reponse du serveur
-        :rtype: dict"""
+        :return: Reponse du serveur
+        """
         if params:
             query_string = urllib.parse.urlencode(params)
             data = query_string.encode("ascii")
@@ -285,15 +294,14 @@ class Controleur():
         """Generateur de nouveau nom, peut y avoir collision
 
         :return: nom du joueur
-        :rtype: str"""
+        """
         mon_nom = "PLAYER_" + str(random.randrange(100, 1000))
         return mon_nom
 
     def abandonner(self) -> None:
         """Fonction appelee par le bouton abandonner afin de
         quitter la partie
-
-        :rtype: None"""
+        """
         action = [self.mon_nom, "abandonner",
                   [self.mon_nom + ": J'ABANDONNE !"]]
         self.actionsrequises = action
@@ -302,46 +310,43 @@ class Controleur():
     # VOTRE CODE
 
     def creer_vaisseau(self, type_vaisseau: str) -> None:
-        """Fonction appelee afin de créer un vaisseau todo : make sure str
+        """Fonction appelee afin de créer un vaisseau
 
         :param type_vaisseau: type de vaisseau a creer
         :type type_vaisseau: str
-
-        :rtype: None"""
+        todo : make sure str
+        """
         self.actionsrequises.append(
             [self.mon_nom, "creervaisseau", [type_vaisseau]])
 
     def cibler_flotte(self, idorigine: str, iddestination: str,
                       type_cible: str) -> None:
-        """Fonction appelee afin de cibler une flotte
+        """
+        todo : JM
 
         :param idorigine: id de l'origine
-        :type idorigine: str
         :param iddestination: id de la destination
-        :type iddestination: str
         :param type_cible: type de cible
-        :type type_cible: str
-
-        :rtype: None"""
+        """
         self.actionsrequises.append([self.mon_nom, "ciblerflotte",
                                      [idorigine, iddestination, type_cible]])
 
     def afficher_etoile(self, joueur: str, cible: str) -> None:
         """Fonction appelee afin d'afficher une etoile dependant de
         son joueur
-
-        :"rtype: None"""
+        todo : JM
+        todo: confirm params type
+        """
         self.vue.afficher_etoile(joueur, cible)
 
     def lister_objet(self, objet: str, id: str) -> None:
-        """Fonction appelee afin de lister un objet
+        """Fonction appelee afin de lister un objet dans la vue
 
         :param objet: objet a lister
-        :type objet: str
         :param id: id de l'objet
-        :type id: str
-
-        :rtype: None"""
+        todo : JM
+        todo: confirm params type
+        """
         self.vue.lister_objet(objet, id)
 
 
