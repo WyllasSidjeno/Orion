@@ -1,5 +1,8 @@
 """Module qui contient la classe Ressource"""
 from __future__ import annotations
+
+from typing import Any
+
 from helper import AlwaysInt
 
 class Ressource(dict):
@@ -11,7 +14,8 @@ class Ressource(dict):
         - Energie
         - Nourriture """
 
-    def __init__(self, metal: int = 0, beton: int = 0, energie: int = 0, nourriture: int = 0, **kwargs):
+    def __init__(self, metal: int = 0, beton: int = 0,
+                 energie: int = 0, nourriture: int = 0, **kwargs):
         """Initialise une ressource avec les valeurs par defaut à 0"""
         super().__init__(**kwargs)
         self["Metal"] = AlwaysInt(metal)
@@ -19,8 +23,18 @@ class Ressource(dict):
         self["Energie"] = AlwaysInt(energie)
         self["Nourriture"] = AlwaysInt(nourriture)
 
-    def __add__(self, other: Ressource | dict) -> Ressource:
+    def __add__(self, other: Ressource | dict | Any) -> Ressource:
         """Additionne deux ressources"""
+        if isinstance(other, dict):
+            tempRessource = Ressource()
+            for key in other:
+                if key in self:
+                    tempRessource[key] = self[key] + other[key]
+            for key in self:
+                if key not in other:
+                    tempRessource[key] = self[key]
+            return tempRessource
+
         return Ressource(
             metal=self["Metal"] + other["Metal"],
             beton=self["Beton"] + other["Beton"],
@@ -28,8 +42,18 @@ class Ressource(dict):
             nourriture=self["Nourriture"] + other["Nourriture"]
         )
 
-    def __sub__(self, other: Ressource | dict) -> Ressource:
+    def __sub__(self, other: Ressource | dict| Any) -> Ressource:
         """Soustrait deux ressources"""
+        if isinstance(other, dict):
+            tempRessource = Ressource()
+            for key in other:
+                if key in self:
+                    if other[key] != 0:
+                        tempRessource[key] = self[key] - other[key]
+            for key in self:
+                if key not in other:
+                    tempRessource[key] = self[key]
+            return tempRessource
         return Ressource(
             metal=self["Metal"] - other["Metal"],
             beton=self["Beton"] - other["Beton"],
@@ -37,8 +61,18 @@ class Ressource(dict):
             nourriture=self["Nourriture"] - other["Nourriture"]
         )
 
-    def __truediv__(self, other: Ressource | dict) -> Ressource:
+    def __truediv__(self, other: Ressource | dict | Any) -> Ressource:
         """Divise une ressource par un entier"""
+        if isinstance(other, dict):
+            tempRessource = Ressource()
+            for key in other:
+                if key in self:
+                    if other[key] != 0:
+                        tempRessource[key] = self[key] / other[key]
+            for key in self:
+                if key not in other:
+                    tempRessource[key] = self[key]
+            return tempRessource
         return Ressource(
             metal=self["Metal"] / other,
             beton=self["Beton"] / other,
@@ -46,8 +80,21 @@ class Ressource(dict):
             nourriture=self["Nourriture"] / other
         )
 
-    def __mul__(self, other: Ressource | dict) -> Ressource:
+    def __mul__(self, other: Ressource | dict | Any) -> Ressource:
         """Multiplie une ressource par un entier"""
+
+        if(isinstance(other, dict)):
+            tempRessource = Ressource()
+            for key in other:
+                if key in self:
+                    if other[key] != 0:
+                        print(other[key])
+                        tempRessource[key] = self[key] * other[key]
+            for key in self:
+                if key not in other:
+                    tempRessource[key] = self[key]
+            return tempRessource
+
         return Ressource(
             metal=self["Metal"] * other,
             beton=self["Beton"] * other,
@@ -57,7 +104,10 @@ class Ressource(dict):
 
     def __str__(self) -> str:
         """Affiche les ressources"""
-        return f"Metal : {self['Metal']}, Beton : {self['Beton']}, Energie : {self['Energie']}, Nourriture : {self['Nourriture']}"
+        return f"Metal : {self['Metal']}," \
+               f" Beton : {self['Beton']}, " \
+               f"Energie : {self['Energie']}, " \
+               f"Nourriture : {self['Nourriture']}"
 
 
 # Main ne servant qu'à tester la classe Ressource
@@ -133,6 +183,17 @@ if __name__ == "__main__":
     # -> Beton 20
     # -> Energie 30
     # -> Nourriture 40
+
+    print(ressource1)
+
+    # Show the multiplication of a Ressource object by a dict
+    ressource1 = Ressource(metal=10, beton=20, energie=30, nourriture=40)
+    ressource2 = {"Metal": 2, "Beton": 3}
+    print(ressource2)
+
+    print(ressource1 * ressource2)
+
+
 
 
 
