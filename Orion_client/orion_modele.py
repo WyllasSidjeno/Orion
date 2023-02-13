@@ -267,9 +267,11 @@ class Joueur():
         """Liste des actions du joueur."""
         self.etoilescontrolees: list = [etoilemere]
         """Liste des etoiles controlees par le joueur."""
+
         self.flotte = {"Vaisseau": {},
                        "Cargo": {}}
         """Flotte du joueur."""
+
         self.actions = {"creervaisseau": self.creervaisseau,
                         "ciblerflotte": self.ciblerflotte}
         """Liste des actions possible du joueur."""
