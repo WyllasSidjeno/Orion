@@ -17,6 +17,7 @@ class Building():
     building_cost: dict = {}  # todo: Ressource class
     def __init__(self, name: str, description: str, upgrade_cost: dict,
                  output: dict | int, level: int, max_level: int):
+        """Constructeur de la classe Building"""
         # todo: Ressource class
         self.name = name
         self.description = description
@@ -31,6 +32,7 @@ class Building():
     # Abstract method that must be implemented in subclasses called upgrade
     @abstractmethod
     def upgrade(self):
+        """Méthode permettant d'améliorer un bâtiment"""
         raise NotImplementedError("Subclasses must implement upgrade method")
 
     @staticmethod
@@ -160,6 +162,7 @@ class ResearchCenter(Building):
     building_cost: dict = {}  # todo: Ressource class
 
     def __init__(self):
+        """Constructeur de la classe"""
         name = "Centre de recherche"
         description = "Un centre de recherche produisant des technologies"
         upgrade_cost: dict = {}  # todo: Ressource class
