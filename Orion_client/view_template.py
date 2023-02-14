@@ -147,6 +147,23 @@ class PlanetWindow(Frame):
                                            rely=0.72)
 
 
+class BuildingWindow(Frame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master)
+        # self.building_info = building_info
+        self.create_layout(**kwargs)
+
+    def create_layout(self, **kwargs):
+        self.configure(**kwargs)
+        self.bind("<Button-1>", self.on_click)
+        self.label = Label(self, text="Batiment", bg="grey", fg="white",
+                           font=("Arial", 10))
+        self.label.place(anchor="center", relx=0.5, rely=0.5)
+
+    def on_click(self, _):
+        print("click")
+
+
 if __name__ == "__main__":
     from tkinter import Tk
 
