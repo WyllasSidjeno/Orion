@@ -12,22 +12,18 @@ app.secret_key = "qwerasdf1234"
 """" The flask server secret key."""
 
 class Dbman():
-    """Gère la base de données.
-
-    :type conn: sqlite3.Connection
-    :type curs: sqlite3.Cursor"""
+    """Gère la base de données."""
     def __init__(self):
         """Initialise la base de donnée."""
-        self.conn = sqlite3.connect("RTS_serveur_DB.db")
+        self.conn: sqlite3.Connection = sqlite3.connect("RTS_serveur_DB.db")
         """Représente la connexion à la base de données."""
-        self.curs = self.conn.cursor()
+        self.curs: sqlite3.Cursor = self.conn.cursor()
         """Représente le curseur de la base de données."""
 
     def setpartiecourante(self, chose: str) -> None:
         """Choisis la partie courante.
-        :param str chose: L'état choisis. todo: JM
-
-        :rtype: None"""
+        :param str chose: L'état choisis.
+        """
         self.vidertable("partiecourante")
         self.curs.execute("Insert into partiecourante (etat) VALUES(?);",
                           (chose,))
@@ -35,9 +31,8 @@ class Dbman():
 
     def setinitaleatoire(self, chose: str) -> None:
         """Initalise la partie avec une configuration aléatoire.
-        :param str chose: L'état choisis todo: JM
-
-        :rtype: None"""
+        :param chose: L'état choisis
+        """
         self.vidertable("initaleatoire")
         self.curs.execute(
             "Insert into initaleatoire (initaleatoire) VALUES(?);",
@@ -46,18 +41,16 @@ class Dbman():
 
     def setnbrIA(self, chose: str) -> None:
         """Choisis le nombre d'IA.
-        :param str chose: Le nombre d'IA choisis
-
-        :rtype: None"""
+        :param chose: Le nombre d'IA choisis
+        """
         self.vidertable("nbrIA")
         self.curs.execute("Insert into nbrIA (nbrIA) VALUES(?);", (chose,))
         self.conn.commit()
 
     def setcadrecourant(self, chose: str) -> None:
         """Choisis le cadre courant.
-        :param str chose: Le cadre courant choisis
-
-        :rtype: None"""
+        :param chose: Le cadre courant choisis
+        """
         self.vidertable("cadrecourant")
         self.curs.execute("Insert into cadrecourant (cadrecourant) VALUES(?);",
                           (chose,))
@@ -65,20 +58,17 @@ class Dbman():
 
     def ajouterjoueur(self, nom: str) -> None:
         """Ajoute un joueur à la base de données.
-        :param str nom: Le nom du joueur à ajouter todo: JM
-
-        :rtype: None"""
+        :param nom: Le nom du joueur à ajouter todo: JM
+        """
         self.curs.execute("Insert into joueurs (nom) VALUES(?);", (nom,))
         self.conn.commit()
 
     def ajouteractionaujoueur(self, nom: str,
                               cadrejeu: str, action: str) -> None:
         """Ajoute une action à un joueur.
-        :param str nom: Le nom du joueur.
-        :param str cadrejeu: Le cadre de jeu.
-        :param str action: L'action à ajouter.
-
-        :rtype: None
+        :param nom: Le nom du joueur.
+        :param cadrejeu: Le cadre de jeu.
+        :param action: L'action à ajouter.
         """
         self.curs.execute("Insert into actionsenattente "
                           "(nom,cadrejeu,action)"
@@ -88,7 +78,7 @@ class Dbman():
     def getinfo(self, table: str) -> list:
         """"Sert à récupérer les informations d'une table.
 
-        :param str table: Le nom de la table.
+        :param table: Le nom de la table.
 
         :return: Les informations de la table.
         :rtype: list"""
@@ -102,9 +92,9 @@ class Dbman():
         """Sert à récupérer les informations d'une table en fonction
         d'un champ.
 
-        :param str table: Le nom de la table.
-        :param str champ: Le champ à vérifier.
-        :param str valeur: La valeur à vérifier.
+        :param table: Le nom de la table.
+        :param champ: Le champ à vérifier.
+        :param valeur: La valeur à vérifier.
 
         :return: Les informations de la table.
         :rtype: list"""
@@ -115,8 +105,7 @@ class Dbman():
 
     def resetdb(self) -> None:
         """Réinitialise la base de données.
-
-        :rtype: None"""
+        """
         tables = ["partiecourante", "joueurs", "cadrecourant",
                   "actionsenattente", "initaleatoire", "nbrIA"]
 
@@ -136,35 +125,30 @@ class Dbman():
     def effaceractionsjoueur(self, joueur: str)  -> None:
         """Efface les actions d'un joueur de la table.
 
-        :param str joueur: Le nom du joueur.
-
-        :rtype: None"""
+        :param joueur: Le nom du joueur.
+        """
         self.curs.execute("DELETE from actionsenattente WHERE  nom=?", (joueur,))
         self.conn.commit()
 
     def vidertable(self, table: str)  -> None:
         """Vide une table.
 
-        :param str table: Le nom de la table.
-
-        :rtype: None
+        :param table: Le nom de la table.
         """
         self.curs.execute("DELETE from " + table)
         self.conn.commit()
 
     def fermerdb(self)  -> None:
         """Ferme la base de données.
-
-        :rtype: None"""
+        """
         self.conn.close()
 
     def updatejoueur(self, nomjoueur: str, cadre: str) -> None:
         """Met à jour le dernier cadre de jeu d'un joueur.
 
-        :param str nomjoueur: Le nom du joueur.
-        :param str cadre: Le cadre de jeu.
-
-        :rtype: None TODO: JM"""
+        :param nomjoueur: Le nom du joueur.
+        :param cadre: Le cadre de jeu.
+        """
         # Make it so PyCharm will not warm me for SQL Dialect not configured
         monsql = "UPDATE joueurs SET derniercadrejeu = ? WHERE nom = ? ;"
         self.curs.execute(monsql, (cadre, nomjoueur))

@@ -313,7 +313,6 @@ class Controleur():
         """Fonction appelee afin de créer un vaisseau
 
         :param type_vaisseau: type de vaisseau a creer
-        :type type_vaisseau: str
         todo : make sure str
         """
         self.actionsrequises.append(
