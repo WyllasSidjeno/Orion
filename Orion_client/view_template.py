@@ -148,20 +148,49 @@ class PlanetWindow(Frame):
 
 
 class BuildingWindow(Frame):
-    def __init__(self, master, **kwargs):
+    name_label: Label
+    level_label: Label
+    upgrade_canvas: Canvas
+
+    def __init__(self, master):
         super().__init__(master)
         # self.building_info = building_info
-        self.create_layout(**kwargs)
+        self.create_layout()
+        self.bind_on_click()
+        self.config(bg=hexDark, bd=2,
+                    relief="solid",
+                    width=75, height=75)
 
-    def create_layout(self, **kwargs):
-        self.configure(**kwargs)
-        self.bind("<Button-1>", self.on_click)
-        self.label = Label(self, text="Batiment", bg="grey", fg="white",
-                           font=("Arial", 10))
-        self.label.place(anchor="center", relx=0.5, rely=0.5)
+    def create_layout(self):
+        """Crée le layout du bâtiment window"""
+        self.name_label = Label(self, text="Batiment", bg=hexDark,
+                                fg="white", font=("Arial", 10))
+        self.name_label.place(anchor="center", relx=0.45, rely=0.2)
 
-    def on_click(self, _):
-        print("click")
+        self.level_label = Label(self, text="Tier 1", bg=hexDark,
+                                 fg="white", font=("Arial", 10))
+        self.level_label.place(anchor="center", relx=0.7, rely=0.8)
+
+        self.upgrade_canvas = Canvas(self, bg=hexDark, width=20, height=20,
+                                     bd=0, highlightthickness=0)
+        self.upgrade_canvas.place(anchor="center", relx=0.2, rely=0.8)
+
+        # make an upward pointing arrow
+
+        self.upgrade_canvas.create_polygon(10, 0, 0, 20, 20, 20, fill="white")
+
+    def bind_on_click(self):
+        for widget in self.winfo_children():
+            widget.bind("<Button-1>", self.on_window_click)
+        self.bind("<Button-1>", self.on_window_click)
+
+        self.upgrade_canvas.bind("<Button-1>", self.on_upgrade_click)
+
+    def on_window_click(self, _):
+        print("Window clicked")
+
+    def on_upgrade_click(self, _):
+        print("Upgrade clicked")
 
 
 if __name__ == "__main__":
