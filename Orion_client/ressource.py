@@ -5,6 +5,7 @@ from typing import Any
 
 from helper import AlwaysInt
 
+
 class Ressource(dict):
     """Classe qui contient les ressources du jeu
 
@@ -26,14 +27,14 @@ class Ressource(dict):
     def __add__(self, other: Ressource | dict | Any) -> Ressource:
         """Additionne deux ressources"""
         if isinstance(other, dict):
-            tempRessource = Ressource()
-            for key in other:
+            temp_ressource = Ressource()
+            for key3 in other:
                 if key in self:
-                    tempRessource[key] = self[key] + other[key]
-            for key in self:
-                if key not in other:
-                    tempRessource[key] = self[key]
-            return tempRessource
+                    temp_ressource[key3] = self[key3] + other[key3]
+            for key2 in self:
+                if key2 not in other:
+                    temp_ressource[key2] = self[key2]
+            return temp_ressource
 
         return Ressource(
             metal=self["Metal"] + other["Metal"],
@@ -42,18 +43,18 @@ class Ressource(dict):
             nourriture=self["Nourriture"] + other["Nourriture"]
         )
 
-    def __sub__(self, other: Ressource | dict| Any) -> Ressource:
+    def __sub__(self, other: Ressource | dict | Any) -> Ressource:
         """Soustrait deux ressources"""
         if isinstance(other, dict):
-            tempRessource = Ressource()
-            for key in other:
-                if key in self:
-                    if other[key] != 0:
-                        tempRessource[key] = self[key] - other[key]
-            for key in self:
-                if key not in other:
-                    tempRessource[key] = self[key]
-            return tempRessource
+            temp_ressource = Ressource()
+            for key2 in other:
+                if key2 in self:
+                    if other[key2] != 0:
+                        temp_ressource[key2] = self[key2] - other[key2]
+            for key3 in self:
+                if key3 not in other:
+                    temp_ressource[key3] = self[key3]
+            return temp_ressource
         return Ressource(
             metal=self["Metal"] - other["Metal"],
             beton=self["Beton"] - other["Beton"],
@@ -64,15 +65,15 @@ class Ressource(dict):
     def __truediv__(self, other: Ressource | dict | Any) -> Ressource:
         """Divise une ressource par un entier"""
         if isinstance(other, dict):
-            tempRessource = Ressource()
-            for key in other:
-                if key in self:
-                    if other[key] != 0:
-                        tempRessource[key] = self[key] / other[key]
-            for key in self:
-                if key not in other:
-                    tempRessource[key] = self[key]
-            return tempRessource
+            temp_ressource = Ressource()
+            for key2 in other:
+                if key2 in self:
+                    if other[key2] != 0:
+                        temp_ressource[key2] = self[key2] / other[key2]
+            for key3 in self:
+                if key3 not in other:
+                    temp_ressource[key3] = self[key3]
+            return temp_ressource
         return Ressource(
             metal=self["Metal"] / other,
             beton=self["Beton"] / other,
@@ -83,17 +84,16 @@ class Ressource(dict):
     def __mul__(self, other: Ressource | dict | Any) -> Ressource:
         """Multiplie une ressource par un entier"""
 
-        if(isinstance(other, dict)):
-            tempRessource = Ressource()
-            for key in other:
-                if key in self:
-                    if other[key] != 0:
-                        print(other[key])
-                        tempRessource[key] = self[key] * other[key]
-            for key in self:
-                if key not in other:
-                    tempRessource[key] = self[key]
-            return tempRessource
+        if isinstance(other, dict):
+            temp_ressource = Ressource()
+            for key2 in other:
+                if key2 in self:
+                    if other[key2] != 0:
+                        temp_ressource[key2] = self[key2] * other[key2]
+            for key3 in self:
+                if key3 not in other:
+                    temp_ressource[key3] = self[key3]
+            return temp_ressource
 
         return Ressource(
             metal=self["Metal"] * other,
@@ -130,7 +130,8 @@ if __name__ == "__main__":
     print(ressource)
     # -> Metal : 10, Beton : 20, Energie : 30, Nourriture : 40
     # 4
-    ressource = Ressource(metal=10, beton=20, energie=30, nourriture=40, test=50)
+    ressource = Ressource(metal=10, beton=20, energie=30, nourriture=40,
+                          test=50)
     print(ressource)
     # -> Metal : 10, Beton : 20, Energie : 30, Nourriture : 40
     # 5
@@ -192,8 +193,3 @@ if __name__ == "__main__":
     print(ressource2)
 
     print(ressource1 * ressource2)
-
-
-
-
-
