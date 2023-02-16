@@ -1,12 +1,11 @@
-import random
 from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from view_template import hexDarkGrey, hexDark, GameCanvas
+from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from orion_modele import Modele as Model
+    from Orion_client.model import Model
 
 
 class App(Tk):

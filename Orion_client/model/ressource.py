@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from helper import AlwaysInt
+from Orion_client.helper import AlwaysInt
 
 
 class Ressource(dict):
@@ -29,7 +29,7 @@ class Ressource(dict):
         if isinstance(other, dict):
             temp_ressource = Ressource()
             for key3 in other:
-                if key in self:
+                if key3 in self:
                     temp_ressource[key3] = self[key3] + other[key3]
             for key2 in self:
                 if key2 not in other:

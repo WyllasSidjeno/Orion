@@ -22,7 +22,7 @@ class PlanetWindow(Frame):
             # todo : Any building
             "header": {
                 "name": "Mars",
-                "owner": "Joueur 1",
+                "owner": "Player 1",
                 "population": 1000
             },
             "output": {
@@ -325,7 +325,7 @@ class GameCanvas(Canvas):
                              wormhole.porte_a.y +
                              wormhole.porte_a.pulse,
                              fill=wormhole.porte_a.couleur,
-                             tags="wormhole")
+                             tags="Wormhole")
 
             self.create_oval(wormhole.porte_b.x,
                              wormhole.porte_b.y,
@@ -334,7 +334,7 @@ class GameCanvas(Canvas):
                              wormhole.porte_b.y +
                              wormhole.porte_b.pulse,
                              fill=wormhole.porte_b.couleur,
-                             tags="wormhole")
+                             tags="Wormhole")
 
     def horizontal_scroll(self, event):
         """Scroll the canvas horizontally. """
@@ -348,7 +348,7 @@ class GameCanvas(Canvas):
         """Refresh the canvas.
         :param mod: The model"""
         self.delete("stars_owned")
-        self.delete("wormhole")
+        self.delete("Wormhole")
         self.delete("spaceship")
 
         owned_stars = self.get_player_stars(mod)
