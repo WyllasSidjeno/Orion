@@ -61,21 +61,7 @@ class ConnectionScreen(Frame):
         self.player_list = Canvas(self, width=300, height=100,
                                   bg=hexDarkGrey)
 
-
-        player_list = {"player1": "ready", "player2": "not ready",
-                       "player3": "ready", "player4": "not ready", }
-        for i, player in enumerate(player_list):
-            player_name = Label(self.player_list, text=player,
-                                bg=hexDarkGrey, fg="white",
-                                font=("Arial", 10))
-            player_name.place(anchor="w", relx=0.1, rely=0.2 + i * 0.2)
-            player_state = Label(self.player_list, text=player_list[player],
-                                 bg=hexDarkGrey, fg="white",
-                                 font=("Arial", 10))
-            player_state.place(anchor="w", relx=0.7, rely=0.2 + i * 0.2)
-
         self.start_button = Button(self, text="Start Game")
-
 
         # todo: change for the variables all the hard coded values
 
@@ -103,8 +89,7 @@ class ConnectionScreen(Frame):
         self.connect_button.place(anchor="center",
                                   relx=0.45, rely=0.5)
         self.restart_button.place(anchor="center",
-                                    relx=0.55, rely=0.5)
-
+                                  relx=0.55, rely=0.5)
 
         self.player_list.place(anchor="center", relx=0.5, rely=0.7)
 
@@ -117,16 +102,14 @@ class ConnectionScreen(Frame):
             self.game_state_label_value.config(text=state)
 
     def update_player_list(self, joueurs):
-        print(joueurs)
+        for i in self.player_list.winfo_children():
+            i.destroy()
         for i, player in enumerate(joueurs):
-            player_name = Label(self.player_list, text=player,
-                                bg=hexDarkGrey, fg="white",
-                                font=("Arial", 10))
-            player_name.place(anchor="w", relx=0.1, rely=0.2 + i * 0.2)
-            player_state = Label(self.player_list, text=joueurs[player],
-                                 bg=hexDarkGrey, fg="white",
-                                 font=("Arial", 10))
-            player_state.place(anchor="w", relx=0.7, rely=0.2 + i * 0.2)
+            if not player == 0:
+                player_name = Label(self.player_list, text=player,
+                                    bg=hexDarkGrey, fg="white",
+                                    font=("Arial", 10))
+                player_name.place(anchor="w", relx=0.5, rely=0.2 + i * 0.2)
 
 
 class GameView(Frame):
@@ -144,11 +127,9 @@ class GameView(Frame):
                               relief="solid")
 
         self.scrollX = Scrollbar(self, orient="horizontal",
-                                 background=hexDark,width=0)
-
+                                 background=hexDark, width=0)
 
         self.scrollY = Scrollbar(self, orient="vertical", width=0)
-
 
         self.canvas = Canvas(self, bg=hexDark, bd=1,
                              relief="solid", highlightthickness=0,
@@ -175,7 +156,7 @@ class GameView(Frame):
         self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
         self.canvas.grid(row=1, column=1, columnspan=9, rowspan=9,
-                            sticky="nsew")
+                         sticky="nsew")
 
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
@@ -183,13 +164,12 @@ class GameView(Frame):
         self.scrollX.lift(self.canvas)
         self.scrollY.lift(self.canvas)
 
-        #make the canvas bigger to try the scroll
-        self.canvas.configure(scrollregion = (0,0,9000,9000))
+        # make the canvas bigger to try the scroll
+        self.canvas.configure(scrollregion=(0, 0, 9000, 9000))
 
     def show_game(self, mod):
         self.show_stars(mod)
-        #self.show_planets(mod)
-
+        # self.show_planets(mod)
 
     def show_stars(self, mod):
         for i in range(10000):
@@ -202,19 +182,13 @@ class GameView(Frame):
 
     def show_planets(self, etoiles):
         for etoile in etoiles:
-            self.canvas.create_oval(etoile.x, etoile.y, etoile.x + etoile.rayon,
-                                    etoile.y + etoile.rayon, fill=etoile.couleur,
-                                    tags=("etoile", etoile.proprietaire, etoile.id))
-            #todo : minimap, joueur
-
-
-
-
-
-
-
-
-
+            self.canvas.create_oval(etoile.x, etoile.y,
+                                    etoile.x + etoile.rayon,
+                                    etoile.y + etoile.rayon,
+                                    fill=etoile.couleur,
+                                    tags=(
+                                    "etoile", etoile.proprietaire, etoile.id))
+            # todo : minimap, joueur
 
 
 if __name__ == "__main__":
@@ -222,5 +196,3 @@ if __name__ == "__main__":
     app.view.connect_button.config(
         command=lambda: app.change_view(GameView, app))
     app.mainloop()
-
-
