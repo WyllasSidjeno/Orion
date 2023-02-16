@@ -231,7 +231,8 @@ class GameCanvas(Canvas):
 
     It is a 9000x9000 square canvas that is scrollable.
     It has stars, galaxy, wormholes, spaceship, etc."""
-    def __init__(self, master, mod, scrollx: Scrollbar, scrolly:Scrollbar):
+
+    def __init__(self, master, mod, scrollx: Scrollbar, scrolly: Scrollbar):
         """Initialize the canvas.
         :param master: The master widget
         :param mod: The model
@@ -261,14 +262,14 @@ class GameCanvas(Canvas):
         self.generate_owned_stars(owned_stars)
         self.generate_wormhole(mod.trou_de_vers)
 
-
-    def get_player_stars(self, mod):
+    @staticmethod
+    def get_player_stars(mod):
         """Get all the stars owned by the player.
         :param mod: The model"""
         stars = []
         for star in mod.joueurs.keys():
             for j in mod.joueurs[star].etoilescontrolees:
-                j.col = "blue" #mod.joueurs[star].couleur
+                j.col = "blue"  # mod.joueurs[star].couleur
                 stars.append(j)
         return stars
 
@@ -286,25 +287,20 @@ class GameCanvas(Canvas):
             col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
             self.create_oval(x, y, x + size, y + size,
                              fill=col, tags="background")
+
     def generate_unowned_stars(self, stars):
         """Create the stars on the canvas.
         :param stars: The list of stars to create"""
         for star in stars:
-            self.generate_star(star)
+            self.generate_star(star, "stars_unowned")
+
     def generate_owned_stars(self, stars):
         """Create the stars on the canvas.
         :param stars: The list of stars to create"""
         for star in stars:
-            size = star.taille * 2
-            self.create_oval(star.x - size,
-                                star.y - size,
-                                star.x + size,
-                                star.y + size,
-                                fill=star.col,
-                                tags=("stars", star.id,
-                                      star.proprietaire))
+            self.generate_star(star, "stars_owned")
 
-    def generate_star(self, star):
+    def generate_star(self, star, tag : str):
         """Create a star on the canvas.
         :param star: The star to create"""
         size = star.taille * 2
@@ -313,7 +309,7 @@ class GameCanvas(Canvas):
                          star.x + size,
                          star.y + size,
                          fill="grey",
-                         tags=("stars", star.id,
+                         tags=(tag, star.id,
                                star.proprietaire)
                          )
 
@@ -322,8 +318,6 @@ class GameCanvas(Canvas):
         :param wormholes: The list of wormholes to create"""
 
         for wormhole in wormholes:
-            print(wormhole.porte_a.x, wormhole.porte_a.y,
-                  wormhole.porte_a.pulse)
             self.create_oval(wormhole.porte_a.x,
                              wormhole.porte_a.y,
                              wormhole.porte_a.x +
@@ -350,11 +344,13 @@ class GameCanvas(Canvas):
         """Scroll the canvas vertically. """
         self.yview_scroll(-1 * int(event.delta / 120), "units")
 
+    def refresh(self, mod):
+        """Refresh the canvas.
+        :param mod: The model"""
+        self.delete("stars_owned")
+        self.delete("wormhole")
+        self.delete("spaceship")
 
-if __name__ == "__main__":
-    from tkinter import Tk
-
-    root = Tk()
-    root.geometry("400x400")
-    PlanetWindow(root).pack()
-    root.mainloop()
+        owned_stars = self.get_player_stars(mod)
+        self.generate_owned_stars(owned_stars)
+        self.generate_wormhole(mod.trou_de_vers)
