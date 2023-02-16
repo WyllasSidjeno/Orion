@@ -14,8 +14,6 @@ from typing import Callable
 import random
 import ast
 
-from _distutils_hack import override
-
 from id import *
 from helper import Helper as hlp
 
@@ -406,7 +404,6 @@ class Modele():
         :param parent: le jeu auquel le modèle appartient
         :param joueurs: les joueurs du jeu
         """
-        self.parent = parent  # todo: type
         self.largeur: int = 9000
         self.hauteur:int = 9000
         self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
@@ -512,11 +509,6 @@ class Modele():
         #      fait des actions - on les activera ici...
         for i in self.trou_de_vers:
             i.jouer_prochain_coup()
-
-    def creer_bibittes_spatiales(self, nb_biittes: int=0):
-        """Crée des biittes spatiales. Non utilisé pour le moment.
-        """
-        pass
 
     #############################################################################
     # ATTENTION : NE PAS TOUCHER
