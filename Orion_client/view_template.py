@@ -1,4 +1,5 @@
-from tkinter import Frame, Label, Canvas
+import random
+from tkinter import Frame, Label, Canvas, Scrollbar
 from typing import Any
 
 hexDarkGrey = "#36393f"
@@ -222,6 +223,104 @@ class BuildingWindow(Frame):
 
     def on_upgrade_click(self, _):
         print("Upgrade clicked")
+
+
+class GameCanvas(Canvas):
+    """ Represent the principal game canvas - This is where the game
+    "action" is at.
+
+    It is a 9000x9000 square canvas that is scrollable.
+    It has stars, galaxy, wormholes, spaceship, etc."""
+    def __init__(self, master, mod, scrollx: Scrollbar, scrolly:Scrollbar):
+        """Initialize the canvas.
+        :param master: The master widget
+        :param mod: The model
+        :param scrollx: The horizontal scrollbar
+        :param scrolly: The vertical scrollbar
+        """
+        super().__init__(master)
+
+        self.configure(bg=hexDark, bd=1,
+                       relief="solid", highlightthickness=0,
+                       xscrollcommand=scrollx.set,
+                       yscrollcommand=scrolly.set)
+
+        scrollx.config(command=self.xview)
+        scrolly.config(command=self.yview)
+
+        self.configure(scrollregion=(0, 0, 9000, 9000))
+        self.initialize(mod)
+
+    def initialize(self, mod):
+        """Initialize the canvas during its first creation.
+        :param mod: The model"""
+        self.generate_background(mod.largeur, mod.hauteur,
+                                 len(mod.etoiles) * 50)
+        self.generate_stars(mod.etoiles)
+        self.generate_wormhole(mod.trou_de_vers)
+
+    def generate_background(self, width, height, n):
+        """Create a background of stars that
+         are randomly placed on the canvas.
+        :param width: Width of the canvas
+        :param height: Height of the canvas
+        :param n: Number of stars to create"""
+        for i in range(n):
+            x = random.randrange(int(width))
+            y = random.randrange(int(height))
+            size = random.randrange(3) + 1
+            # Similar to : size = random.randint(1, 3)
+            col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
+            self.create_oval(x, y, x + size, y + size,
+                             fill=col, tags="background")
+
+    def generate_stars(self, stars):
+        """Create the stars on the canvas.
+        :param stars: The list of stars to create"""
+
+        for star in stars:
+            size = star.taille * 2  # Code à JM legacy
+            self.create_oval(star.x - size,
+                             star.y - size,
+                             star.x + size,
+                             star.y + size,
+                             fill="grey",
+                             tags=("stars", star.id,
+                                   star.proprietaire)
+                             )
+
+    def generate_wormhole(self, wormholes):
+        """Create the wormholes on the canvas.
+        :param wormholes: The list of wormholes to create"""
+
+        for wormhole in wormholes:
+            print(wormhole.porte_a.x, wormhole.porte_a.y,
+                  wormhole.porte_a.pulse)
+            self.create_oval(wormhole.porte_a.x,
+                             wormhole.porte_a.y,
+                             wormhole.porte_a.x +
+                             wormhole.porte_a.pulse,
+                             wormhole.porte_a.y +
+                             wormhole.porte_a.pulse,
+                             fill=wormhole.porte_a.couleur,
+                             tags="wormhole")
+
+            self.create_oval(wormhole.porte_b.x,
+                             wormhole.porte_b.y,
+                             wormhole.porte_b.x +
+                             wormhole.porte_b.pulse,
+                             wormhole.porte_b.y +
+                             wormhole.porte_b.pulse,
+                             fill=wormhole.porte_b.couleur,
+                             tags="wormhole")
+
+    def horizontal_scroll(self, event):
+        """Scroll the canvas horizontally. """
+        self.xview_scroll(-1 * int(event.delta / 120), "units")
+
+    def vertical_scroll(self, event):
+        """Scroll the canvas vertically. """
+        self.yview_scroll(-1 * int(event.delta / 120), "units")
 
 
 if __name__ == "__main__":
