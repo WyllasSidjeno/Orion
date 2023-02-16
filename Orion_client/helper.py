@@ -7,6 +7,19 @@ import math
 from typing import Any
 import functools
 
+prochainid: int = 0
+"""Prochain identifiant a utiliser."""
+
+def get_prochain_id() -> str:
+    """Recupere le prochain id a utiliser.
+
+    :return: L'ID a utiliser.
+    :rtype: str
+    """
+    global prochainid
+    prochainid += 1
+    return f'id_{prochainid}'
+
 class Helper(object):
     """Classe de geometrie 2D
 

@@ -5,8 +5,8 @@ import urllib.parse
 import urllib.request
 from random import random, seed
 
-from Orion_client.view import App, GameView
-from Orion_client.orion_modele import Modele as Model
+from Orion_client.view.view import App
+from Orion_client.model.model import Model
 
 
 class Controller:
