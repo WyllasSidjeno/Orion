@@ -99,13 +99,15 @@ class Controller():
         self.app.change_view(self.model)
 
         self.app.view.canvas.bind("<MouseWheel>",
-                                  self.app.view.vertical_scroll)
+                                  self.app.view.canvas.vertical_scroll)
         self.app.view.canvas.bind("<Control-MouseWheel>", self.app.
-                                  view.horizontal_scroll)
+                                  view.canvas.horizontal_scroll)
 
         self.app.view.canvas.bind("<Button-1>", self.print_tags) # DEBUG
     def print_tags(self, event):
         print(self.app.view.canvas.gettags("current"))
+        # xy
+        print(self.app.view.canvas.coords("current"))
 
 
 
