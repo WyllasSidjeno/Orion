@@ -139,7 +139,6 @@ class GameView(Frame):
 
         self.configure_grid()
 
-
     def configure_grid(self):
         """Configures the grid of the game view."""
         self.grid_propagate(False)
@@ -163,8 +162,5 @@ class GameView(Frame):
         self.scrollX.lift(self.canvas) # todo: check if it's necessary
         self.scrollY.lift(self.canvas) # todo: check if it's necessary
 
-
-
     def refresh(self, mod):
-        pass
-        # tags
+        self.canvas.refresh(mod)
