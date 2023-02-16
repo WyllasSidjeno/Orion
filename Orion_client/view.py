@@ -1,9 +1,12 @@
 import random
-from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar, \
-    HORIZONTAL, VERTICAL
+from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.orion_modele import Etoile
 from view_template import hexDarkGrey, hexDark
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from orion_modele import Modele as Model
 
 
 class App(Tk):
@@ -15,10 +18,10 @@ class App(Tk):
         self.view = ConnectionScreen(self, server_url, username)
         self.view.pack(fill="both", expand=True)
 
-    def change_view(self, view, master):
+    def change_view(self, mod):
         self.view.destroy()
         self.minsize(720, 480)
-        self.view = view(master)
+        self.view = GameView(self, mod)
         self.view.pack(fill="both", expand=True)
 
 
@@ -113,7 +116,7 @@ class ConnectionScreen(Frame):
 
 
 class GameView(Frame):
-    def __init__(self, master):
+    def __init__(self, master, mod):
         super().__init__(master)
 
         self.config(bg=hexDark, bd=2,
@@ -127,9 +130,9 @@ class GameView(Frame):
                               relief="solid")
 
         self.scrollX = Scrollbar(self, orient="horizontal",
-                                 background=hexDark, width=0)
+                                 background=hexDark)
 
-        self.scrollY = Scrollbar(self, orient="vertical", width=0)
+        self.scrollY = Scrollbar(self, orient="vertical")
 
         self.canvas = Canvas(self, bg=hexDark, bd=1,
                              relief="solid", highlightthickness=0,
@@ -140,7 +143,8 @@ class GameView(Frame):
         self.scrollY.config(command=self.canvas.yview)
 
         self.configure_grid()
-        self.show_game("assets/map1.txt")
+        self.create_background(mod.largeur, mod.hauteur)
+        self.generate(mod)
 
     def configure_grid(self):
         self.grid_propagate(False)
@@ -164,35 +168,58 @@ class GameView(Frame):
         self.scrollX.lift(self.canvas)
         self.scrollY.lift(self.canvas)
 
-        # make the canvas bigger to try the scroll
         self.canvas.configure(scrollregion=(0, 0, 9000, 9000))
 
-    def show_game(self, mod):
-        self.show_stars(mod)
-        # self.show_planets(mod)
 
-    def show_stars(self, mod):
+
+    def create_background(self, x,y):
         for i in range(10000):
-            x = random.randint(0, 9000)
-            y = random.randint(0, 9000)
+            x = random.randint(0, x)
+            y = random.randint(0, y)
             n = random.randint(0, 3)
             col = random.choice(["LightYellow", "azure1", "pink"])
             self.canvas.create_oval(x, y, x + n, y + n, fill=col,
                                     tags="background")
 
-    def show_planets(self, etoiles):
-        for etoile in etoiles:
-            self.canvas.create_oval(etoile.x, etoile.y,
-                                    etoile.x + etoile.rayon,
-                                    etoile.y + etoile.rayon,
-                                    fill=etoile.couleur,
-                                    tags=(
-                                    "etoile", etoile.proprietaire, etoile.id))
-            # todo : minimap, joueur
+    def generate(self, mod):
+        self.generate_stars(mod.etoiles)
+        self.generate_wormhole(mod.trou_de_vers)
+
+    def generate_stars(self, stars):
+       for star in stars :
+              self.canvas.create_oval(star.x, star.y, star.x +
+                                      star.taille, star.y + star.taille,
+                                      fill="grey", tags="stars")
+
+    def generate_wormhole(self, wormholes):
+        for wormhole in wormholes:
+            self.canvas.create_oval(wormhole.porte_a.x,
+                                    wormhole.porte_a.y,
+                                    wormhole.porte_a.x +
+                                    wormhole.porte_a.pulse,
+                                    wormhole.porte_a.y +
+                                    wormhole.porte_a.pulse,
+                                    fill=wormhole.porte_a.couleur,
+                                    tags="wormhole")
+
+            self.canvas.create_oval(wormhole.porte_b.x,
+                                    wormhole.porte_b.y,
+                                    wormhole.porte_b.x +
+                                    wormhole.porte_b.pulse,
+                                    wormhole.porte_b.y +
+                                    wormhole.porte_b.pulse,
+                                    fill=wormhole.porte_b.couleur,
+                                    tags="wormhole")
+
+    def horizontal_scroll(self, event):
+        self.canvas.xview_scroll(-1 * int(event.delta / 120), "units")
+        # will scroll left or right depending on the sign of the delta
+
+    def vertical_scroll(self, event):
+        self.canvas.yview_scroll(-1 * int(event.delta / 120), "units")
+        # will scroll up or down depending on the sign of the delta
 
 
-if __name__ == "__main__":
-    app = App("127.0.0.1", "Jean")
-    app.view.connect_button.config(
-        command=lambda: app.change_view(GameView, app))
-    app.mainloop()
+    def refresh(self, mod):
+        pass
+        #tags

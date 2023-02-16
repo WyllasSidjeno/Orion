@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.request
 from random import random, seed
 
-from Orion_client.view import App
+from Orion_client.view import App, GameView
 from Orion_client.orion_modele import Modele as Model
 
 
@@ -22,6 +22,8 @@ class Controller():
         self.app = App(self.urlserveur, self.username)
 
         self.bind_server_buttons()
+
+        self.after_id = None
 
 
 
@@ -76,26 +78,36 @@ class Controller():
         url = self.urlserveur+"/boucler_sur_lobby"
         params = {"nom": self.username}
         temp = self.call_server(url, params)
+        print(temp)
         if 'courante' in temp:
             self.start_game(temp)
         else:
             self.joueurs = temp
             self.app.view.update_player_list(self.joueurs[0])
-            self.app.after(1000, self.update_lobby)
+            self.after_id = self.app.after(1000, self.update_lobby)
             self.app.view.start_button.bind("<Button-1>",
                                             self.start_game)
 
     def start_game(self, _):
-
-        print("Starting game...")
         seed(12471)
-
+        ## Stop the update_lobby loop
+        self.app.after_cancel(self.after_id)
         listejoueurs = []
-
         for i in self.joueurs:
             listejoueurs.append(i[0])
+        self.model = Model(self, listejoueurs)
+        self.app.change_view(self.model)
 
-        self.model = Model(self,listejoueurs)
+        self.app.view.canvas.bind("<MouseWheel>",
+                                  self.app.view.vertical_scroll)
+        self.app.view.canvas.bind("<Control-MouseWheel>", self.app.
+                                  view.horizontal_scroll)
+
+        self.app.view.canvas.bind("<Button-1>", self.print_tags) # DEBUG
+    def print_tags(self, event):
+        print(self.app.view.canvas.gettags("current"))
+
+
 
 if __name__ == "__main__":
     controller = Controller()
