@@ -256,8 +256,21 @@ class GameCanvas(Canvas):
         :param mod: The model"""
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
-        self.generate_stars(mod.etoiles)
+        self.generate_unowned_stars(mod.etoiles)
+        owned_stars = self.get_player_stars(mod)
+        self.generate_owned_stars(owned_stars)
         self.generate_wormhole(mod.trou_de_vers)
+
+
+    def get_player_stars(self, mod):
+        """Get all the stars owned by the player.
+        :param mod: The model"""
+        stars = []
+        for star in mod.joueurs.keys():
+            for j in mod.joueurs[star].etoilescontrolees:
+                j.col = "blue" #mod.joueurs[star].couleur
+                stars.append(j)
+        return stars
 
     def generate_background(self, width, height, n):
         """Create a background of stars that
@@ -273,21 +286,36 @@ class GameCanvas(Canvas):
             col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
             self.create_oval(x, y, x + size, y + size,
                              fill=col, tags="background")
-
-    def generate_stars(self, stars):
+    def generate_unowned_stars(self, stars):
         """Create the stars on the canvas.
         :param stars: The list of stars to create"""
-
         for star in stars:
-            size = star.taille * 2  # Code à JM legacy
+            self.generate_star(star)
+    def generate_owned_stars(self, stars):
+        """Create the stars on the canvas.
+        :param stars: The list of stars to create"""
+        for star in stars:
+            size = star.taille * 2
             self.create_oval(star.x - size,
-                             star.y - size,
-                             star.x + size,
-                             star.y + size,
-                             fill="grey",
-                             tags=("stars", star.id,
-                                   star.proprietaire)
-                             )
+                                star.y - size,
+                                star.x + size,
+                                star.y + size,
+                                fill=star.col,
+                                tags=("stars", star.id,
+                                      star.proprietaire))
+
+    def generate_star(self, star):
+        """Create a star on the canvas.
+        :param star: The star to create"""
+        size = star.taille * 2
+        self.create_oval(star.x - size,
+                         star.y - size,
+                         star.x + size,
+                         star.y + size,
+                         fill="grey",
+                         tags=("stars", star.id,
+                               star.proprietaire)
+                         )
 
     def generate_wormhole(self, wormholes):
         """Create the wormholes on the canvas.
