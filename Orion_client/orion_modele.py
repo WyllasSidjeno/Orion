@@ -288,7 +288,7 @@ class Joueur():
                          self.etoilemere.y)
         self.flotte[type_vaisseau][v.id] = v
 
-        if self.nom == self.parent.parent.mon_nom:
+        if self.nom == self.parent.parent.username:
             self.parent.parent.lister_objet(type_vaisseau, v.id)
         return v
 
@@ -404,6 +404,7 @@ class Modele():
         :param parent: le jeu auquel le modèle appartient
         :param joueurs: les joueurs du jeu
         """
+        self.parent = parent
         self.largeur: int = 9000
         self.hauteur:int = 9000
         self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
@@ -488,6 +489,7 @@ class Modele():
         :param cadre: le cadre à jouer
         """
         #  NE PAS TOUCHER LES LIGNES SUIVANTES  ################
+        print("Jouer prochain coup : ", cadre)
         self.cadre_courant = cadre
         # insertion de la prochaine action demandée par le joueur
         if cadre in self.actions_a_faire:
@@ -531,4 +533,3 @@ class Modele():
                 else:
                     self.actions_a_faire[cadrecle].append(action)
     # NE PAS TOUCHER - FIN
-##############################################################################
