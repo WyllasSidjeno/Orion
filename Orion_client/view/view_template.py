@@ -15,38 +15,16 @@ class PlanetWindow(Frame):
     building_label: Label
     stockpile_boolean_label: Label
 
-    def __init__(self, parent: Any, **kwargs):
+    def __init__(self, parent: Any, planet_info, **kwargs):
         """Initialise la fenetre"""
         super().__init__(parent, **kwargs)
-        self.planetInfo: dict[str, dict[str, int | Any]] = {
-            # todo : Any building
-            "header": {
-                "name": "Mars",
-                "owner": "Player 1",
-                "population": 1000
-            },
-            "output": {
-                "Metal": 5,
-                "Beton": 5,
-                "Energie": 5,
-                "Nourriture": 5
-            },
-            "building": {
-                "b1",
-                "b2",
-                "b3",
-                "b4",
-                "b5",
-                "b6",
-            }
-        }
         self.headerFrame: Frame = \
             Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
         self.mainFrame: Frame = Frame(self, bg=hexDarkGrey, bd=1,
                                       relief="solid")
         self.sideFrame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
 
-        self.create_layout(self.planetInfo)
+        self.create_layout(planet_info)
 
     def create_layout(self, planet_info) -> None:
         """Crée le layout de la fenetre, c'est à dire les frames et les
@@ -231,6 +209,7 @@ class GameCanvas(Canvas):
 
     It is a 9000x9000 square canvas that is scrollable.
     It has stars, galaxy, wormholes, spaceship, etc."""
+    # todo : Make the tags more streamlined and documented.
     def __init__(self, master, mod, scrollx: Scrollbar, scrolly: Scrollbar):
         """Initialize the canvas.
         :param master: The master widget
@@ -273,18 +252,16 @@ class GameCanvas(Canvas):
         return stars
 
     def generate_background(self, width, height, n):
-        """Create a background of stars that
-         are randomly placed on the canvas.
+        """Create a background of stars that are randomly placed on the canvas.
         :param width: Width of the canvas
         :param height: Height of the canvas
         :param n: Number of stars to create"""
         for i in range(n):
-            x = random.randrange(int(width))
-            y = random.randrange(int(height))
+            x, y = random.randrange(int(width)), random.randrange(int(height))
             size = random.randrange(3) + 1
-            # Similar to : size = random.randint(1, 3)
             col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
-            self.create_oval(x, y, x + size, y + size,
+
+            self.create_oval(x - size, y - size, x + size, y + size,
                              fill=col, tags="background")
 
     def generate_unowned_stars(self, stars):
@@ -299,41 +276,30 @@ class GameCanvas(Canvas):
         for star in stars:
             self.generate_star(star, "stars_owned")
 
-    def generate_star(self, star, tag : str):
+    def generate_star(self, star, tag: str):
         """Create a star on the canvas.
         :param star: The star to create"""
-        size = star.taille * 2
-        self.create_oval(star.x - size,
-                         star.y - size,
-                         star.x + size,
-                         star.y + size,
+        size = star.taille * 2  # Legacy JM
+        self.create_oval(star.x - size, star.y - size,
+                         star.x + size, star.y + size,
                          fill="grey",
-                         tags=(tag, star.id,
-                               star.proprietaire)
-                         )
+                         tags=(tag, star.id, star.proprietaire))
 
     def generate_wormhole(self, wormholes):
         """Create the wormholes on the canvas.
         :param wormholes: The list of wormholes to create"""
 
         for wormhole in wormholes:
-            self.create_oval(wormhole.porte_a.x,
-                             wormhole.porte_a.y,
-                             wormhole.porte_a.x +
-                             wormhole.porte_a.pulse,
-                             wormhole.porte_a.y +
-                             wormhole.porte_a.pulse,
-                             fill=wormhole.porte_a.couleur,
-                             tags="Wormhole")
+            self.generate_wormdoor(wormhole.porte_a, wormhole.id)
+            self.generate_wormdoor(wormhole.porte_b, wormhole.id)
 
-            self.create_oval(wormhole.porte_b.x,
-                             wormhole.porte_b.y,
-                             wormhole.porte_b.x +
-                             wormhole.porte_b.pulse,
-                             wormhole.porte_b.y +
-                             wormhole.porte_b.pulse,
-                             fill=wormhole.porte_b.couleur,
-                             tags="Wormhole")
+    def generate_wormdoor(self, door, parent_id: str):
+        """Create a wormhole door on the canvas.
+        :param door: The door to create"""
+        self.create_oval(door.x - door.pulse, door.y - door.pulse,
+                         door.x + door.pulse, door.y + door.pulse,
+                         fill=door.couleur,
+                         tags=("Wormhole", door.id, parent_id))
 
     def horizontal_scroll(self, event):
         """Scroll the canvas horizontally. """
@@ -346,6 +312,9 @@ class GameCanvas(Canvas):
     def refresh(self, mod):
         """Refresh the canvas.
         :param mod: The model"""
+        # todo : Optimize the movement so we do not have to
+        #  delete but only move it with move()
+
         self.delete("stars_owned")
         self.delete("Wormhole")
         self.delete("spaceship")
