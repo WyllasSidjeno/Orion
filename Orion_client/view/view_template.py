@@ -231,7 +231,6 @@ class GameCanvas(Canvas):
 
     It is a 9000x9000 square canvas that is scrollable.
     It has stars, galaxy, wormholes, spaceship, etc."""
-
     def __init__(self, master, mod, scrollx: Scrollbar, scrolly: Scrollbar):
         """Initialize the canvas.
         :param master: The master widget
