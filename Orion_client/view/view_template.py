@@ -4,6 +4,7 @@ from typing import Any
 
 hexDarkGrey = "#36393f"
 hexDark = "#2f3136"
+hexSpaceBlack = "#23272a"
 
 
 class PlanetWindow(Frame):
@@ -219,7 +220,7 @@ class GameCanvas(Canvas):
         """
         super().__init__(master)
 
-        self.configure(bg=hexDark, bd=1,
+        self.configure(bg=hexSpaceBlack, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scrollx.set,
                        yscrollcommand=scrolly.set)
@@ -322,3 +323,12 @@ class GameCanvas(Canvas):
         owned_stars = self.get_player_stars(mod)
         self.generate_owned_stars(owned_stars)
         self.generate_wormhole(mod.trou_de_vers)
+
+
+class Minimap(Canvas):
+    def __init__(self, master, mod):
+        super().__init__(master)
+        self.configure(bg=hexDark, bd=1,
+                          relief="solid", highlightthickness=1)
+
+
