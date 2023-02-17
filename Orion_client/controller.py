@@ -3,10 +3,14 @@ import urllib
 import urllib.error
 import urllib.parse
 import urllib.request
-from random import random, seed
+from random import seed
 
 from Orion_client.view.view import App
 from Orion_client.model.model import Model
+
+# cprofile
+from cProfile import Profile
+from pstats import Stats
 
 
 class Controller:
@@ -68,7 +72,8 @@ class Controller:
 
         if temp is not None:
             self.update_model_actions(temp)
-        self.app.after(1000 // 60, self.loop)
+        self.app.after(1000 // 60, self.loop) # -> 60 fps
+
 
         self.user_controller.tick(self.frame)
         self.frame += 1
@@ -76,7 +81,6 @@ class Controller:
     def update_model_actions(self, actions):
         """Update the model actions"""
         self.model.ajouter_actions_a_faire(actions)
-
 
 
 class GameController:
@@ -117,7 +121,6 @@ class GameController:
         if not self.pause:
             self.model.jouer_prochain_coup(frame)
             self.app.view.refresh(self.model)
-
 
 
 class ServerController:
@@ -237,7 +240,9 @@ def call_server(url, params):
     return rep  # This is a dictionnary because of the json.loads
 
 
-
 if __name__ == "__main__":
-    controller = Controller()
-    controller.app.mainloop()
+    with Profile() as p:
+        controller = Controller()
+        controller.app.mainloop()
+
+        Stats(p).sort_stats('cumtime').print_stats(20)
