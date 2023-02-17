@@ -25,7 +25,7 @@ class App(Tk):
 
 
 class ConnectionScreen(Frame):
-    def __init__(self, master, urlserveur: str, username: str):
+    def __init__(self, master, url_serveur: str, username: str):
         super().__init__(master)
         self.config(bg=hexDark, bd=2,
                     relief="solid",
@@ -54,7 +54,7 @@ class ConnectionScreen(Frame):
                                        bg=hexDark, fg="white",
                                        font=("Arial", 10))
         self.url_entry = Entry(self, width=30)
-        self.url_entry.insert(0, urlserveur)
+        self.url_entry.insert(0, url_serveur)
 
         self.connect_button = Button(self, text="Connect")
 
