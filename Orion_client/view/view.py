@@ -1,6 +1,7 @@
 from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas
+from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
+    Minimap
 
 from typing import TYPE_CHECKING
 
@@ -125,6 +126,7 @@ class GameView(Frame):
 
         self.side_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
         """Represents the side bar of the game view."""
+        self.side_bar.bind("<Configure>", self.sidebar_resize)
 
         self.scrollX = Scrollbar(self, orient="horizontal")
         """Represents the horizontal scrollbar of the game view."""
@@ -136,7 +138,33 @@ class GameView(Frame):
         """Represents the canvas of the game view -> Where the game is
         displayed."""
 
+
+        self.planet_frame = Frame(self.side_bar, bg=hexDark, bd=1,
+                                    relief="solid")
+        self.planet_label = Label(self.planet_frame, text="Planet",
+                                    bg=hexDark, fg="white",
+                                    font=("Arial", 20))
+
+        self.armada_frame = Frame(self.side_bar, bg=hexDark, bd=1,
+                                    relief="solid")
+        self.armada_label = Label(self.armada_frame, text="Armada",
+                                    bg=hexDark, fg="white",
+                                    font=("Arial", 20))
+
+        self.minimap_frame = Frame(self.side_bar, bg=hexDark, bd=1,
+                                    relief="solid")
+        self.minimap_label = Label(self.minimap_frame, text="Minimap",
+                                    bg=hexDark, fg="white",
+                                    font=("Arial", 20))
+        self.minimap = Minimap(self.minimap_frame, self.canvas)
+
         self.configure_grid()
+
+    # On resize event
+    def sidebar_resize(self, _):
+        size = self.side_bar.winfo_width() - 20
+
+        self.minimap.config(width=size, height=size)
 
     def configure_grid(self):
         """Configures the grid of the game view."""
@@ -152,6 +180,7 @@ class GameView(Frame):
 
         self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
+        self.side_bar.grid_propagate(False)
         self.canvas.grid(row=1, column=1, columnspan=9, rowspan=9,
                          sticky="nsew")
 
@@ -161,5 +190,21 @@ class GameView(Frame):
         self.scrollX.lift(self.canvas) # todo: check if it's necessary
         self.scrollY.lift(self.canvas) # todo: check if it's necessary
 
+        # In the side bar, create a grid of 3 rows and 1 column.
+        # the rows are 1/3 of the side bar height
+        for i in range(3):
+            self.side_bar.grid_rowconfigure(i, weight=1)
+        self.side_bar.grid_columnconfigure(0, weight=1)
+
+        self.planet_frame.grid(row=0, column=0, sticky="nsew")
+        self.planet_label.place(anchor="center", relx=0.5, rely=0.1)
+        self.armada_frame.grid(row=1, column=0, sticky="nsew")
+        self.armada_label.place(anchor="center", relx=0.5, rely=0.1)
+        self.minimap_frame.grid(row=2, column=0, sticky="nsew")
+
+        self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
+        self.minimap.place(anchor="n", relx=0.5, rely=0.28)
+
     def refresh(self, mod):
         self.canvas.refresh(mod)
+
