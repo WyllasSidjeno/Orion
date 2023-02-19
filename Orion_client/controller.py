@@ -112,6 +112,7 @@ class Controller:
 
     def start(self) -> None:
         """Démarre l'application"""
+        self.view.initialize()
         self.view.show()
 
         self.user_controller.start()

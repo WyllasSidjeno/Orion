@@ -52,12 +52,10 @@ class LobbyView(Frame):
 
         # todo: change for the variables all the hard coded values
 
-        self.place_all()
-
     def show(self):
         self.pack(fill="both", expand=True)
 
-    def place_all(self):
+    def initialize(self):
         self.connection_screen_label.place(anchor="center",
                                            relx=0.5, rely=0.1)
 
