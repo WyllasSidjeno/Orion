@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.view.view import App
+from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.model import Model
 
 # cprofile
@@ -26,15 +26,19 @@ class Controller:
         """Liste des actions à envoyées au serveur"""
         self.urlserveur: str = "http://127.0.0.1:8000"
 
-        self.app = App(self.urlserveur, self.username)
+        self.view = LobbyView(self.urlserveur, self.username)
 
         self.user_controller = LobbyController(
             self.username,
             self.urlserveur,
-            self.app,
+            self.view,
             self.start_game)
 
         self.after_id = None
+
+    def change_view(self, mod):
+        self.view.destroy()
+        self.view = GameView(mod)
 
     def start_game(self, joueurs):
         """Start the game with the list of players"""
@@ -45,9 +49,9 @@ class Controller:
         for i in joueurs:
             listejoueurs.append(i[0])
         self.model = Model(self, listejoueurs)
-        self.app.change_view(self.model)
+        self.change_view(self.model)
 
-        self.user_controller = GameController(self.model, self.app)
+        self.user_controller = GameController(self.model, self.view)
         self.server_controller = ServerController(
             self.username,
             self.urlserveur,
@@ -72,7 +76,7 @@ class Controller:
 
         if temp is not None:
             self.update_model_actions(temp)
-        self.app.after(1000 // 60, self.loop) # -> 60 fps
+        self.view.after(1000 // 60, self.loop) # -> 60 fps
 
 
         self.user_controller.tick(self.frame)
@@ -87,10 +91,10 @@ class GameController:
     """Controller de la partie"""
     pause: bool
     model: Model
-    def __init__(self, model: Model, app: App):
+    def __init__(self, model: Model, view: GameView):
         """Initialisation du controller"""
         self.model = model
-        self.app = app
+        self.view = view
         self.after_id = None
         self.bind_game_buttons()
         self.player_actions = []
@@ -99,18 +103,18 @@ class GameController:
         self.pause = False
     def bind_game_buttons(self):
         """Bind les boutons de la partie"""
-        self.app.view.canvas.bind("<MouseWheel>",
-                                  self.app.view.canvas.vertical_scroll)
-        self.app.view.canvas.bind("<Control-MouseWheel>", self.app.
+        self.view.canvas.bind("<MouseWheel>",
+                                  self.view.canvas.vertical_scroll)
+        self.view.canvas.bind("<Control-MouseWheel>", self.
                                   view.canvas.horizontal_scroll)
 
-        self.app.view.canvas.bind("<Button-1>", self.print_tags)  # DEBUG
+        self.view.canvas.bind("<Button-1>", self.print_tags)  # DEBUG
 
     def print_tags(self, event):
         """Print the tags of the current object"""
-        print(self.app.view.canvas.gettags("current"))
+        print(self.view.canvas.gettags("current"))
         # xy
-        print(self.app.view.canvas.coords("current"))
+        print(self.view.canvas.coords("current"))
 
     def update_model_actions(self, actions: list[str]):
         """Update the actions of the model"""
@@ -120,7 +124,7 @@ class GameController:
         """Update the game"""
         if not self.pause:
             self.model.jouer_prochain_coup(frame)
-            self.app.view.refresh(self.model)
+            self.view.refresh(self.model)
 
 
 class ServerController:
@@ -165,10 +169,10 @@ class ServerController:
 class LobbyController:
     model: Model
     joueurs: list[list[str]]
-    def __init__(self, username, urlserveur, app, start_game):
+    def __init__(self, username, urlserveur, view, start_game):
         self.username: str = username
         self.urlserveur: str = urlserveur
-        self.app = app
+        self.view = view
         self.after_id = None
 
         self.start_game = start_game
@@ -182,7 +186,7 @@ class LobbyController:
         temp = call_server(url, params)
         if temp[0][0]:
             str = temp[0][0]
-            self.app.view.change_game_state(str)
+            self.view.change_game_state(str)
             if str == "dispo":
                 self.start_game_server()
             elif str == "attente":
@@ -193,7 +197,7 @@ class LobbyController:
         url = self.urlserveur + "/reset_jeu"
         temp = call_server(url, None)
         if temp:
-            self.app.view.change_game_state(temp[0][0])
+            self.view.change_game_state(temp[0][0])
 
     def start_game_server(self):
         print("Starting game server...")
@@ -201,12 +205,12 @@ class LobbyController:
         params = {"nom": self.username}
         temp = call_server(url, params)
         if temp:
-            self.app.view.change_game_state(temp[0][0])
-            self.app.after(1000, self.update_lobby)
+            self.view.change_game_state(temp[0][0])
+            self.view.after(1000, self.update_lobby)
 
     def bind_server_buttons(self):
-        self.app.view.connect_button.bind("<Button-1>", self.connect_to_server)
-        self.app.view.restart_button.bind("<Button-1>", self.restart_server)
+        self.view.connect_button.bind("<Button-1>", self.connect_to_server)
+        self.view.restart_button.bind("<Button-1>", self.restart_server)
 
     def update_lobby(self):
         url = self.urlserveur + "/boucler_sur_lobby"
@@ -216,13 +220,13 @@ class LobbyController:
             self.start_game_signal(temp)
         else:
             self.joueurs = temp
-            self.app.view.update_player_list(self.joueurs[0])
-            self.after_id = self.app.after(1000, self.update_lobby)
-            self.app.view.start_button.bind("<Button-1>",
+            self.view.update_player_list(self.joueurs[0])
+            self.after_id = self.view.after(1000, self.update_lobby)
+            self.view.start_button.bind("<Button-1>",
                                             self.start_game_signal)
 
     def start_game_signal(self, _):
-        self.app.after_cancel(self.after_id)
+        self.view.after_cancel(self.after_id)
 
         self.start_game(self.joueurs)
 
@@ -243,6 +247,6 @@ def call_server(url, params):
 if __name__ == "__main__":
     with Profile() as p:
         controller = Controller()
-        controller.app.mainloop()
+        controller.view.mainloop()
 
         Stats(p).sort_stats('cumtime').print_stats(20)

@@ -331,4 +331,23 @@ class Minimap(Canvas):
         self.configure(bg=hexDark, bd=1,
                           relief="solid", highlightthickness=1)
 
+        self.bind("<Button-1>", self.on_click)
+
+    def on_click(self, event) -> tuple[int, int]:
+        yFactor = 9000 / self.winfo_height()
+        xFactor = 9000 / self.winfo_width()
+
+        repx = event.x * xFactor
+        repy = event.y * yFactor
+        print(
+            f"Minimap clicked at {event.x}, {event.y} - {repx}, {repy}")
+
+        return int(repx), int(repy)
+
+
+
+
+
+
+
 

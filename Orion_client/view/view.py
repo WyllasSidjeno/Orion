@@ -9,28 +9,13 @@ if TYPE_CHECKING:
     from Orion_client.model import Model
 
 
-class App(Tk):
-    view: Frame
-
-    def __init__(self, server_url, username):
+class LobbyView(Frame):
+    def __init__(self, url_serveur: str, username: str):
         super().__init__()
-        self.title("Orion - Space Strategy Game")
-        self.view = ConnectionScreen(self, server_url, username)
-        self.view.pack(fill="both", expand=True)
-
-    def change_view(self, mod):
-        self.view.destroy()
-        self.minsize(720, 480)
-        self.view = GameView(self, mod)
-        self.view.pack(fill="both", expand=True)
-
-
-class ConnectionScreen(Frame):
-    def __init__(self, master, url_serveur: str, username: str):
-        super().__init__(master)
         self.config(bg=hexDark, bd=2,
                     relief="solid",
                     width=600, height=480)
+        self.master.title("Orion - Connection screen")
 
         self.connection_screen_label = Label(self,
                                              text='Orion - '
@@ -69,6 +54,8 @@ class ConnectionScreen(Frame):
         # todo: change for the variables all the hard coded values
 
         self.place_all()
+
+        self.pack(fill="both", expand=True)
 
     def place_all(self):
         self.connection_screen_label.place(anchor="center",
@@ -116,10 +103,12 @@ class ConnectionScreen(Frame):
 
 
 class GameView(Frame):
-    def __init__(self, master, mod):
-        super().__init__(master)
+    def __init__(self, mod):
+        super().__init__()
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
+
+        self.master.title("Orion - RTS Game")
 
         self.top_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
         """Represents the top bar of the game view."""
@@ -160,11 +149,13 @@ class GameView(Frame):
 
         self.configure_grid()
 
+        self.pack(fill="both", expand=True)
+
     # On resize event
     def sidebar_resize(self, _):
         size = self.side_bar.winfo_width() - 20
 
-        self.minimap.config(width=size, height=size)
+        #self.minimap.config(width=size, height=size)
 
     def configure_grid(self):
         """Configures the grid of the game view."""
@@ -196,6 +187,7 @@ class GameView(Frame):
             self.side_bar.grid_rowconfigure(i, weight=1)
         self.side_bar.grid_columnconfigure(0, weight=1)
 
+
         self.planet_frame.grid(row=0, column=0, sticky="nsew")
         self.planet_label.place(anchor="center", relx=0.5, rely=0.1)
         self.armada_frame.grid(row=1, column=0, sticky="nsew")
@@ -203,7 +195,15 @@ class GameView(Frame):
         self.minimap_frame.grid(row=2, column=0, sticky="nsew")
 
         self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
-        self.minimap.place(anchor="n", relx=0.5, rely=0.28)
+        # Give it a dynamic size
+        self.minimap.place(anchor="n", relx=0.5, rely=0.3, relwidth=0.9,
+                           relheight=0.5)
+
+
+
+
+        #self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
+        #self.minimap.place(anchor="n", relx=0.5, rely=0.28)
 
     def refresh(self, mod):
         self.canvas.refresh(mod)
