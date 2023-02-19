@@ -15,7 +15,6 @@ class LobbyView(Frame):
         self.config(bg=hexDark, bd=2,
                     relief="solid",
                     width=600, height=480)
-        self.master.title("Orion - Connection screen")
 
         self.connection_screen_label = Label(self,
                                              text='Orion - '
@@ -55,6 +54,7 @@ class LobbyView(Frame):
 
         self.place_all()
 
+    def show(self):
         self.pack(fill="both", expand=True)
 
     def place_all(self):
@@ -103,59 +103,56 @@ class LobbyView(Frame):
 
 
 class GameView(Frame):
-    def __init__(self, mod):
+    def __init__(self):
         super().__init__()
+
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
 
-        self.master.title("Orion - RTS Game")
-
         self.top_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
-        """Represents the top bar of the game view."""
+        """Représente la barre du haut de la vue du jeu."""
 
         self.side_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
-        """Represents the side bar of the game view."""
-        self.side_bar.bind("<Configure>", self.sidebar_resize)
+        """Représente la barre de droite de la vue du jeu."""
 
         self.scrollX = Scrollbar(self, orient="horizontal")
-        """Represents the horizontal scrollbar of the game view."""
+        """Représente la scrollbar horizontale de la vue du jeu."""
 
         self.scrollY = Scrollbar(self, orient="vertical")
-        """Represents the vertical scrollbar of the game view."""
+        """""Représente la scrollbar verticale de la vue du jeu."""
 
-        self.canvas = GameCanvas(self, mod, self.scrollX, self.scrollY)
-        """Represents the canvas of the game view -> Where the game is
-        displayed."""
-
+        self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
+        """Représente le canvas de la vue du jeu."""
 
         self.planet_frame = Frame(self.side_bar, bg=hexDark, bd=1,
-                                    relief="solid")
+                                  relief="solid")
+        """Représente le cadre de la vue du jeu contenant les informations"""
         self.planet_label = Label(self.planet_frame, text="Planet",
-                                    bg=hexDark, fg="white",
-                                    font=("Arial", 20))
+                                  bg=hexDark, fg="white",
+                                  font=("Arial", 20))
+        """Représente le label de la vue du jeu contenant les informations"""
 
         self.armada_frame = Frame(self.side_bar, bg=hexDark, bd=1,
-                                    relief="solid")
+                                  relief="solid")
+        """Représente le cadre de la vue du jeu contenant les informations"""
         self.armada_label = Label(self.armada_frame, text="Armada",
-                                    bg=hexDark, fg="white",
-                                    font=("Arial", 20))
+                                  bg=hexDark, fg="white",
+                                  font=("Arial", 20))
+        """Représente le label de la vue du jeu contenant les informations"""
 
         self.minimap_frame = Frame(self.side_bar, bg=hexDark, bd=1,
-                                    relief="solid")
+                                   relief="solid")
+        """Représente le cadre de la vue du jeu contenant les informations"""
         self.minimap_label = Label(self.minimap_frame, text="Minimap",
-                                    bg=hexDark, fg="white",
-                                    font=("Arial", 20))
-        self.minimap = Minimap(self.minimap_frame, self.canvas)
+                                   bg=hexDark, fg="white",
+                                   font=("Arial", 20))
+        """Représente le label de la vue du jeu contenant les informations"""
+        self.minimap = Minimap(self.minimap_frame)
+        """Représente le label de la vue du jeu contenant les informations"""
 
         self.configure_grid()
 
         self.pack(fill="both", expand=True)
-
-    # On resize event
-    def sidebar_resize(self, _):
-        size = self.side_bar.winfo_width() - 20
-
-        #self.minimap.config(width=size, height=size)
 
     def configure_grid(self):
         """Configures the grid of the game view."""
@@ -178,15 +175,12 @@ class GameView(Frame):
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
 
-        self.scrollX.lift(self.canvas) # todo: check if it's necessary
-        self.scrollY.lift(self.canvas) # todo: check if it's necessary
+        self.scrollX.lift(self.canvas)  # todo: check if it's necessary
+        self.scrollY.lift(self.canvas)  # todo: check if it's necessary
 
-        # In the side bar, create a grid of 3 rows and 1 column.
-        # the rows are 1/3 of the side bar height
         for i in range(3):
             self.side_bar.grid_rowconfigure(i, weight=1)
         self.side_bar.grid_columnconfigure(0, weight=1)
-
 
         self.planet_frame.grid(row=0, column=0, sticky="nsew")
         self.planet_label.place(anchor="center", relx=0.5, rely=0.1)
@@ -199,12 +193,11 @@ class GameView(Frame):
         self.minimap.place(anchor="n", relx=0.5, rely=0.3, relwidth=0.9,
                            relheight=0.5)
 
-
-
-
-        #self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
-        #self.minimap.place(anchor="n", relx=0.5, rely=0.28)
+        # self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
+        # self.minimap.place(anchor="n", relx=0.5, rely=0.28)
 
     def refresh(self, mod):
         self.canvas.refresh(mod)
 
+    def initialize(self, mod):
+        self.canvas.initialize(mod)

@@ -18,7 +18,15 @@ class Building(ABC):
 
     def __init__(self, name: str, description: str, upgrade_cost: dict,
                  output: dict | int, level: int, max_level: int):
-        """Constructeur de la classe Building"""
+        """Constructeur de la classe Building
+
+        :param name: le nom du bâtiment
+        :param description: la description du bâtiment
+        :param upgrade_cost: le coût de l'amélioration du bâtiment
+        :param output: la production du bâtiment
+        :param level: le niveau du bâtiment
+        :param max_level: le niveau maximum du bâtiment
+        """
         # todo: Ressource class
         self.name = name
         self.description = description
