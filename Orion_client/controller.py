@@ -12,7 +12,7 @@ from Orion_client.model.model import Model
 from cProfile import Profile
 from pstats import Stats
 
-from typing import TYPE_CHECKING, Callable
+from typing import Callable
 
 
 class Controller:
@@ -217,8 +217,6 @@ class ServerController:
             except urllib.error.URLError as e:
                 print("ERREUR ", frame, e)
                 self.pause_game()
-        print("actions", actions)
-        print("actions type", type(actions))
         return actions
 
 
@@ -320,8 +318,6 @@ def call_server(url, params):
     reptext = rep.read()
     rep = reptext.decode('utf-8')
     rep = json.loads(rep)
-    print("CALL SERVER", rep)
-    print("REPONSE TYPE", type(rep))
     return rep
 
 
@@ -329,7 +325,7 @@ if __name__ == "__main__":
     with Profile() as p:
         controller = Controller()
         controller.start()
-        controller.view.master.title("Bomberman")
+        controller.view.master.title("Orion")
         controller.view.mainloop()
 
         Stats(p).sort_stats('cumtime').print_stats(20)

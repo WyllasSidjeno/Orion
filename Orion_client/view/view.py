@@ -146,7 +146,7 @@ class GameView(Frame):
                                    font=("Arial", 20))
         """Représente le label de la vue du jeu contenant les informations"""
         self.minimap = Minimap(self.minimap_frame)
-        """Représente le label de la vue du jeu contenant les informations"""
+        """Représente le lbel de la vue du jeu contenant les informations"""
 
         self.configure_grid()
 
@@ -199,3 +199,4 @@ class GameView(Frame):
 
     def initialize(self, mod):
         self.canvas.initialize(mod)
+        self.minimap.initialize(mod)

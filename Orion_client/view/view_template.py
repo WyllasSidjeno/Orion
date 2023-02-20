@@ -363,27 +363,13 @@ class GameCanvas(Canvas):
 
 class Minimap(Canvas):
     """ Représente la minimap du jeu."""
+
     def __init__(self, master: Frame):
         """Initialise la minimap"""
         super().__init__(master)
         self.configure(bg=hexDark, bd=1,
                        relief="solid", highlightthickness=1)
 
-        self.bind("<Button-1>", self.on_click)  # todo : Move to controller
-
-    def on_click(self, event) -> tuple[int, int]:
-        """Récupère les coordonnées de la minimap lors d'un clic
-        :param event: L'événement du clic
-        :return: Les coordonnées du clic relative au canvas de jeu"""
-        y_factor = 9000 / self.winfo_height()  # todo : Send from model
-        x_factor = 9000 / self.winfo_width()  # todo : Send from model
-
-        repx = event.x * x_factor
-        repy = event.y * y_factor
-        print(
-            f"Minimap clicked at {event.x}, {event.y} - {repx}, {repy}")
-
-        return int(repx), int(repy)
 
     def initialize(self, mod):
         """Initialise la minimap avec les données du model

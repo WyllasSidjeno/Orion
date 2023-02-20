@@ -112,8 +112,7 @@ class Model:
 
         :param cadre: le cadre à jouer
         """
-        #  NE PAS TOUCHER LES LIGNES SUIVANTES  ################
-        print("Jouer prochain coup : ", cadre)
+        #  NE PAS TOUCHER LES LIGNES SUIVANTES  #################
         self.cadre_courant = cadre
         # insertion de la prochaine action demandée par le joueur
         if cadre in self.actions_a_faire:
