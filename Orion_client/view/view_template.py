@@ -370,11 +370,68 @@ class Minimap(Canvas):
         self.configure(bg=hexDark, bd=1,
                        relief="solid", highlightthickness=1)
 
+        self.ratio_x: int = 0
+        self.ratio_y: int = 0
 
     def initialize(self, mod):
         """Initialise la minimap avec les données du model
         lors de sa création
         :param mod: Le model"""
-        pass
-        # todo : Generate the minimap and integrate
-        #  the .place() method here instead
+        # todo : Generate the minimap
+
+        self.update()  # Useful asf
+        self.ratio_x = self.winfo_width() / mod.largeur
+        self.ratio_y = self.winfo_height() / mod.hauteur
+
+        # Grey squares for Etoile.
+        for star in mod.etoiles:
+            self.create_rectangle(star.x * self.ratio_x, star.y * self.ratio_y,
+                                  star.x * self.ratio_x + 2,
+                                  star.y * self.ratio_y + 2,
+                                  fill="grey", tags="stars_unowned")
+
+            for keys in mod.joueurs.keys():
+                for j in mod.joueurs[keys].etoilescontrolees:
+                    self.create_rectangle(j.x * self.ratio_x,
+                                          j.y * self.ratio_y,
+                                          j.x * self.ratio_x + 2,
+                                          j.y * self.ratio_y + 2,
+                                          fill=mod.joueurs[keys].couleur,
+                                          tags="stars_owned")
+
+            for hole in mod.trou_de_vers:
+                self.create_rectangle(hole.porte_a.x * self.ratio_x,
+                                      hole.porte_a.y * self.ratio_y,
+                                      hole.porte_a.x * self.ratio_x + 2,
+                                      hole.porte_a.y * self.ratio_y + 2,
+                                      fill=hole.porte_a.couleur,
+                                      tags="Wormhole")
+
+                self.create_rectangle(hole.porte_b.x * self.ratio_x,
+                                      hole.porte_b.y * self.ratio_y,
+                                      hole.porte_b.x * self.ratio_x + 2,
+                                      hole.porte_b.y * self.ratio_y + 2,
+                                      fill=hole.porte_b.couleur,
+                                      tags="Wormhole")
+
+            self.bind("<Configure>", self.on_resize)
+
+
+    def on_resize(self, _):
+        """Redistribue les éléments lors de la redimension de la minimap"""
+        current_ratio_x = self.winfo_width() / 9000
+        current_ratio_y = self.winfo_height() / 9000
+
+        new_ratio_x = current_ratio_x / self.ratio_x
+        new_ratio_y = current_ratio_y / self.ratio_y
+
+        self.scale("stars_unowned", 0, 0, new_ratio_x, new_ratio_y)
+        self.scale("stars_owned", 0, 0, new_ratio_x, new_ratio_y)
+
+        self.scale("Wormhole", 0, 0, new_ratio_x, new_ratio_y)
+
+        self.ratio_x = current_ratio_x
+        self.ratio_y = current_ratio_y
+
+
+
