@@ -19,7 +19,6 @@ class Controller:
     """Controller de l'application, incluant la connection au serveur"""
     model: Model
     """Le modèle de l'application"""
-
     def __init__(self):
         """Initialisation du controller"""
         self.frame = 1
@@ -37,52 +36,33 @@ class Controller:
         self.urlserveur: str = "http://127.0.0.1:8000"  # Todo get from modele maybe ?
         """L'URL du serveur"""
 
-        self.view: LobbyView | GameView = LobbyView(
-            self.urlserveur, self.username)
-        """La vue courante de l'application"""
-
         self.user_controller: LobbyController | GameController = \
-            LobbyController(self.username, self.urlserveur,
-                            self.view, self.start_game)
+            LobbyController(self.username, self.urlserveur, self.start_game)
         """Le sous-controller utilisateur courant de l'application"""
 
         self.server_controller: ServerController
         """Le sous-controller serveur de l'application"""
-
-    def change_view(self) -> None:
-        """Change la vue de l'application vers la vue de jeu
-        du modèle donné en paramètre
-        :param mod: le modèle de jeu"""
-        self.view.destroy()
-        self.view = GameView()
 
     def start_game(self, joueurs: list[tuple[str, str]]) -> None:
         """Debute le jeu avec les joueurs donnés en paramètre,
         tout en initialisant le modèle et le sous controller serveur
         :param joueurs: la liste des joueurs"""
         seed(12471)
-        print(type(joueurs))
-        print(joueurs)
 
         listejoueurs = []
         for i in joueurs:
             listejoueurs.append(i[0])
 
-        print(type(listejoueurs))
-        print(listejoueurs)
-
         self.model = Model(self, listejoueurs)
 
-        self.change_view()
-        self.view.initialize(self.model)
+        self.user_controller = GameController(self.model)
+        self.start()
 
-
-        self.user_controller = GameController(self.model, self.view)
-        self.user_controller.start()
         self.server_controller = ServerController(self.username,
                                                   self.urlserveur, self.model,
                                                   self.pause_game,
                                                   self.unpause_game)
+
 
         self.tick()
 
@@ -101,7 +81,7 @@ class Controller:
 
         if temp is not None:
             self.update_model_actions(temp)
-        self.view.after(1000 // 60, self.tick)  # -> 60 fps
+        self.user_controller.view.after(1000 // 60, self.tick)
 
         self.user_controller.tick(self.frame)
         self.frame += 1
@@ -112,22 +92,19 @@ class Controller:
 
     def start(self) -> None:
         """Démarre l'application"""
-        self.view.initialize()
-        self.view.show()
-
         self.user_controller.start()
 
 
 class GameController:
     """Controller de la partie"""
-    def __init__(self, model: Model, view: GameView):
+    def __init__(self, model: Model):
         """Initialisation du controller
 
         :param model: le modèle de la partie
         :param view: la vue de la partie"""
         self.model = model
         """Le modèle de la partie"""
-        self.view = view
+        self.view = GameView()
         """La vue de la partie"""
         self.player_actions = []
         """Liste des actions à envoyer au serveur"""
@@ -138,21 +115,6 @@ class GameController:
         self.pause: bool = False
         """Si le jeu est en pause"""
 
-    def start(self) -> None:
-        """Bind les boutons de la partie"""
-        self.view.canvas.bind("<MouseWheel>",
-                              self.view.canvas.vertical_scroll)
-        self.view.canvas.bind("<Control-MouseWheel>", self.
-                              view.canvas.horizontal_scroll)
-
-        self.view.canvas.bind("<Button-1>", self.print_tags)  # DEBUG
-
-    def print_tags(self, _) -> None:
-        """Print the tags of the current object"""
-        print(self.view.canvas.gettags("current"))
-        # xy
-        print(self.view.canvas.coords("current"))
-
     def update_model_actions(self, actions: list[str]) -> None:
         """Met à jour les actions du modèle"""
         self.model.ajouter_actions_a_faire(actions)
@@ -162,6 +124,10 @@ class GameController:
         if not self.pause:
             self.model.jouer_prochain_coup(frame)
             self.view.refresh(self.model)
+
+    def start(self) -> None:
+        """Démarre le controller"""
+        self.view.initialize(self.model)
 
 
 class ServerController:
@@ -230,16 +196,18 @@ class LobbyController:
     """L'id du prochain appel à la fonction connect_to_server"""
 
     def __init__(self, username: str, urlserveur: str,
-                 view: LobbyView, start_game: Callable):
+                 start_game: Callable):
         self.username: str = username
         """Le nom de l'utilisateur"""
         self.urlserveur: str = urlserveur
         """L'URL du serveur"""
-        self.view = view
-        """La vue du lobby"""
 
         self.start_game = start_game
         """La fonction à appeler pour démarrer la partie"""
+
+        self.view = LobbyView(
+            self.urlserveur, self.username)
+        """La vue du lobby"""
 
     def connect_to_server(self, _):
         """Se connecte au serveur"""
@@ -276,6 +244,7 @@ class LobbyController:
 
     def start(self):
         """Démarre le controller de lobby"""
+        self.view.initialize()
         self.view.show()
         self.view.connect_button.bind("<Button-1>", self.connect_to_server)
         self.view.restart_button.bind("<Button-1>", self.restart_server)
@@ -299,6 +268,7 @@ class LobbyController:
         annule l'appel à la fonction update_lobby avant de
         démarrer la partie"""
         self.view.after_cancel(self.event_id)
+        self.view.destroy()
 
         self.start_game(self.joueurs)
 
@@ -325,7 +295,7 @@ if __name__ == "__main__":
     with Profile() as p:
         controller = Controller()
         controller.start()
-        controller.view.master.title("Orion")
-        controller.view.mainloop()
+        controller.user_controller.view.master.title("Orion")
+        controller.user_controller.view.mainloop()
 
         Stats(p).sort_stats('cumtime').print_stats(20)
