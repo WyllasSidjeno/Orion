@@ -442,5 +442,18 @@ class Minimap(Canvas):
         self.ratio_x = current_ratio_x
         self.ratio_y = current_ratio_y
 
+class SideBar(Frame):
+    """ Représente la sidebar du jeu."""
+    def __init__(self, master: Frame):
+        """Initialise la sidebar"""
+        super().__init__(master)
+        self.configure(bg=hexDark, bd=1,
+                       relief="solid")
 
+    def initialize(self, mod):
+        """Initialise la sidebar avec les données du model
+        lors de sa création
+        :param mod: Le model"""
+        # todo : Generate the sidebar
 
+        print("Sidebar initialized")
