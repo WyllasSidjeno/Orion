@@ -6,6 +6,7 @@ from typing import Any
 from Orion_client.helper import AlwaysInt
 
 
+
 class Ressource(dict):
     """Classe qui contient les ressources du jeu
 
@@ -108,6 +109,11 @@ class Ressource(dict):
                f" Beton : {self['Beton']}, " \
                f"Energie : {self['Energie']}, " \
                f"Nourriture : {self['Nourriture']}"
+
+
+class RessourceMul(Ressource):
+    def __init__(self):
+        super().__init__()
 
 
 # Main ne servant qu'à tester la classe Ressource
