@@ -1,6 +1,8 @@
 """ Module représentant les modele des bâtiments construisible du jeu"""
 from abc import abstractmethod, ABC
 
+from Orion_client.model.ressource import RessourceMul, Ressource
+
 
 class Building(ABC):
     """Classe représentant un bâtiment
@@ -15,9 +17,10 @@ class Building(ABC):
     :param description: la description du bâtiment
     """
     building_cost: dict = {}  # todo: Ressource class
+    baseMul = 1.25
 
     def __init__(self, name: str, description: str, upgrade_cost: dict,
-                 output: dict | int, level: int, max_level: int):
+                 output: RessourceMul, level: int, max_level: int):
         """Constructeur de la classe Building
 
         :param name: le nom du bâtiment
@@ -74,7 +77,7 @@ class Mine(Building):
         name = "Mine"
         description = "Une mine de fer extractant les ressources du sol"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: dict = {}  # todo: Ressource class
+        output: RessourceMul = RessourceMul(metal= super().baseMul)
         level = 1
         max_level = 3
         super().__init__(name, description, upgrade_cost, output,
@@ -85,7 +88,7 @@ class Mine(Building):
         """
         self.level += 1
         # todo : update ressource
-        self.output = self.output * 2  # todo : Ressource
+        self.output = self.output * 1.5 # todo : Ressource
 
 
 class Farm(Building):
@@ -100,7 +103,7 @@ class Farm(Building):
         name = "Ferme"
         description = "Une ferme produisant de la nourriture"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: dict = {}  # todo: Ressource class
+        output: RessourceMul = RessourceMul(nourriture= super().baseMul)
         level = 1
         max_level = 3
         super().__init__(name, description, upgrade_cost, output,
@@ -111,22 +114,22 @@ class Farm(Building):
         """
         self.level += 1
         # todo : update ressource
-        self.output = self.output * 2  # todo : Ressource
+        self.output = self.output * 1.5  # todo : Ressource
 
 
-class Factory(Building):
-    """Classe représentant une usine
+class ConcreteFactory(Building):
+    """Classe représentant une usine à béton
 
-    Cette classe contient les attributs et les méthodes communes à toutes les
-    usines du jeu.
+    Cette classe contient les attributs et les méthodes communes à tout les
+    building du jeu.
     """
     building_cost: dict = {}  # todo: Ressource class
 
     def __init__(self):
         name = "Usine"
-        description = "Une usine produisant des ressources"
+        description = "Une usine produisant du beton"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: dict = {}  # todo: Ressource class
+        output: RessourceMul = RessourceMul(beton= super().baseMul)
         level = 1
         max_level = 3
         super().__init__(name, description, upgrade_cost, output,
@@ -137,7 +140,7 @@ class Factory(Building):
         """
         self.level += 1
         # todo : update ressource
-        self.output = self.output * 2  # todo : Ressource
+        self.output = self.output * 1.5  # todo : Ressource
 
 
 class PowerPlant(Building):
@@ -152,7 +155,7 @@ class PowerPlant(Building):
         name = "Centrale électrique"
         description = "Une centrale électrique produisant de l'électricité"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: dict = {}  # todo: Ressource class
+        output: Ressource = Ressource(energie=100)  # todo: Ressource class
         level = 1
         max_level = 3
         super().__init__(name, description, upgrade_cost, output,
