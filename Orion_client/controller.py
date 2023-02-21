@@ -5,8 +5,8 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.view.view import GameView, LobbyView
-from Orion_client.model.model import Model
+from view.view import GameView, LobbyView
+from model.model import Model
 
 # cprofile
 from cProfile import Profile

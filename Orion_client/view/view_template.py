@@ -3,7 +3,7 @@ import random
 from tkinter import Frame, Label, Canvas, Scrollbar
 from typing import Any
 
-from Orion_client.model.model import Model
+from model.model import Model
 
 hexDarkGrey = "#36393f"
 hexDark = "#2f3136"

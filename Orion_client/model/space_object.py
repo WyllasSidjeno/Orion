@@ -1,6 +1,6 @@
 from random import randrange
 
-from Orion_client.helper import get_prochain_id
+from helper import get_prochain_id
 
 
 class Wormhole:

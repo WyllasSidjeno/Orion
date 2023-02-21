@@ -14,8 +14,8 @@ from typing import Callable
 from random import randrange, choice
 from ast import literal_eval
 
-from Orion_client.helper import get_prochain_id
-from Orion_client.model.space_object import Wormhole, Star
+from helper import get_prochain_id
+from model.space_object import Wormhole, Star
 
 
 class Model:
