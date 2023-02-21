@@ -84,6 +84,14 @@ class PlanetWindow(Frame):
 
         self.configure_placement()
 
+        # Make it float on top of the canvas
+        #self.winfo_toplevel().attributes("-topmost", True) # This allows
+        # the window to be on top of the canvas but it doesnt allow the
+        # canvas to be on top of the window
+
+        # To make the canvas not move when the window is showed, we need to
+
+
     def show(self, planet_info: dict) -> None:
         """Affiche les informations de la planete
 
@@ -363,7 +371,6 @@ class GameCanvas(Canvas):
 
 class Minimap(Canvas):
     """ Représente la minimap du jeu."""
-
     def __init__(self, master: Frame):
         """Initialise la minimap"""
         super().__init__(master)
@@ -378,6 +385,8 @@ class Minimap(Canvas):
         lors de sa création
         :param mod: Le model"""
         # todo : Generate the minimap
+
+        print("Minimap initialized")
 
         self.update()  # Useful asf
         self.ratio_x = self.winfo_width() / mod.largeur
@@ -416,9 +425,9 @@ class Minimap(Canvas):
 
             self.bind("<Configure>", self.on_resize)
 
-
     def on_resize(self, _):
         """Redistribue les éléments lors de la redimension de la minimap"""
+
         current_ratio_x = self.winfo_width() / 9000
         current_ratio_y = self.winfo_height() / 9000
 
