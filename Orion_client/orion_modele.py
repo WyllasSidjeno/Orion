@@ -276,6 +276,35 @@ class Joueur():
                         "ciblerflotte": self.ciblerflotte}
         """Liste des actions possible du joueur."""
 
+        self.depletion_rate: int = 1
+        """Taux de consommation de l'energie"""
+        self.unlocked_puzzles: list = [bool]
+        """Liste des enigmes deverouillees par le joueur"""
+        self.ressources: dict = {} #à revoir
+
+        # Quantité d'énergie de départ
+        # conceptuellement
+        self.energie = 100
+
+    # Concept de consommation d'energie base sur la consommation de la flotte d'un joueur, n'est pas final
+    # à décider si on utilise des listes ou dictionnaires pour la flotte de nos vaisseaux
+    def deplete_energy(self):
+        self.concept_flotteconcept_flotte = ["Vaisseau", "Cargo", "Recon"][self.flotte.keys()]
+        self.consoEnergie = 0
+        # type_vaisseau = ["Vaisseau", "Cargo", "Recon"]
+        totalenergy = 0
+        # for i in self.flotte.keys().__getattribute__("Vaisseau"):
+        i = 0
+        j = 0
+        for typeVaisseau in self.concept_flotte[j][i]:
+            for idVaisseau in self.concept_flotte[j][i]:
+               self.consoEnergie += self.concept_flotte[j][i].energie
+
+        self.energie -= (self.consoEnergie * self.depletion_rate)
+
+
+
+
     def creervaisseau(self, params: list) -> Vaisseau:
         """Fonction de creation d'un vaisseau.
 
@@ -393,6 +422,21 @@ class IA(Joueur):
                 self.cooldownmax) + self.cooldownmax
         else:
             self.cooldown -= 1
+
+
+# début de la classe population, Concept pour incrémentation de la population
+class population():
+    def __init__(self):
+        self.nb_humains = 10000
+        self.is_under_siege = False
+        self.nourritureTotal = 0
+    def increment_pop(self, nbPlanetes: dict, nbBatiments: dict):
+        for value in  nbPlanetes.values():
+            if nbPlanetes.values() == "Bouffe":
+                self.nourritureTotal += 100
+
+
+
 
 
 class Modele():
