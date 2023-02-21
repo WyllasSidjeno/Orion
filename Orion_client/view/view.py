@@ -1,6 +1,6 @@
 from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
+from view.view_template import hexDark, hexDarkGrey, GameCanvas, \
     Minimap, Hud
 
 from typing import TYPE_CHECKING
