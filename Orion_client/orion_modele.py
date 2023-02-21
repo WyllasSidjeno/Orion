@@ -7,6 +7,8 @@ from __future__ import annotations
 # Ajouté afin de permettre le type hinting sur les classes
 # qui se référencent mutuellement
 from typing import Callable
+from random import random
+from helper import AlwaysInt
 
 # -*- coding: utf-8 -*-
 ##  version 2022 14 mars - jmd
@@ -103,6 +105,8 @@ class Etoile():
         self.ressources = {"metal": 1000,
                            "energie": 10000,
                            "existentielle": 100}
+
+        self.population = Population(random.randrange(1000, 5000, 2), random.randrange(5000, 20000, 1), 2)
 
 
 class Vaisseau():
@@ -224,6 +228,7 @@ class Cargo(Vaisseau):
 
     Le vaisseau cargo est un vaisseau qui peut transporter des ressources.
     """
+
     def __init__(self, parent: Joueur, nom: str, x: int, y: int) -> None:
         """Initialise le vaisseau cargo.
 
@@ -233,12 +238,12 @@ class Cargo(Vaisseau):
         :param y: la position y du vaisseau
         """
         Vaisseau.__init__(self, parent, nom, x, y)
-        self.cargo : int = 1000
-        self.energie : int = 500
+        self.cargo: int = 1000
+        self.energie: int = 500
         self.taille: int = 6
         self.vitesse: int = 1
-        self.cible = 0 # todo : verifier si c'est necessaire
-        self.ang = 0 # todo : verifier type (float?)
+        self.cible = 0  # todo : verifier si c'est necessaire
+        self.ang = 0  # todo : verifier type (float?)
 
 
 class Joueur():
@@ -248,6 +253,7 @@ class Joueur():
     Il possede une flotte de vaisseaux, une liste d'etoiles controlees et une
     liste d'actions.
     """
+
     def __init__(self, parent: Modele, nom: str,
                  etoilemere: Etoile, couleur: str):
         """Initialise le joueur.
@@ -257,7 +263,7 @@ class Joueur():
         :param etoilemere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
         """
-        self.id : str = get_prochain_id()
+        self.id: str = get_prochain_id()
         self.parent = parent
         self.nom = nom
         self.etoilemere = etoilemere
@@ -280,7 +286,7 @@ class Joueur():
         """Taux de consommation de l'energie"""
         self.unlocked_puzzles: list = [bool]
         """Liste des enigmes deverouillees par le joueur"""
-        self.ressources: dict = {} #à revoir
+        self.ressources: dict = {}  # à revoir
 
         # Quantité d'énergie de départ
         # conceptuellement
@@ -298,12 +304,9 @@ class Joueur():
         j = 0
         for typeVaisseau in self.concept_flotte[j][i]:
             for idVaisseau in self.concept_flotte[j][i]:
-               self.consoEnergie += self.concept_flotte[j][i].energie
+                self.consoEnergie += self.concept_flotte[j][i].energie
 
         self.energie -= (self.consoEnergie * self.depletion_rate)
-
-
-
 
     def creervaisseau(self, params: list) -> Vaisseau:
         """Fonction de creation d'un vaisseau.
@@ -384,6 +387,7 @@ class IA(Joueur):
 
     L'IA est le personnage non-joueur qui joue le jeu.
     """
+
     def __init__(self, parent: Modele, nom: str,
                  etoilemere: Etoile, couleur: str) -> None:
         """Initialise l'IA.
@@ -425,18 +429,50 @@ class IA(Joueur):
 
 
 # début de la classe population, Concept pour incrémentation de la population
-class population():
-    def __init__(self):
-        self.nb_humains = 10000
+class Population:
+    """ Population de la planète découverte
+    """
+
+    def __init__(self, pop, totalNourriture, pourcentBonus):
+        """
+        :param pop: Initialise la quantité d'habitants sur la planètes.
+        :param totalNourriture: Initialise la quantité de nourriture disponible.
+        :param pourcentBonus: taux de croissance de la population lorsqu'elle prospère
+                ou taux de perte de vie humaine si elle est attaquée
+
+
+        """
+        self.nb_humains = AlwaysInt(pop)
         self.is_under_siege = False
-        self.nourritureTotal = 0
-    def increment_pop(self, nbPlanetes: dict, nbBatiments: dict):
-        for value in  nbPlanetes.values():
-            if nbPlanetes.values() == "Bouffe":
-                self.nourritureTotal += 100
+        self.totalNourriture = AlwaysInt(totalNourriture)
+        self.pourcentBonus = pourcentBonus
+        # pourcentBonus pourrait être un boni donné à la découverte de l'étoile
+        # ou selon un niveau de défense (à déterminer)
 
+    def increment_pop(self, isUnderSiege: bool):
+        """ Modifie la quantité de la population de la planète selon son état.
+            Appelée à des intervalles spécifiques ou dès que la planète est attaquée
 
+            :param isUnderSiege: Booléen qui détermine si la planète est présentement attaquée.
+            :return: quantité d'humains vivant sur la planète.
+        """
 
+        #   Version 1, incluant une condition sur la quantité d'humains
+        #   if not self.nb_humains:
+        #       return 0
+        #   else:
+
+        self.is_under_siege = isUnderSiege
+        # déterminer au moment de l'appel de la méthode si la population est sous-attaque.
+        if not self.is_under_siege:
+            self.nb_humains *= (100 + self.pourcentBonus) + (self.totalNourriture / self.nb_humains)
+        else:  # si la population de la planete est attaquée
+            self.nb_humains = AlwaysInt(self.nb_humains * ((100 - self.pourcentBonus) / 100))
+
+        return self.nb_humains
+        # Si le retour est 0 ou moins
+        # d'un chiffre acceptable pour la subsistance de la planète (à déterminer),
+        # elle peut alors être conquise.
 
 
 class Modele():
@@ -444,6 +480,7 @@ class Modele():
 
     Le modèle contient les données du jeu.
     """
+
     def __init__(self, parent, joueurs):
         """Initialise le modèle.
 
@@ -452,18 +489,18 @@ class Modele():
         """
         self.parent = parent  # todo: type
         self.largeur: int = 9000
-        self.hauteur:int = 9000
-        self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
+        self.hauteur: int = 9000
+        self.nb_etoiles: int = int((self.hauteur * self.largeur) / 500000)
         self.joueurs: dict = {}
         self.actions_a_faire: dict = {}
         self.etoiles: list = []
-        self.trou_de_vers : list = []
+        self.trou_de_vers: list = []
         self.cadre_courant = None  # TODO: type
         self.creeretoiles(joueurs, 1)
         nb_trou: int = int((self.hauteur * self.largeur) / 5000000)
         self.creer_troudevers(nb_trou)
 
-    def creer_troudevers(self, n : int) -> None:
+    def creer_troudevers(self, n: int) -> None:
         """Crée des trous de vers.
 
         Créé n trous de vers aléatoirement dans le modèle.
@@ -472,7 +509,7 @@ class Modele():
         des trous de vers du modèle.
 
         :param n: le nombre de trous de vers à créer"""
-        bordure : int = 10
+        bordure: int = 10
         for i in range(n):
             x1 = random.randrange(self.largeur - (2 * bordure)) + bordure
             y1 = random.randrange(self.hauteur - (2 * bordure)) + bordure
@@ -557,7 +594,7 @@ class Modele():
         for i in self.trou_de_vers:
             i.jouer_prochain_coup()
 
-    def creer_bibittes_spatiales(self, nb_biittes: int=0):
+    def creer_bibittes_spatiales(self, nb_biittes: int = 0):
         """Crée des biittes spatiales. Non utilisé pour le moment.
         """
         pass
