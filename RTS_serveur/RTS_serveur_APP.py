@@ -40,8 +40,8 @@ class Dbman():
         self.conn.commit()
 
     def setnbrIA(self, chose: str) -> None:
-        """Choisis le nombre d'IA.
-        :param chose: Le nombre d'IA choisis
+        """Choisis le nombre d'AI.
+        :param chose: Le nombre d'AI choisis
         """
         self.vidertable("nbrIA")
         self.curs.execute("Insert into nbrIA (nbrIA) VALUES(?);", (chose,))
