@@ -448,6 +448,15 @@ class Hud(Frame):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1,
                        relief="solid")
+        self.ressource_label = Label(self, text="Ressources",
+                                     bg=hexDarkGrey, fg="white",
+                                     font=("Arial", 13))
+
+    def show(self):
+        self.ressource_label.config(text="Ressource")
+
+
+
 
 
 
