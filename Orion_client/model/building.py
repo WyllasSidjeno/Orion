@@ -1,8 +1,8 @@
 """ Module représentant les modele des bâtiments construisible du jeu"""
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 
-class Building():
+class Building(ABC):
     """Classe représentant un bâtiment
 
     Cette classe contient les attributs et les méthodes communes à tous les
@@ -15,9 +15,18 @@ class Building():
     :param description: la description du bâtiment
     """
     building_cost: dict = {}  # todo: Ressource class
+
     def __init__(self, name: str, description: str, upgrade_cost: dict,
                  output: dict | int, level: int, max_level: int):
-        """Constructeur de la classe Building"""
+        """Constructeur de la classe Building
+
+        :param name: le nom du bâtiment
+        :param description: la description du bâtiment
+        :param upgrade_cost: le coût de l'amélioration du bâtiment
+        :param output: la production du bâtiment
+        :param level: le niveau du bâtiment
+        :param max_level: le niveau maximum du bâtiment
+        """
         # todo: Ressource class
         self.name = name
         self.description = description
@@ -78,6 +87,7 @@ class Mine(Building):
         # todo : update ressource
         self.output = self.output * 2  # todo : Ressource
 
+
 class Farm(Building):
     """Classe représentant une ferme
 
@@ -102,6 +112,7 @@ class Farm(Building):
         self.level += 1
         # todo : update ressource
         self.output = self.output * 2  # todo : Ressource
+
 
 class Factory(Building):
     """Classe représentant une usine
@@ -128,6 +139,7 @@ class Factory(Building):
         # todo : update ressource
         self.output = self.output * 2  # todo : Ressource
 
+
 class PowerPlant(Building):
     """Classe représentant une centrale électrique
 
@@ -152,6 +164,7 @@ class PowerPlant(Building):
         self.level += 1
         # todo : update ressource
         self.output = self.output * 2  # todo : Ressource
+
 
 class ResearchCenter(Building):
     """Classe représentant un centre de recherche
@@ -178,8 +191,3 @@ class ResearchCenter(Building):
         self.level += 1
         # todo : update ressource
         self.output = self.output * 2
-
-
-
-
-
