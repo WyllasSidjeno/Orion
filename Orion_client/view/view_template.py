@@ -443,4 +443,11 @@ class Minimap(Canvas):
         self.ratio_y = current_ratio_y
 
 
+class Hud(Frame):
+    def __init__(self, master: Frame):
+        super().__init__(master)
+        self.configure(bg=hexDark, bd=1,
+                       relief="solid")
+
+
 
