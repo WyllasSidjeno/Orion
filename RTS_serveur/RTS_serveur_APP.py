@@ -1,155 +1,138 @@
-""" Le serveur de l'application RTS."""
 # -*- coding: utf-8 -*-
+
+
+import sqlite3
+import os.path
+import random
+
 from flask import Flask, request, json
 from werkzeug.wrappers import Response
-import random
-import sqlite3
 
-app: Flask = Flask(__name__)
-""" Le serveur flask."""
+app = Flask(__name__)
 
 app.secret_key = "qwerasdf1234"
-"""" The flask server secret key."""
 
 class Dbman():
-    """Gère la base de données."""
+    """Gère la communication avec la base de données."""
+
+    database: str = os.path.join(
+        os.path.dirname(__file__),
+        "RTS_serveur_DB.db",
+    )
+
     def __init__(self):
-        """Initialise la base de donnée."""
-        self.conn: sqlite3.Connection = sqlite3.connect("RTS_serveur_DB.db")
-        """Représente la connexion à la base de données."""
-        self.curs: sqlite3.Cursor = self.conn.cursor()
-        """Représente le curseur de la base de données."""
+        self.conn = sqlite3.connect(Dbman.database)
+        self.curs = self.conn.cursor()
+        self.createdb()
 
-    def setpartiecourante(self, chose: str) -> None:
-        """Choisis la partie courante.
-        :param str chose: L'état choisis.
-        """
+    def createdb(self):
+        """Crée la base de données si elle n'existe pas."""
+        self.curs.execute("""
+            CREATE TABLE IF NOT EXISTS actionsenattente (
+                nom TEXT,
+                cadrejeu INTEGER,
+                "action" TEXT
+            )
+        """)
+
+        self.curs.execute("""
+            CREATE TABLE IF NOT EXISTS cadrecourant (
+                cadrecourant INTEGER
+            )
+        """)
+
+        self.curs.execute("""
+            CREATE TABLE IF NOT EXISTS initaleatoire (
+                initaleatoire DEFAULT (2020)
+            )
+        """)
+
+        self.curs.execute("""
+            CREATE TABLE IF NOT EXISTS joueurs (
+                nom TEXT PRIMARY KEY UNIQUE,
+                derniercadrejeu NUMERIC DEFAULT (0)
+            )
+        """)
+
+        self.curs.execute("""
+            CREATE TABLE IF NOT EXISTS nbrIA (
+                nbrIA INT DEFAULT (0)
+            )
+        """)
+
+        self.curs.execute("""
+            CREATE TABLE IF NOT EXISTS partiecourante (
+                etat TEXT DEFAULT dispo
+            )
+        """)
+
+        self.conn.commit()
+
+    def setpartiecourante(self, chose):
         self.vidertable("partiecourante")
-        self.curs.execute("Insert into partiecourante (etat) VALUES(?);",
-                          (chose,))
+        self.curs.execute("Insert into partiecourante (etat) VALUES(?);", (chose,))
         self.conn.commit()
 
-    def setinitaleatoire(self, chose: str) -> None:
-        """Initalise la partie avec une configuration aléatoire.
-        :param chose: L'état choisis
-        """
+    def setinitaleatoire(self, chose):
         self.vidertable("initaleatoire")
-        self.curs.execute(
-            "Insert into initaleatoire (initaleatoire) VALUES(?);",
-            (chose,))
+        self.curs.execute("Insert into initaleatoire (initaleatoire) VALUES(?);", (chose,))
         self.conn.commit()
 
-    def setnbrIA(self, chose: str) -> None:
-        """Choisis le nombre d'AI.
-        :param chose: Le nombre d'AI choisis
-        """
+    def setnbrIA(self, chose):
         self.vidertable("nbrIA")
         self.curs.execute("Insert into nbrIA (nbrIA) VALUES(?);", (chose,))
         self.conn.commit()
 
-    def setcadrecourant(self, chose: str) -> None:
-        """Choisis le cadre courant.
-        :param chose: Le cadre courant choisis
-        """
+    def setcadrecourant(self, chose):
         self.vidertable("cadrecourant")
-        self.curs.execute("Insert into cadrecourant (cadrecourant) VALUES(?);",
-                          (chose,))
+        self.curs.execute("Insert into cadrecourant (cadrecourant) VALUES(?);", (chose,))
         self.conn.commit()
 
-    def ajouterjoueur(self, nom: str) -> None:
-        """Ajoute un joueur à la base de données.
-        :param nom: Le nom du joueur à ajouter todo: JM
-        """
+    def ajouterjoueur(self, nom):
         self.curs.execute("Insert into joueurs (nom) VALUES(?);", (nom,))
         self.conn.commit()
 
-    def ajouteractionaujoueur(self, nom: str,
-                              cadrejeu: str, action: str) -> None:
-        """Ajoute une action à un joueur.
-        :param nom: Le nom du joueur.
-        :param cadrejeu: Le cadre de jeu.
-        :param action: L'action à ajouter.
-        """
-        self.curs.execute("Insert into actionsenattente "
-                          "(nom,cadrejeu,action)"
-                          " VALUES(?,?,?);", (nom, cadrejeu, action))
+    def ajouteractionaujoueur(self, nom, cadrejeu, action):
+        self.curs.execute("Insert into actionsenattente (nom,cadrejeu,action) VALUES(?,?,?);", (nom, cadrejeu, action))
         self.conn.commit()
 
-    def getinfo(self, table: str) -> list:
-        """"Sert à récupérer les informations d'une table.
-
-        :param table: Le nom de la table.
-
-        :return: Les informations de la table.
-        :rtype: list"""
+    def getinfo(self, table):
         sqlnom = "select * from '" + table + "'"
         self.curs.execute(sqlnom)
         info = self.curs.fetchall()
         return info
 
-    def getinfoconditionel(self, table: str, champ: str,
-                           valeur: str) -> list:
-        """Sert à récupérer les informations d'une table en fonction
-        d'un champ.
-
-        :param table: Le nom de la table.
-        :param champ: Le champ à vérifier.
-        :param valeur: La valeur à vérifier.
-
-        :return: Les informations de la table.
-        :rtype: list"""
+    def getinfoconditionel(self, table, champ, valeur):
         sqlnom = "select * from '" + table + "' WHERE nom=?"
         self.curs.execute(sqlnom, (valeur))
         info = self.curs.fetchall()
         return info
 
-    def resetdb(self) -> None:
-        """Réinitialise la base de données.
-        """
-        tables = ["partiecourante", "joueurs", "cadrecourant",
-                  "actionsenattente", "initaleatoire", "nbrIA"]
-
+    def resetdb(self):
+        tables = ["partiecourante", "joueurs", "cadrecourant", "actionsenattente", "initaleatoire", "nbrIA"]
         for i in tables:
             self.vidertable(i)
 
-        self.curs.execute("Insert into partiecourante (etat) VALUES(?);",
-                          ("dispo",))
-        self.curs.execute("Insert into cadrecourant (cadrecourant) VALUES(?);",
-                          (0,))
-        self.curs.execute(
-            "Insert into initaleatoire (initaleatoire) VALUES(?);",
-            (2020,))
+        # Maybe drop and call createdb() instead?
+
+        self.curs.execute("Insert into partiecourante (etat) VALUES(?);", ("dispo",))
+        self.curs.execute("Insert into cadrecourant (cadrecourant) VALUES(?);", (0,))
+        self.curs.execute("Insert into initaleatoire (initaleatoire) VALUES(?);", (2020,))
         self.curs.execute("Insert into nbrIA (nbrIA) VALUES(?);", (0,))
         self.conn.commit()
 
-    def effaceractionsjoueur(self, joueur: str)  -> None:
-        """Efface les actions d'un joueur de la table.
-
-        :param joueur: Le nom du joueur.
-        """
+    def effaceractionsjoueur(self, joueur):
         self.curs.execute("DELETE from actionsenattente WHERE  nom=?", (joueur,))
         self.conn.commit()
 
-    def vidertable(self, table: str)  -> None:
-        """Vide une table.
-
-        :param table: Le nom de la table.
-        """
+    def vidertable(self, table):
         self.curs.execute("DELETE from " + table)
         self.conn.commit()
 
-    def fermerdb(self)  -> None:
-        """Ferme la base de données.
-        """
+    def fermerdb(self):
         self.conn.close()
 
-    def updatejoueur(self, nomjoueur: str, cadre: str) -> None:
-        """Met à jour le dernier cadre de jeu d'un joueur.
-
-        :param nomjoueur: Le nom du joueur.
-        :param cadre: Le cadre de jeu.
-        """
-        # Make it so PyCharm will not warm me for SQL Dialect not configured
+    def updatejoueur(self, nomjoueur, cadre):
         monsql = "UPDATE joueurs SET derniercadrejeu = ? WHERE nom = ? ;"
         self.curs.execute(monsql, (cadre, nomjoueur))
         self.conn.commit()
@@ -158,10 +141,7 @@ class Dbman():
 
 
 @app.route("/tester_jeu", methods=["GET", "POST"])
-def tester_jeu() -> Response:
-    """Sert à tester le jeu.
-
-    :rtype: Response"""
+def tester_jeu():
     db = Dbman()
     info = db.getinfo("partiecourante")
 
@@ -169,11 +149,7 @@ def tester_jeu() -> Response:
 
 
 @app.route("/reset_jeu", methods=["GET", "POST"])
-def reset_jeu() -> Response:
-    """Sert à réinitialiser le jeu.
-
-    :rtype: Response"""
-
+def reset_jeu():
     db = Dbman()
     db.resetdb()
     info = db.getinfo("partiecourante")
@@ -181,10 +157,7 @@ def reset_jeu() -> Response:
     return Response(json.dumps(info), mimetype='application/json')
 
 @app.route("/creer_partie", methods=["GET", "POST"])
-def creer_partie() -> Response | str:
-    """Sert à créer une partie.
-
-    :rtype: Response | str"""
+def creer_partie():
     db = Dbman()
     info = db.getinfo("partiecourante")
     if "dispo" in info[0]:
@@ -201,10 +174,7 @@ def creer_partie() -> Response | str:
         return str("banane")
 
 @app.route("/inscrire_joueur", methods=["GET", "POST"])
-def inscrire_joueur() -> Response | str:
-    """Sert à inscrire un joueur au jeu et à la base de données.
-
-    :rtype: Response | str"""
+def inscrire_joueur():
     db = Dbman()
     info = db.getinfo("partiecourante")
     if "attente" in info[0]:
@@ -221,10 +191,14 @@ def inscrire_joueur() -> Response | str:
 
 
 @app.route("/boucler_sur_lobby", methods=["POST"])
-def boucler_sur_lobby() -> Response:
-    """Sert à boucler sur le lobby lors de l'attente de joueurs.
+def boucler_sur_lobby():
+    """Boucle sur le lobby
 
-    :rtype: Response"""
+    :return: Si la partie est débutée:
+            La constante "courante" et la seed de random
+        Sinon:
+            Une liste des joueurs et de leurs dernier cadre de jeu
+    """
     db = Dbman()
     info = db.getinfo("partiecourante")
     if "courante" in info[0]:
@@ -243,10 +217,7 @@ def boucler_sur_lobby() -> Response:
         # return repr(info)
 
 @app.route("/lancer_partie", methods=["GET", "POST"])
-def lancer_partie() -> Response:
-    """Sert à lancer la partie.
-
-    :rtype: Response"""
+def lancer_partie():
     db = Dbman()
     if request.method == "POST":
         nom = request.form["nom"]
@@ -261,10 +232,7 @@ def lancer_partie() -> Response:
 
 
 @app.route("/boucler_sur_jeu", methods=["POST"])
-def boucler_sur_jeu() -> Response:
-    """Sert à boucler sur le jeu.
-
-    :rtype: Response"""
+def boucler_sur_jeu():
     db = Dbman()
     # cadreactuel=db.getinfo("cadrecourant")[0]
     nom = request.form["nom"]
