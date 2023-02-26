@@ -20,11 +20,12 @@ class Controller:
     model: Model
     """Le modèle de l'application"""
     def __init__(self):
+        from helper import get_random_username
         """Initialisation du controller"""
         self.frame = 1
         """La frame actuelle du jeu"""
 
-        self.username: str = "p1"  # todo: Check JM code
+        self.username: str = get_random_username()
         """Le nom de l'utilisateur"""
 
         self.server_actions: list[str] = []  # todo : Make sure
@@ -33,7 +34,8 @@ class Controller:
         """Liste des actions à envoyées au serveur, faite par le joueur
         de ce client."""
 
-        self.urlserveur: str = "http://127.0.0.1:8000"  # Todo get from modele maybe ?
+        self.urlserveur: str = "http://127.0.0.1:8000"
+        # Todo get from modele maybe ?
         """L'URL du serveur"""
 
         self.user_controller: LobbyController | GameController = \
