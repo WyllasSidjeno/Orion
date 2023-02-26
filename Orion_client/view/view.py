@@ -41,6 +41,8 @@ class LobbyView(Frame):
         self.url_entry = Entry(self, width=30)
         self.url_entry.insert(0, url_serveur)
 
+        self.join_server_button = Button(self, text="Join server")
+
         self.connect_button = Button(self, text="Connect")
 
         self.restart_button = Button(self, text="Restart")
@@ -74,14 +76,18 @@ class LobbyView(Frame):
         self.url_entry.place(anchor="center",
                              relx=0.55, rely=0.4)
 
+        self.join_server_button.place(anchor="center",
+                                      relx=0.5, rely=0.5)
+
         self.connect_button.place(anchor="center",
-                                  relx=0.45, rely=0.5)
+                                  relx=0.35, rely=0.50)
+
         self.restart_button.place(anchor="center",
-                                  relx=0.55, rely=0.5)
+                                  relx=0.65, rely=0.50)
 
         self.player_list.place(anchor="center", relx=0.5, rely=0.7)
 
-        self.start_button.place(anchor="center", relx=0.5, rely=0.9)
+        self.start_button.place(anchor="center", relx=0.5, rely=.85)
 
     def change_game_state(self, state):
         if state == "courante":
