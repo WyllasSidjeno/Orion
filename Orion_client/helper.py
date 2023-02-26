@@ -13,7 +13,6 @@ prochainid: int = 0
 
 def get_prochain_id() -> str:
     """Recupere le prochain id a utiliser.
-    #TODO : utiliser un compteur de classe ?
     # Tel que : self.__class__.prochainid += 1
     #           return f'id_{self.__class__.prochainid}'
     :return: L'ID a utiliser.
@@ -23,6 +22,14 @@ def get_prochain_id() -> str:
     prochainid += 1
     return f'id_{prochainid}'
 
+
+def get_random_username() -> str:
+    """Recupere un id aleatoire.
+    :return: L'ID a utiliser.
+    :rtype: str
+    """
+    import random
+    return f'Joueur_{random.randint(0, 1000)}'
 
 class Inherited(type):
     """Permet de reféfinir des méthodes héritées afin que le type de
