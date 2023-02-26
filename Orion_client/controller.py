@@ -291,7 +291,7 @@ class LobbyController:
             self.start_game_signal(temp)
         else:
             self.joueurs = temp
-            self.view.update_player_list(self.joueurs[0])
+            self.view.update_player_list(self.joueurs)
             self.event_id = self.view.after(1000, self.update_lobby)
     def start_game_signal(self):
         """Reçoit le signal de démarrage de la partie et
