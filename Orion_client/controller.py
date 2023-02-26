@@ -220,12 +220,13 @@ class LobbyController:
 
         if temp[0][0]:
             string = temp[0][0]
-            self.view.change_game_state(string)
             if string == "dispo":
+                string = "Partie Créée"
                 self.start_game_server()
             elif string == "attente":
+                string = "En attente de joueur"
                 self.add_player_to_game()
-
+            self.view.change_game_state(string)
         self.view.disable_restart_connect_button()
 
     def get_server_state(self):
@@ -241,6 +242,8 @@ class LobbyController:
                 string = "En attente de joueur"
             else:
                 string = "Serveur occupé"
+
+            self.update_lobby()
             self.view.change_game_state(string)
             self.view.disable_join_server_button()
 
@@ -253,7 +256,6 @@ class LobbyController:
         temp = call_server(url, params)
         if temp:
             self.view.change_game_state(temp[0][0])
-            self.view.after(1000, self.update_lobby)
 
     def restart_server(self):
         """Redémarre le serveur"""
@@ -271,7 +273,6 @@ class LobbyController:
         temp = call_server(url, params)
         if temp:
             self.view.change_game_state(temp[0][0])
-            self.view.after(1000, self.update_lobby)
 
     def start(self):
         """Démarre le controller de lobby"""
@@ -280,7 +281,9 @@ class LobbyController:
         self.view.bind_server_buttons(self.get_server_state,
                                       self.restart_server,
                                       self.connect_to_server,
-                                      self.start_game_signal)
+                                      self.start_game_signal,
+                                      self.update_username,
+                                      self.update_url)
 
     def update_lobby(self):
         """Met à jour le lobby"""
@@ -301,6 +304,17 @@ class LobbyController:
         self.view.destroy()
 
         self.start_game(self.joueurs)
+
+    def update_username(self, event):
+        """Met à jour le nom d'utilisateur"""
+        username = event.widget.get()
+        self.username = username
+
+
+    def update_url(self, event):
+        """Met à jour l'URL du serveur"""
+        url = event.widget.get()
+        self.urlserveur = url
 
 
 def call_server(url, params):

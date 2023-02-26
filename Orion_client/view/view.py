@@ -27,7 +27,7 @@ class LobbyView(Frame):
                                       font=("Arial", 15))
         self.game_state_label_value = Label(self, text="Not connected",
                                             bg=hexDark, fg="white",
-                                            font=("Arial", 15))
+                                            font=("Arial", 10))
 
         self.player_name_label = Label(self, text="Player name: ",
                                        bg=hexDark, fg="white",
@@ -111,14 +111,20 @@ class LobbyView(Frame):
                       font=("Arial", 10)).place(anchor="center",
                                                 relx=0.5, rely=0.15 + i * 0.2)
 
-    def bind_server_buttons(self, join_server, restart_server,connect_server,
-                            start_game_server):
+    def bind_server_buttons(self, join_server, restart_server,
+                            connect_server, start_game_server,
+                            update_username, update_url):
         self.join_server_button.config(command=join_server)
 
         self.restart_button.config(command=restart_server)
         self.connect_button.config(command=connect_server)
 
         self.start_button.config(command=start_game_server)
+
+        # The labels
+        self.player_name_entry.bind("<Return>", update_username)
+        self.url_entry.bind("<Return>", update_url)
+
 
     def disable_join_server_button(self):
         self.join_server_button.config(state="disabled")
