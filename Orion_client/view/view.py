@@ -98,6 +98,26 @@ class LobbyView(Frame):
                                     bg=hexDarkGrey, fg="white",
                                     font=("Arial", 10))
                 player_name.place(anchor="w", relx=0.5, rely=0.2 + i * 0.2)
+    def bind_server_buttons(self, join_server, restart_server,connect_server,
+                            start_game_server):
+        self.join_server_button.config(command=join_server)
+
+        self.restart_button.config(command=restart_server)
+        self.connect_button.config(command=connect_server)
+
+        self.start_button.config(command=start_game_server)
+
+    def disable_join_server_button(self):
+        self.join_server_button.config(state="disabled")
+        self.restart_button.config(state="normal")
+        self.connect_button.config(state="normal")
+
+    def disable_restart_connect_button(self):
+        self.restart_button.config(state="disabled")
+        self.connect_button.config(state="disabled")
+
+        self.start_button.config(state="normal")
+
 
 
 class GameView(Frame):
