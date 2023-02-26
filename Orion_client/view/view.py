@@ -27,7 +27,7 @@ class LobbyView(Frame):
                                       font=("Arial", 15))
         self.game_state_label_value = Label(self, text="Not connected",
                                             bg=hexDark, fg="white",
-                                            font=("Arial", 15))
+                                            font=("Arial", 10))
 
         self.player_name_label = Label(self, text="Player name: ",
                                        bg=hexDark, fg="white",
@@ -40,6 +40,8 @@ class LobbyView(Frame):
                                        font=("Arial", 10))
         self.url_entry = Entry(self, width=30)
         self.url_entry.insert(0, url_serveur)
+
+        self.join_server_button = Button(self, text="Join server")
 
         self.connect_button = Button(self, text="Connect")
 
@@ -74,14 +76,21 @@ class LobbyView(Frame):
         self.url_entry.place(anchor="center",
                              relx=0.55, rely=0.4)
 
+        self.join_server_button.place(anchor="center",
+                                      relx=0.5, rely=0.5)
+
         self.connect_button.place(anchor="center",
-                                  relx=0.45, rely=0.5)
+                                  relx=0.35, rely=0.50)
+        self.connect_button.config(state="disabled")
+
         self.restart_button.place(anchor="center",
-                                  relx=0.55, rely=0.5)
+                                  relx=0.65, rely=0.50)
+        self.restart_button.config(state="disabled")
 
         self.player_list.place(anchor="center", relx=0.5, rely=0.7)
 
-        self.start_button.place(anchor="center", relx=0.5, rely=0.9)
+        self.start_button.place(anchor="center", relx=0.5, rely=.85)
+        self.start_button.config(state="disabled")
 
     def change_game_state(self, state):
         if state == "courante":
@@ -92,12 +101,42 @@ class LobbyView(Frame):
     def update_player_list(self, joueurs):
         for i in self.player_list.winfo_children():
             i.destroy()
-        for i, player in enumerate(joueurs):
-            if not player == 0:
-                player_name = Label(self.player_list, text=player,
-                                    bg=hexDarkGrey, fg="white",
-                                    font=("Arial", 10))
-                player_name.place(anchor="w", relx=0.5, rely=0.2 + i * 0.2)
+        if joueurs:
+            # Remove the ints from the list
+            joueurs = [x for x in joueurs if not isinstance(x, int)]
+
+            for i in range(len(joueurs)):
+                Label(self.player_list, text=joueurs[i][0],
+                      bg=hexDarkGrey, fg="white",
+                      font=("Arial", 10)).place(anchor="center",
+                                                relx=0.5, rely=0.15 + i * 0.2)
+
+    def bind_server_buttons(self, join_server, restart_server,
+                            connect_server, start_game_server,
+                            update_username, update_url):
+        self.join_server_button.config(command=join_server)
+
+        self.restart_button.config(command=restart_server)
+        self.connect_button.config(command=connect_server)
+
+        self.start_button.config(command=start_game_server)
+
+        # The labels
+        self.player_name_entry.bind("<Return>", update_username)
+        self.url_entry.bind("<Return>", update_url)
+
+
+    def disable_join_server_button(self):
+        self.join_server_button.config(state="disabled")
+        self.restart_button.config(state="normal")
+        self.connect_button.config(state="normal")
+
+    def disable_restart_connect_button(self):
+        self.restart_button.config(state="disabled")
+        self.connect_button.config(state="disabled")
+
+        self.start_button.config(state="normal")
+
 
 
 class GameView(Frame):
