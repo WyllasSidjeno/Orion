@@ -81,13 +81,16 @@ class LobbyView(Frame):
 
         self.connect_button.place(anchor="center",
                                   relx=0.35, rely=0.50)
+        self.connect_button.config(state="disabled")
 
         self.restart_button.place(anchor="center",
                                   relx=0.65, rely=0.50)
+        self.restart_button.config(state="disabled")
 
         self.player_list.place(anchor="center", relx=0.5, rely=0.7)
 
         self.start_button.place(anchor="center", relx=0.5, rely=.85)
+        self.start_button.config(state="disabled")
 
     def change_game_state(self, state):
         if state == "courante":
