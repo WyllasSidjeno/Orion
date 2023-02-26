@@ -101,12 +101,16 @@ class LobbyView(Frame):
     def update_player_list(self, joueurs):
         for i in self.player_list.winfo_children():
             i.destroy()
-        for i, player in enumerate(joueurs):
-            if not player == 0:
-                player_name = Label(self.player_list, text=player,
-                                    bg=hexDarkGrey, fg="white",
-                                    font=("Arial", 10))
-                player_name.place(anchor="w", relx=0.5, rely=0.2 + i * 0.2)
+        if joueurs:
+            # Remove the ints from the list
+            joueurs = [x for x in joueurs if not isinstance(x, int)]
+
+            for i in range(len(joueurs)):
+                Label(self.player_list, text=joueurs[i][0],
+                      bg=hexDarkGrey, fg="white",
+                      font=("Arial", 10)).place(anchor="center",
+                                                relx=0.5, rely=0.15 + i * 0.2)
+
     def bind_server_buttons(self, join_server, restart_server,connect_server,
                             start_game_server):
         self.join_server_button.config(command=join_server)
