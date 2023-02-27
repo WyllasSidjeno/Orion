@@ -386,8 +386,6 @@ class Minimap(Canvas):
         :param mod: Le model"""
         # todo : Generate the minimap
 
-        print("Minimap initialized")
-
         self.update()  # Useful asf
         self.ratio_x = self.winfo_width() / mod.largeur
         self.ratio_y = self.winfo_height() / mod.hauteur
@@ -425,6 +423,10 @@ class Minimap(Canvas):
 
             self.bind("<Configure>", self.on_resize)
 
+    def refresh(self, mod):
+        pass
+    #todo : Minimap refresh
+
     def on_resize(self, _):
         """Redistribue les éléments lors de la redimension de la minimap"""
 
@@ -442,6 +444,7 @@ class Minimap(Canvas):
         self.ratio_x = current_ratio_x
         self.ratio_y = current_ratio_y
 
+
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
     def __init__(self, master: Frame):
@@ -450,10 +453,53 @@ class SideBar(Frame):
         self.configure(bg=hexDark, bd=1,
                        relief="solid")
 
+        self.planet_frame = Frame(self, bg=hexDark, bd=1,
+                                  relief="solid")
+
+        self.planet_label = Label(self.planet_frame, text="Planet",
+                                  bg=hexDark, fg="white",
+                                  font=("Arial", 20))
+
+        self.armada_frame = Frame(self, bg=hexDark, bd=1,
+                                  relief="solid")
+        """Représente le cadre de la vue du jeu contenant les informations"""
+        self.armada_label = Label(self.armada_frame, text="Armada",
+                                  bg=hexDark, fg="white",
+                                  font=("Arial", 20))
+        """Représente le label de la vue du jeu contenant les informations"""
+
+        self.minimap_frame = Frame(self, bg=hexDark, bd=1,
+                                   relief="solid")
+        """Représente le cadre de la vue du jeu contenant les informations"""
+        self.minimap_label = Label(self.minimap_frame, text="Minimap",
+                                   bg=hexDark, fg="white",
+                                   font=("Arial", 20))
+        """Représente le label de la vue du jeu contenant les informations"""
+        self.minimap = Minimap(self.minimap_frame)
+        """Représente le lbel de la vue du jeu contenant les informations"""
+
     def initialize(self, mod):
         """Initialise la sidebar avec les données du model
         lors de sa création
         :param mod: Le model"""
-        # todo : Generate the sidebar
+        for i in range(3):
+            self.grid_rowconfigure(i, weight=1)
+        self.grid_columnconfigure(0, weight=1)
 
-        print("Sidebar initialized")
+        self.planet_frame.grid(row=0, column=0, sticky="nsew")
+        self.planet_label.place(anchor="center", relx=0.5, rely=0.1)
+        self.armada_frame.grid(row=1, column=0, sticky="nsew")
+        self.armada_label.place(anchor="center", relx=0.5, rely=0.1)
+        self.minimap_frame.grid(row=2, column=0, sticky="nsew")
+
+        self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
+        self.minimap.place(anchor="n", relx=0.5, rely=0.3,
+                                   relwidth=0.9, relheight=0.5)
+
+        self.minimap.initialize(mod)
+
+    def refresh(self, mod):
+        """Rafraichit la sidebar avec les données du model
+        lors de sa création
+        :param mod: Le model"""
+        self.minimap.refresh(mod)
