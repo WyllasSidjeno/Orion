@@ -1,9 +1,6 @@
 from __future__ import annotations
 import random
 from tkinter import Frame, Label, Canvas, Scrollbar
-from typing import Any
-
-from Orion_client.model.model import Model
 
 hexDarkGrey = "#36393f"
 hexDark = "#2f3136"
@@ -85,12 +82,11 @@ class PlanetWindow(Frame):
         self.configure_placement()
 
         # Make it float on top of the canvas
-        #self.winfo_toplevel().attributes("-topmost", True) # This allows
+        # self.winfo_toplevel().attributes("-topmost", True) # This allows
         # the window to be on top of the canvas but it doesnt allow the
         # canvas to be on top of the window
 
         # To make the canvas not move when the window is showed, we need to
-
 
     def show(self, planet_info: dict) -> None:
         """Affiche les informations de la planete
@@ -133,8 +129,7 @@ class PlanetWindow(Frame):
 
     def place_main(self) -> None:
         """Crée le main de la fenetre, là ou les bâtiments sont affichés
-
-        :param planet_info: Dictionnaire contenant"""
+        """
         # Start with the main frame
         self.main_frame.place(relx=0, rely=0.2, relwidth=0.60, relheight=0.8)
 
@@ -170,7 +165,7 @@ class PlanetWindow(Frame):
         # for i, ressource in enumerate(planet_info):
         #    setattr(self, f"{ressource}_label",
         #            Label(self.side_frame,
-        #                  text=ressource + " : " + str(planet_info[ressource]),
+        #            text=ressource + " : " + str(planet_info[ressource]),
         #                  bg=hexDarkGrey, fg="white", font=("Arial", 10)))
         #
         #           getattr(self, f"{ressource}_label").place(anchor="center",
@@ -193,12 +188,11 @@ class BuildingWindow(Frame):
     level_label: Label
     upgrade_canvas: Canvas
 
-    def __init__(self, master: Frame, building_info: dict):
+    def __init__(self, master: Frame):
         """Crée la fenetre d'un bâtiment
 
         :param master: Frame parent
-        :param building_info: Dictionnaire contenant les informations du
-        bâtiment"""
+        """
         super().__init__(master)
 
         self.config(bg=hexDark, bd=2,
@@ -220,11 +214,11 @@ class BuildingWindow(Frame):
         self.upgrade_canvas.create_polygon(10, 0, 0, 20, 20, 20, fill="white")
         """Triangle blanc représentant le bouton d'amélioration"""
 
-        self.configure_placement()
+        self.initialize()
 
         self.bind_on_click()
 
-    def configure_placement(self):
+    def initialize(self):
         """Crée le layout du bâtiment window"""
         # todo : self place les widgets ?
 
@@ -369,6 +363,82 @@ class GameCanvas(Canvas):
         self.generate_wormhole(mod.trou_de_vers)
 
 
+class SideBar(Frame):
+    """ Représente la sidebar du jeu."""
+    def __init__(self, master: Frame):
+        """Initialise la sidebar"""
+        super().__init__(master)
+        self.configure(bg=hexDark, bd=1,
+                       relief="solid")
+
+        self.planet_frame = Frame(self, bg=hexDark, bd=1,
+                                  relief="solid")
+
+        self.planet_label = Label(self.planet_frame, text="Planet",
+                                  bg=hexDark, fg="white",
+                                  font=("Arial", 20))
+
+        self.armada_frame = Frame(self, bg=hexDark, bd=1,
+                                  relief="solid")
+        """Représente le cadre de la vue du jeu contenant les informations"""
+        self.armada_label = Label(self.armada_frame, text="Armada",
+                                  bg=hexDark, fg="white",
+                                  font=("Arial", 20))
+        """Représente le label de la vue du jeu contenant les informations"""
+
+        self.minimap_frame = Frame(self, bg=hexDark, bd=1,
+                                   relief="solid")
+        """Représente le cadre de la vue du jeu contenant les informations"""
+        self.minimap_label = Label(self.minimap_frame, text="Minimap",
+                                   bg=hexDark, fg="white",
+                                   font=("Arial", 20))
+        """Représente le label de la vue du jeu contenant les informations"""
+        self.minimap = Minimap(self.minimap_frame)
+        """Représente le lbel de la vue du jeu contenant les informations"""
+
+        for i in range(3):
+            self.grid_rowconfigure(i, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_propagate(False)
+        # Make sure they all stay the same size 1/3
+
+    def initialize(self, mod):
+        """Initialise la sidebar avec les données du model
+        lors de sa création
+        :param mod: Le model"""
+
+        self.planet_frame.grid(row=0, column=0, sticky="nsew")
+        self.planet_frame.grid_propagate(False)
+        self.armada_frame.grid(row=1, column=0, sticky="nsew")
+        self.armada_frame.grid_propagate(False)
+        self.minimap_frame.grid(row=2, column=0, sticky="nsew")
+        self.minimap_frame.grid_propagate(False)
+
+        self.planet_frame.grid_rowconfigure(0, weight=1)
+        self.planet_frame.grid_columnconfigure(0, weight=1)
+        self.planet_frame.grid_rowconfigure(1, weight=6)
+
+        self.planet_label.grid(row=0, column=0, sticky="nsew")
+
+        self.armada_frame.grid_rowconfigure(0, weight=1)
+        self.armada_frame.grid_columnconfigure(0, weight=1)
+        self.armada_frame.grid_rowconfigure(1, weight=6)
+
+        self.armada_label.grid(row=0, column=0, sticky="nsew")
+
+        self.minimap_frame.grid_rowconfigure(0, weight=1)
+        self.minimap.grid(row=0, column=0, sticky="nsew")
+
+
+        #self.minimap.initialize(mod)
+
+    def refresh(self, mod):
+        """Rafraichit la sidebar avec les données du model
+        lors de sa création
+        :param mod: Le model"""
+        self.minimap.refresh(mod)
+
+
 class Minimap(Canvas):
     """ Représente la minimap du jeu."""
     def __init__(self, master: Frame):
@@ -425,7 +495,7 @@ class Minimap(Canvas):
 
     def refresh(self, mod):
         pass
-    #todo : Minimap refresh
+    # todo : Minimap refresh
 
     def on_resize(self, _):
         """Redistribue les éléments lors de la redimension de la minimap"""
@@ -443,63 +513,4 @@ class Minimap(Canvas):
 
         self.ratio_x = current_ratio_x
         self.ratio_y = current_ratio_y
-
-
-class SideBar(Frame):
-    """ Représente la sidebar du jeu."""
-    def __init__(self, master: Frame):
-        """Initialise la sidebar"""
-        super().__init__(master)
-        self.configure(bg=hexDark, bd=1,
-                       relief="solid")
-
-        self.planet_frame = Frame(self, bg=hexDark, bd=1,
-                                  relief="solid")
-
-        self.planet_label = Label(self.planet_frame, text="Planet",
-                                  bg=hexDark, fg="white",
-                                  font=("Arial", 20))
-
-        self.armada_frame = Frame(self, bg=hexDark, bd=1,
-                                  relief="solid")
-        """Représente le cadre de la vue du jeu contenant les informations"""
-        self.armada_label = Label(self.armada_frame, text="Armada",
-                                  bg=hexDark, fg="white",
-                                  font=("Arial", 20))
-        """Représente le label de la vue du jeu contenant les informations"""
-
-        self.minimap_frame = Frame(self, bg=hexDark, bd=1,
-                                   relief="solid")
-        """Représente le cadre de la vue du jeu contenant les informations"""
-        self.minimap_label = Label(self.minimap_frame, text="Minimap",
-                                   bg=hexDark, fg="white",
-                                   font=("Arial", 20))
-        """Représente le label de la vue du jeu contenant les informations"""
-        self.minimap = Minimap(self.minimap_frame)
-        """Représente le lbel de la vue du jeu contenant les informations"""
-
-    def initialize(self, mod):
-        """Initialise la sidebar avec les données du model
-        lors de sa création
-        :param mod: Le model"""
-        for i in range(3):
-            self.grid_rowconfigure(i, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-        self.planet_frame.grid(row=0, column=0, sticky="nsew")
-        self.planet_label.place(anchor="center", relx=0.5, rely=0.1)
-        self.armada_frame.grid(row=1, column=0, sticky="nsew")
-        self.armada_label.place(anchor="center", relx=0.5, rely=0.1)
-        self.minimap_frame.grid(row=2, column=0, sticky="nsew")
-
-        self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
-        self.minimap.place(anchor="n", relx=0.5, rely=0.3,
-                                   relwidth=0.9, relheight=0.5)
-
-        self.minimap.initialize(mod)
-
-    def refresh(self, mod):
-        """Rafraichit la sidebar avec les données du model
-        lors de sa création
-        :param mod: Le model"""
-        self.minimap.refresh(mod)
+        self.update()
