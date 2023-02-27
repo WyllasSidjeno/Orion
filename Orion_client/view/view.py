@@ -164,13 +164,13 @@ class GameView(Frame):
         """Configures the grid of the game view."""
         self.grid_propagate(False)
         for i in range(10):
-            if i == 0 or i == 1:
-                self.grid_columnconfigure(i, weight=1, minsize=50)
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(10):
-            if i == 0:
-                self.grid_rowconfigure(i, weight=1, minsize=50)
-            self.grid_rowconfigure(i, weight=1)
+            self.grid_columnconfigure(i, weight=1,
+                                      minsize=50 if i < 2 else None)
+            # This is to make the side bar smaller than the canvas
+
+            self.grid_rowconfigure(i, weight=1,
+                                   minsize=50 if i == 0 else None)
+            # Thi is to make the top bar smaller than the canvas
 
         self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
