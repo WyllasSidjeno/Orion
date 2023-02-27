@@ -207,10 +207,11 @@ class GameView(Frame):
         """Event handler for minimap click
 
         Moves the view to the clicked position"""
-        self.canvas.xview_moveto(event.x /
-                                 self.side_bar.minimap.winfo_width())
-        self.canvas.yview_moveto(event.y /
-                                 self.side_bar.minimap.winfo_height())
+        mm_width = self.side_bar.minimap.winfo_width()
+        mm_height = self.side_bar.minimap.winfo_height()
+        x, y = event.x, event.y
+        print("x: {}, y: {}".format(x, y))
+        print("mm_width: {}, mm_height: {}".format(mm_width, mm_height))
 
     def get_xy(self, event) -> None:
         """Get xy coordinates on click"""
