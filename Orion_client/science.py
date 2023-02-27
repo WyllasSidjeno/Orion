@@ -58,17 +58,24 @@ class Controller:
 
     def show_science(self, sciences: dict):
         """Affiche les sciences"""
-        maxV = AlwaysInt(3)
-        maxH = AlwaysInt(3)
-        self.canvas.create_line(100, 100, 200, 100, fill="black")
-        self.canvas.pack()
-        for science in sciences:
-            for i in range(maxV):
-                for j in range(maxH):
-                    self.canvas.grid(row=i, column=j, padx=5, pady=5)
-                    self.canvas.create_rectangle(10, 10, 20, 20, fill="orange")
+        maxColumn = AlwaysInt(3)
+        maxRow = AlwaysInt(0)
+        x0, y0 = 10, 10
+        x1, y1 = 75, 55
 
-        # fenetre science & self.science
+        self.canvas.create_rectangle(x0, y0, x1, y1, fill="red", outline="black")
+        self.canvas.create_line(x1, y1 - 20, x1 + 50, y1 - 20, fill="black")
+
+        for i in range(maxColumn):
+            self.canvas.columnconfigure(i, weight=1)
+        for i, science in enumerate(sciences):
+            setattr(self, f"{science}_{i}", tk.Frame(self.canvas))
+            if i > maxRow:
+                getattr(self, f"{science}_{i}").grid(row=maxRow+1 , column=0)
+                getattr(self, f"{science}_{i}").configure(bg="red")
+
+        self.canvas.pack()
+
 
     def science_bloquer(self):
         """Si : Affiche la case d'une science bloquée
@@ -89,6 +96,7 @@ class Controller:
 
 if __name__ == "__main__":
     root = tk.Tk()
+    root.title = "Science tree"
     controller = Controller(root)
     controller.show_science(ArbreScience.sciences)
     root.mainloop()
