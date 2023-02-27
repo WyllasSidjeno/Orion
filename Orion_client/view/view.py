@@ -201,7 +201,7 @@ class GameView(Frame):
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>", self.print_tags)  # DEBUG
+        self.canvas.bind("<Button-1>", self.get_xy)  # DEBUG
 
     def on_minimap_click(self, event) -> None:
         """Event handler for minimap click
@@ -212,8 +212,7 @@ class GameView(Frame):
         self.canvas.yview_moveto(event.y /
                                  self.side_bar.minimap.winfo_height())
 
-    def print_tags(self, _) -> None:
-        """Print the tags of the current object"""
-        print(self.canvas.gettags("current"))
-        # xy
-        print(self.canvas.coords("current"))
+    def get_xy(self, event) -> None:
+        """Get xy coordinates on click"""
+        x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        print("x: {}, y: {}".format(x, y))
