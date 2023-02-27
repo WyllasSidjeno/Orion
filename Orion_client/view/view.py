@@ -1,7 +1,7 @@
 from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar
 
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    Minimap
+    Minimap, SideBar
 
 from typing import TYPE_CHECKING
 
@@ -125,7 +125,6 @@ class LobbyView(Frame):
         self.player_name_entry.bind("<Return>", update_username)
         self.url_entry.bind("<Return>", update_url)
 
-
     def disable_join_server_button(self):
         self.join_server_button.config(state="disabled")
         self.restart_button.config(state="normal")
@@ -138,7 +137,6 @@ class LobbyView(Frame):
         self.start_button.config(state="normal")
 
 
-
 class GameView(Frame):
     def __init__(self):
         super().__init__()
@@ -149,45 +147,16 @@ class GameView(Frame):
         self.top_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
         """Représente la barre du haut de la vue du jeu."""
 
-        self.side_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.side_bar = SideBar(self)
         """Représente la barre de droite de la vue du jeu."""
 
         self.scrollX = Scrollbar(self, orient="horizontal")
         """Représente la scrollbar horizontale de la vue du jeu."""
-
         self.scrollY = Scrollbar(self, orient="vertical")
         """""Représente la scrollbar verticale de la vue du jeu."""
 
         self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
         """Représente le canvas de la vue du jeu."""
-
-        self.planet_frame = Frame(self.side_bar, bg=hexDark, bd=1,
-                                  relief="solid")
-        """Représente le cadre de la vue du jeu contenant les informations"""
-        self.planet_label = Label(self.planet_frame, text="Planet",
-                                  bg=hexDark, fg="white",
-                                  font=("Arial", 20))
-        """Représente le label de la vue du jeu contenant les informations"""
-
-        self.armada_frame = Frame(self.side_bar, bg=hexDark, bd=1,
-                                  relief="solid")
-        """Représente le cadre de la vue du jeu contenant les informations"""
-        self.armada_label = Label(self.armada_frame, text="Armada",
-                                  bg=hexDark, fg="white",
-                                  font=("Arial", 20))
-        """Représente le label de la vue du jeu contenant les informations"""
-
-        self.minimap_frame = Frame(self.side_bar, bg=hexDark, bd=1,
-                                   relief="solid")
-        """Représente le cadre de la vue du jeu contenant les informations"""
-        self.minimap_label = Label(self.minimap_frame, text="Minimap",
-                                   bg=hexDark, fg="white",
-                                   font=("Arial", 20))
-        """Représente le label de la vue du jeu contenant les informations"""
-        self.minimap = Minimap(self.minimap_frame)
-        """Représente le lbel de la vue du jeu contenant les informations"""
-
-        self.configure_grid()
 
         self.pack(fill="both", expand=True)
 
@@ -195,13 +164,13 @@ class GameView(Frame):
         """Configures the grid of the game view."""
         self.grid_propagate(False)
         for i in range(10):
-            if i == 0 or i == 1:
-                self.grid_columnconfigure(i, weight=1, minsize=50)
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(10):
-            if i == 0:
-                self.grid_rowconfigure(i, weight=1, minsize=50)
-            self.grid_rowconfigure(i, weight=1)
+            self.grid_columnconfigure(i, weight=1,
+                                      minsize=50 if i < 2 else None)
+            # This is to make the side bar smaller than the canvas
+
+            self.grid_rowconfigure(i, weight=1,
+                                   minsize=50 if i == 0 else None)
+            # Thi is to make the top bar smaller than the canvas
 
         self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
@@ -215,52 +184,35 @@ class GameView(Frame):
         self.scrollX.lift(self.canvas)  # todo: check if it's necessary
         self.scrollY.lift(self.canvas)  # todo: check if it's necessary
 
-        for i in range(3):
-            self.side_bar.grid_rowconfigure(i, weight=1)
-        self.side_bar.grid_columnconfigure(0, weight=1)
-
-        self.planet_frame.grid(row=0, column=0, sticky="nsew")
-        self.planet_label.place(anchor="center", relx=0.5, rely=0.1)
-        self.armada_frame.grid(row=1, column=0, sticky="nsew")
-        self.armada_label.place(anchor="center", relx=0.5, rely=0.1)
-        self.minimap_frame.grid(row=2, column=0, sticky="nsew")
-
-        self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
-        # Give it a dynamic size
-        self.minimap.place(anchor="n", relx=0.5, rely=0.3, relwidth=0.9,
-                           relheight=0.5)
-
-        # self.minimap_label.place(anchor="center", relx=0.5, rely=0.1)
-        # self.minimap.place(anchor="n", relx=0.5, rely=0.28)
-
     def refresh(self, mod):
         self.canvas.refresh(mod)
+        self.side_bar.refresh(mod)
 
     def initialize(self, mod):
+        self.configure_grid()
         self.canvas.initialize(mod)
-        self.minimap.initialize(mod)
+        self.side_bar.initialize(mod)
 
-        self.minimap.bind("<Button-1>",
-                          self.on_minimap_click)
+        self.side_bar.minimap.bind("<Button-1>",
+                                   self.on_minimap_click)
 
         self.canvas.bind("<MouseWheel>",
                          self.canvas.vertical_scroll)
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>", self.print_tags)  # DEBUG
+        self.canvas.bind("<Button-1>", self.get_xy)  # DEBUG
 
     def on_minimap_click(self, event) -> None:
         """Event handler for minimap click
 
         Moves the view to the clicked position"""
         self.canvas.xview_moveto(event.x /
-                                 self.minimap.winfo_width())
+                                 self.side_bar.minimap.winfo_width())
         self.canvas.yview_moveto(event.y /
-                                 self.minimap.winfo_height())
+                                 self.side_bar.minimap.winfo_height())
 
-    def print_tags(self, _) -> None:
-        """Print the tags of the current object"""
-        print(self.canvas.gettags("current"))
-        # xy
-        print(self.canvas.coords("current"))
+    def get_xy(self, event) -> None:
+        """Get xy coordinates on click"""
+        x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        print("x: {}, y: {}".format(x, y))
