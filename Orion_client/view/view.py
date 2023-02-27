@@ -1,12 +1,7 @@
-from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar
+from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    Minimap, SideBar
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from Orion_client.model import Model
+     SideBar
 
 
 class LobbyView(Frame):
@@ -166,7 +161,7 @@ class GameView(Frame):
         for i in range(10):
             self.grid_columnconfigure(i, weight=1,
                                       minsize=50 if i < 2 else None)
-            # This is to make the side bar smaller than the canvas
+            # This is to make the sidebar smaller than the canvas
 
             self.grid_rowconfigure(i, weight=1,
                                    minsize=50 if i == 0 else None)
@@ -181,8 +176,8 @@ class GameView(Frame):
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
 
-        self.scrollX.lift(self.canvas)  # todo: check if it's necessary
-        self.scrollY.lift(self.canvas)  # todo: check if it's necessary
+        #self.scrollX.lift(self.canvas)  # todo: check if it's necessary
+        #self.scrollY.lift(self.canvas)
 
     def refresh(self, mod):
         self.canvas.refresh(mod)
