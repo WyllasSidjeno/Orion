@@ -171,8 +171,8 @@ class Player:
         :param etoilemere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
         """
-        self.consommationJoueur = 10
-        self.energie = 10000
+        self.consommationJoueur = AlwaysInt(10)
+        self.energie = AlwaysInt(10000)
         self.id : str = get_prochain_id()
         self.parent = parent
         self.nom = nom
@@ -221,7 +221,7 @@ class Player:
             self.consoStructure += structure.consommation
         # TODO Ajuster la méthode si on doit s'en servir
         # TODO comme getter (return) ou affectation directe à la classe Joueur
-        self.energie -= (self.consoVaisseau + self.consoStructure + self.consommationJoueur)
+        self.energie -= AlwaysInt((self.consoVaisseau + self.consoStructure + self.consommationJoueur))
 
 
 class AI(Player):
@@ -283,7 +283,7 @@ class Population:
         self.is_under_siege = isUnderSiege
         # déterminer au moment de l'appel de la méthode si la population est sous-attaque.
         if not self.is_under_siege:
-            self.nb_humains *= (100 + self.pourcentBonus) + (self.totalNourriture / self.nb_humains)
+            self.nb_humains *= AlwaysInt((100 + self.pourcentBonus) + (self.totalNourriture / self.nb_humains))
         else:  # si la population de la planete est attaquée
             self.nb_humains = AlwaysInt(self.nb_humains * ((100 - self.pourcentBonus) / 100))
 
