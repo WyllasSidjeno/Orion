@@ -204,6 +204,7 @@ class GameView(Frame):
             self.grid_rowconfigure(i, weight=1)
 
         self.hud.grid(row=0, column=0, columnspan=10, sticky="nsew")
+
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
         self.side_bar.grid_propagate(False)
         self.canvas.grid(row=1, column=1, columnspan=9, rowspan=9,
