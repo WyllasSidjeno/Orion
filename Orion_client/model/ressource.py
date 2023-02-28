@@ -112,8 +112,8 @@ class Ressource(dict):
 
 
 class RessourceMul(Ressource):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 # Main ne servant qu'à tester la classe Ressource

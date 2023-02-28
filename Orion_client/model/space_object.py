@@ -1,6 +1,9 @@
+import random
 from random import randrange
 
 from Orion_client.helper import get_prochain_id
+from Orion_client.model.building import Building, PowerPlant, ConcreteFactory
+from Orion_client.model.ressource import Ressource
 
 
 class Wormhole:
@@ -77,12 +80,15 @@ class Star:
         :param x: coordonnee x de l'etoile
         :param y: coordonnee y de l'etoile
         """
+        self.transit: bool = False
         self.id: str = get_prochain_id()
         self.parent = parent
         self.proprietaire: str = ""
         self.x = x
         self.y = y
         self.taille = randrange(4, 8)
-        self.ressources = {"metal": 1000,
-                           "energie": 10000,
-                           "existentielle": 100}
+        self.output = Ressource(metal=random.randint(0, 1000),
+                                energie=1,
+                                beton=random.randint(0, 1000),
+                                nourriture=random.randint(0, 1000))
+        self.buildinglist: list[Building] = [PowerPlant(), ConcreteFactory()]

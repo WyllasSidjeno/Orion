@@ -14,7 +14,9 @@ from typing import Callable
 from random import randrange, choice
 from ast import literal_eval
 
-from Orion_client.helper import get_prochain_id
+from Orion_client.helper import get_prochain_id, AlwaysInt
+from Orion_client.model.building import ResearchCenter, PowerPlant
+from Orion_client.model.ressource import Ressource
 from Orion_client.model.space_object import Wormhole, Star
 
 
@@ -23,6 +25,7 @@ class Model:
 
     Le modèle contient les données du jeu.
     """
+
     def __init__(self, parent, joueurs):
         """Initialise le modèle.
 
@@ -31,18 +34,18 @@ class Model:
         """
         self.parent = parent
         self.largeur: int = 9000
-        self.hauteur:int = 9000
-        self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
+        self.hauteur: int = 9000
+        self.nb_etoiles: int = int((self.hauteur * self.largeur) / 500000)
         self.joueurs: dict = {}
         self.actions_a_faire: dict = {}
         self.etoiles: list = []
-        self.trou_de_vers : list = []
+        self.trou_de_vers: list = []
         self.cadre_courant = None  # TODO: type
         self.creeretoiles(joueurs, 1)
         nb_trou: int = int((self.hauteur * self.largeur) / 5000000)
         self.creer_troudevers(nb_trou)
 
-    def creer_troudevers(self, n : int) -> None:
+    def creer_troudevers(self, n: int) -> None:
         """Crée des trous de vers.
 
         Créé n trous de vers aléatoirement dans le modèle.
@@ -51,7 +54,7 @@ class Model:
         des trous de vers du modèle.
 
         :param n: le nombre de trous de vers à créer"""
-        bordure : int = 10
+        bordure: int = 10
         for i in range(n):
             x1 = randrange(self.largeur - (2 * bordure)) + bordure
             y1 = randrange(self.hauteur - (2 * bordure)) + bordure
@@ -162,6 +165,7 @@ class Player:
     Il possede une flotte de vaisseaux, une liste d'etoiles controlees et une
     liste d'actions.
     """
+
     def __init__(self, parent: Model, nom: str,
                  etoilemere: Star, couleur: str):
         """Initialise le joueur.
@@ -171,13 +175,15 @@ class Player:
         :param etoilemere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
         """
-        self.id : str = get_prochain_id()
+        self.id: str = get_prochain_id()
         self.parent = parent
         self.nom = nom
         self.etoilemere = etoilemere
+        self.etoilemere.transit = True
         self.etoilemere.proprietaire = self.nom
         self.couleur = couleur
         self.log: list = []
+        self.ressources = Ressource(metal=500, beton=500, energie=1000, nourriture=500)
         """Liste des actions du joueur."""
         self.etoilescontrolees: list = [etoilemere]
         """Liste des etoiles controlees par le joueur."""
@@ -191,6 +197,25 @@ class Player:
     def jouer_prochain_coup(self):
         """Fonction de jeu du joueur pour un tour.
         """
+        self.ressources_cumul()
+        print()
+        print(self.ressources)
+        pass
+
+    def ressources_cumul(self):
+        for e in self.etoilescontrolees:
+            print(e.buildinglist[0].output)
+
+            if e.transit:
+                planetRes: Ressource = e.output
+                for b in e.buildinglist:
+                    if isinstance(b, PowerPlant):
+                        planetRes += b.output
+                    elif isinstance(b, ResearchCenter):
+                        continue
+                    else:
+                        planetRes *= b.output
+                self.ressources += planetRes
         pass
 
 
@@ -199,6 +224,7 @@ class AI(Player):
 
     L'AI est le personnage non-joueur qui joue le jeu.
     """
+
     def __init__(self, parent: Model, nom: str,
                  etoilemere: Star, couleur: str) -> None:
         """Initialise l'AI.
@@ -216,11 +242,3 @@ class AI(Player):
 
     def jouer_prochain_coup(self) -> None:
         pass
-
-
-
-
-
-
-
-
