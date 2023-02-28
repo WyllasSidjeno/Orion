@@ -4,7 +4,6 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas\
     , SideBar, PlanetWindow
 
 
-
 class LobbyView(Frame):
     def __init__(self, url_serveur: str, username: str):
         super().__init__()
@@ -203,6 +202,8 @@ class GameView(Frame):
 
         self.canvas.bind("<Button-1>", self.on_game_click)  # DEBUG
 
+        self.planet_window.initialize()
+
     def on_minimap_click(self, event) -> None:
         """ Moves the canvas region to the clicked position on the minimap. """
         pctx = event.x / self.side_bar.minimap.winfo_width()
@@ -231,7 +232,7 @@ class GameView(Frame):
 
         if self.planet_window.isShown:
             self.planet_window.hide()
-        elif "stars_unowned" in tags_list:
+        elif "stars_owned" in tags_list:
             self.planet_window.show()
 
 
