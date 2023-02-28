@@ -1,1 +1,2 @@
-from view import *
+from .view import *
+from ..model import *
