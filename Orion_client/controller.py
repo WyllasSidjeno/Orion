@@ -214,11 +214,8 @@ class LobbyController:
 
     def connect_to_server(self):
         """Se connecte au serveur"""
-        print("Connecting to server...")
-        url = self.urlserveur + "/tester_jeu"
-        params = {"username": self.username}
-        temp = call_server(url, params)
-
+        temp = call_server(self.urlserveur + "/tester_jeu",
+                           {"username": self.username})
         if temp[0][0]:
             string = temp[0][0]
             if string == "dispo":
@@ -231,11 +228,8 @@ class LobbyController:
         self.view.disable_restart_connect_button()
 
     def get_server_state(self):
-        print("Connecting to server...")
-        url = self.urlserveur + "/tester_jeu"
-        params = {"username": self.username}
-        temp = call_server(url, params)
-        return temp
+        return call_server(self.urlserveur + "/tester_jeu",
+                           {"username": self.username})
     def on_first_connection(self):
         """Fonction à appeler lors de la première connexion"""
         temp = self.get_server_state()
@@ -260,9 +254,8 @@ class LobbyController:
 
     def add_player_to_game(self):
         """Ajoute un joueur à la partie"""
-        url = self.urlserveur + "/inscrire_joueur"
-        params = {"nom": self.username}
-        temp = call_server(url, params)
+        temp = call_server(self.urlserveur + "/inscrire_joueur",
+                           {"nom": self.username})
         if temp:
             self.view.change_game_state(temp[0][0])
             self.update_lobby()
@@ -271,18 +264,15 @@ class LobbyController:
 
     def restart_server(self):
         """Redémarre le serveur"""
-        print("Restarting server...")
-        url = self.urlserveur + "/reset_jeu"
-        temp = call_server(url, 0)
+        temp = call_server(self.urlserveur + "/reset_jeu", 0)
         if temp:
             self.view.change_game_state(temp[0][0])
+        self.view.enable_connect_button()
 
     def start_game_server(self):
         """Démarre la partie"""
-        print("Starting game server...")
-        url = self.urlserveur + "/creer_partie"
-        params = {"nom": self.username}
-        temp = call_server(url, params)
+        temp = call_server(self.urlserveur + "/creer_partie",
+                           {"nom": self.username})
         if temp:
             self.view.change_game_state("Serveur rejoint")
             self.update_lobby()
@@ -299,20 +289,13 @@ class LobbyController:
                                       self.start_game_signal,
                                       self.update_username,
                                       self.update_url)
-        #todo : Lancer Partie
 
     def update_lobby(self):
         """Met à jour le lobby"""
-        url = self.urlserveur + "/boucler_sur_lobby"
-        params = {"nom": self.username}
-        temp = call_server(url, params)
-        print(temp)
+        temp = call_server(self.urlserveur+"/boucler_sur_lobby",
+                           {"nom": self.username})
         if 'courante' in temp:
-            # If there is an int higher than 0 in the list, it means
-            # that the game has started
-            print(temp[1][0][0])
-            if temp[1][0][0] > 0:
-                self.start_game_signal()
+            self.start_game_signal()
 
         else:
             self.joueurs = temp
@@ -329,23 +312,18 @@ class LobbyController:
 
         self.start_game(self.joueurs)
 
+    def launch_game(self):
+        """Lance la partie"""
+        call_server(self.urlserveur + "/lancer_partie",
+                    {"nom": self.username})
+
     def update_username(self, event):
         """Met à jour le nom d'utilisateur"""
-        username = event.widget.get()
-        self.username = username
+        self.username = event.widget.get()
 
     def update_url(self, event):
         """Met à jour l'URL du serveur"""
-        url = event.widget.get()
-        self.urlserveur = url
-
-    def launch_game(self):
-        """Lance la partie"""
-        url = self.urlserveur + "/lancer_partie"
-        params = {"nom": self.username}
-        call_server(url, params)
-        print("Game launched")
-
+        self.urlserveur = event.widget.get()
 
 def call_server(url, params):
     """Appelle le serveur et renvoie la réponse sous forme de dictionnaire
