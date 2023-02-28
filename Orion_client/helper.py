@@ -3,7 +3,6 @@
 Ce module contient des methodes statiques pour calculer des points
 et des angles a partir de coordonnees cartesiennes.
 """
-import math
 from typing import Any
 import functools
 
@@ -31,10 +30,12 @@ def get_random_username() -> str:
     import random
     return f'Joueur_{random.randint(0, 1000)}'
 
+
 class Inherited(type):
     """Permet de reféfinir des méthodes héritées afin que le type de
     retour soit celui de la sous-classe.
     """
+
     def __new__(
             cls,
             name: str,
@@ -49,6 +50,7 @@ class Inherited(type):
                 # Force early binding
                 def outer(method_name=method_name):
                     method = getattr(base, method_name)
+
                     @functools.wraps(method)
                     def inner(self, *args, **kwargs):
                         res = method.__call__(self, *args, **kwargs)
@@ -57,7 +59,7 @@ class Inherited(type):
                         # Implement reflected methods
                         if (
                                 res is NotImplemented
-                                and len(args) == 1 # Only binary ops
+                                and len(args) == 1  # Only binary ops
                                 and reflected in dir(args[0])
                         ):
                             res = getattr(args[0], reflected).__call__(self)
@@ -65,6 +67,7 @@ class Inherited(type):
                         return self.__class__(res)
 
                     return inner
+
                 namespace[method_name] = outer(method_name)
 
         return super().__new__(cls, name, bases, namespace)
@@ -73,8 +76,8 @@ class Inherited(type):
 class AlwaysInt(int, metaclass=Inherited):
     _implements = {
         int: [
-                '__abs__', '__invert__', '__neg__', '__pos__',
-                '__ceil__', '__floor__', '__trunc__',
+            '__abs__', '__invert__', '__neg__', '__pos__',
+            '__ceil__', '__floor__', '__trunc__',
         ]
     }
 

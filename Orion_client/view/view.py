@@ -1,12 +1,7 @@
-from tkinter import Tk, Frame, Label, Canvas, Entry, Button, Scrollbar
+from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    Minimap, SideBar
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from Orion_client.model import Model
+     SideBar
 
 
 class LobbyView(Frame):
@@ -171,11 +166,9 @@ class GameView(Frame):
         for i in range(10):
             self.grid_columnconfigure(i, weight=1,
                                       minsize=50 if i < 2 else None)
-            # This is to make the side bar smaller than the canvas
 
             self.grid_rowconfigure(i, weight=1,
                                    minsize=50 if i == 0 else None)
-            # Thi is to make the top bar smaller than the canvas
 
         self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
@@ -185,9 +178,6 @@ class GameView(Frame):
 
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
-
-        self.scrollX.lift(self.canvas)  # todo: check if it's necessary
-        self.scrollY.lift(self.canvas)  # todo: check if it's necessary
 
     def refresh(self, mod):
         self.canvas.refresh(mod)
@@ -209,13 +199,22 @@ class GameView(Frame):
         self.canvas.bind("<Button-1>", self.get_xy)  # DEBUG
 
     def on_minimap_click(self, event) -> None:
-        """Event handler for minimap click
+        """ Moves the canvas region to the clicked position on the minimap. """
+        pctx = event.x / self.side_bar.minimap.winfo_width()
+        """Percentage of the x coordinate on the minimap."""
+        pcty = event.y / self.side_bar.minimap.winfo_height()
+        """Percentage of the y coordinate on the minimap."""
 
-        Moves the view to the clicked position"""
-        self.canvas.xview_moveto(event.x /
-                                 self.side_bar.minimap.winfo_width())
-        self.canvas.yview_moveto(event.y /
-                                 self.side_bar.minimap.winfo_height())
+        x = (self.canvas.winfo_width() / 2) / 9000
+        """ This represents the x coordinate of the center of the canvas"""
+        y = (self.canvas.winfo_height() / 2) / 9000
+        """ This represents the y coordinate of the center of the canvas"""
+
+        # This will move the canvas to the clicked position on the minimap
+        # By subtracting the x and y coordinates of the center of the canvas
+        # From the x and y coordinates of the clicked position on the minimap
+        self.canvas.move_to((pctx - x), (pcty - y))
+
 
     def get_xy(self, event) -> None:
         """Get xy coordinates on click"""
