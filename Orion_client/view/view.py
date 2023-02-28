@@ -200,18 +200,20 @@ class GameView(Frame):
 
     def on_minimap_click(self, event) -> None:
         """ Moves the canvas region to the clicked position on the minimap. """
-        x = event.x
-        y = event.y
+        pctx = event.x / self.side_bar.minimap.winfo_width()
+        """Percentage of the x coordinate on the minimap."""
+        pcty = event.y / self.side_bar.minimap.winfo_height()
+        """Percentage of the y coordinate on the minimap."""
 
-        pctx = x / self.side_bar.minimap.winfo_width()
-        pcty = y / self.side_bar.minimap.winfo_height()
+        x = (self.canvas.winfo_width() / 2) / 9000
+        """ This represents the x coordinate of the center of the canvas"""
+        y = (self.canvas.winfo_height() / 2) / 9000
+        """ This represents the y coordinate of the center of the canvas"""
 
-        x1 = (self.canvas.winfo_width()/2)/9000
-        y1 = (self.canvas.winfo_height()/2)/9000
-        # /2 car le canvas est centré
-
-        self.canvas.xview_moveto(pctx - x1)
-        self.canvas.yview_moveto(pcty - y1)
+        # This will move the canvas to the clicked position on the minimap
+        # By subtracting the x and y coordinates of the center of the canvas
+        # From the x and y coordinates of the clicked position on the minimap
+        self.canvas.move_to((pctx - x), (pcty - y))
 
 
     def get_xy(self, event) -> None:
