@@ -195,12 +195,6 @@ class Player:
         """
         pass
 
-    def setConsommation(self, consommation):
-        self.consommation = consommation
-
-    def getConsommation(self):
-        return self.consommation
-
     def deplete_energy(self, list_vaisseau: list, list_structure: list):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
         :param list_vaisseau: Liste des vaisseaux du joueur
