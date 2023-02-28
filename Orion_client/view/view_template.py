@@ -466,6 +466,8 @@ class Minimap(Canvas):
         # Make it the same size as the master
         self.propagate(False)
 
+
+
     def refresh(self, mod):
         pass
         #todo : Refresh only what necessary or the whole thing ?
@@ -496,6 +498,31 @@ class Minimap(Canvas):
                                 wormhole.porte_b.x * self.x_ratio + 2, wormhole.porte_b.y * self.y_ratio + 2,
                                 fill=wormhole.porte_b.couleur, tags=("Wormhole"))
 
+            self.bind("<Configure>", self.on_resize)
+
+    def on_resize(self, _):
+        self.update_idletasks()
+
+        old_ratio_x = self.x_ratio
+        old_ratio_y = self.y_ratio
+
+        self.x_ratio = self.winfo_width() / 9000
+        self.y_ratio = self.winfo_height() / 9000
+
+        diff_ratio_x = self.x_ratio / old_ratio_x
+        diff_ratio_y = self.y_ratio / old_ratio_y
+
+        for star in self.find_withtag("stars"):
+            self.coords(star, self.coords(star)[0] * diff_ratio_x, self.coords(star)[1] * diff_ratio_y,
+                        self.coords(star)[2] * diff_ratio_x, self.coords(star)[3] * diff_ratio_y)
+
+        for star in self.find_withtag("stars_owned"):
+            self.coords(star, self.coords(star)[0] * diff_ratio_x, self.coords(star)[1] * diff_ratio_y,
+                        self.coords(star)[2] * diff_ratio_x, self.coords(star)[3] * diff_ratio_y)
+
+        for wormhole in self.find_withtag("Wormhole"):
+            self.coords(wormhole, self.coords(wormhole)[0] * diff_ratio_x, self.coords(wormhole)[1] * diff_ratio_y,
+                        self.coords(wormhole)[2] * diff_ratio_x, self.coords(wormhole)[3] * diff_ratio_y)
 
 
 
