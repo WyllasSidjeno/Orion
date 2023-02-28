@@ -199,14 +199,20 @@ class GameView(Frame):
         self.canvas.bind("<Button-1>", self.get_xy)  # DEBUG
 
     def on_minimap_click(self, event) -> None:
-        """Event handler for minimap click
+        """ Moves the canvas region to the clicked position on the minimap. """
+        x = event.x
+        y = event.y
 
-        Moves the view to the clicked position"""
-        mm_width = self.side_bar.minimap.winfo_width()
-        mm_height = self.side_bar.minimap.winfo_height()
-        x, y = event.x, event.y
-        print("x: {}, y: {}".format(x, y))
-        print("mm_width: {}, mm_height: {}".format(mm_width, mm_height))
+        pctx = x / self.side_bar.minimap.winfo_width()
+        pcty = y / self.side_bar.minimap.winfo_height()
+
+        x1 = (self.canvas.winfo_width()/2)/9000
+        y1 = (self.canvas.winfo_height()/2)/9000
+        # /2 car le canvas est centré
+
+        self.canvas.xview_moveto(pctx - x1)
+        self.canvas.yview_moveto(pcty - y1)
+
 
     def get_xy(self, event) -> None:
         """Get xy coordinates on click"""
