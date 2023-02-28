@@ -267,7 +267,6 @@ class LobbyController:
             self.update_lobby()
 
         self.view.disable_restart_connect_button()
-        self.view.enable_start_game_button()
 
     def restart_server(self):
         """Redémarre le serveur"""
