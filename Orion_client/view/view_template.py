@@ -14,6 +14,8 @@ class PlanetWindow(Frame):
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
                          width=400, height=400)
 
+        self.isShown : bool = False
+
         # # # Le Header
         self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
                                          bd=1, relief="solid")
@@ -81,38 +83,21 @@ class PlanetWindow(Frame):
 
         self.configure_placement()
 
-        # Make it float on top of the canvas
-        # self.winfo_toplevel().attributes("-topmost", True) # This allows
-        # the window to be on top of the canvas but it doesnt allow the
-        # canvas to be on top of the window
-
-        # To make the canvas not move when the window is showed, we need to
-
-    def show(self, planet_info: dict) -> None:
-        """Affiche les informations de la planete
-
-        :param planet_info: Dictionnaire contenant les informations de la
-        planete"""
-        # todo : Make sure it works with all ressources once implemented
-        self.owner_label.config(text=planet_info["owner"])
-        self.population_label.config(text=planet_info["population"])
-        self.name_label.config(text=planet_info["name"])
-
-        # Make it so it doesnt make the window bigger and that it gets over
-        # the current content of the window
-        self.lift()
 
     def hide(self) -> None:
         """Cache la fenetre"""
-        self.lower()
+        self.place_forget()
+        self.isShown = False
+
+    def show(self):
+        self.place(relx=0.5, rely=0.5, anchor="center")
+        self.isShown = True
 
     def configure_placement(self) -> None:
         """Place les widgets dans la fenetre"""
         self.place_header()
         self.place_main()
         self.place_side_bar()
-        self.place(relx=0.5, rely=0.5, anchor="center")
-        self.lower()
 
     def place_header(self) -> None:
         """Crée le header de la fenetre, la ou les informations identifiante
