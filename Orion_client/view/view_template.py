@@ -270,14 +270,24 @@ class GameCanvas(Canvas):
 
         self.configure(scrollregion=(0, 0, 9000, 9000))
 
+    def move_to(self, x: float, y: float) -> None:
+        """Déplace le canvas de jeu à une position donnée
+        :param x: La position x en 0.0 - 1.0
+        :param y: La position y en 0.0 - 1.0
+        """
+        self.xview_moveto(x)
+        self.yview_moveto(y)
+
     def initialize(self, mod):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
         :param mod: Le model"""
+        # mod mandatory because of background dependancy
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
         self.generate_unowned_stars(mod.etoiles)
         owned_stars = self.get_player_stars(mod)
+        # todo : Colors
         self.generate_owned_stars(owned_stars)
         self.generate_wormhole(mod.trou_de_vers)
 
@@ -363,6 +373,7 @@ class GameCanvas(Canvas):
         self.generate_wormhole(mod.trou_de_vers)
 
 
+
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
     def __init__(self, master: Frame):
@@ -427,10 +438,17 @@ class SideBar(Frame):
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
         self.minimap_frame.grid_rowconfigure(0, weight=1)
-        self.minimap.grid(row=0, column=0, sticky="nsew")
+        self.minimap_frame.grid_columnconfigure(0, weight=1)
+        self.minimap_frame.grid_rowconfigure(1, weight=6)
+
+        self.minimap_label.grid(row=0, column=0, sticky="nsew")
+        self.minimap.grid(row=1, column=0, sticky="nsew")
 
 
-        #self.minimap.initialize(mod)
+
+
+
+        self.minimap.initialize(mod)
 
     def refresh(self, mod):
         """Rafraichit la sidebar avec les données du model
@@ -438,79 +456,73 @@ class SideBar(Frame):
         :param mod: Le model"""
         self.minimap.refresh(mod)
 
-
 class Minimap(Canvas):
-    """ Représente la minimap du jeu."""
+    x_ratio: float
+    y_ratio: float
     def __init__(self, master: Frame):
-        """Initialise la minimap"""
-        super().__init__(master)
-        self.configure(bg=hexDark, bd=1,
-                       relief="solid", highlightthickness=1)
+        super().__init__(master, bg=hexDark, bd=1,
+                         relief="solid", highlightthickness=0)
 
-        self.ratio_x: int = 0
-        self.ratio_y: int = 0
+        # Make it the same size as the master
+        self.propagate(False)
 
-    def initialize(self, mod):
-        """Initialise la minimap avec les données du model
-        lors de sa création
-        :param mod: Le model"""
-        # todo : Generate the minimap
 
-        self.update()  # Useful asf
-        self.ratio_x = self.winfo_width() / mod.largeur
-        self.ratio_y = self.winfo_height() / mod.hauteur
-
-        # Grey squares for Etoile.
-        for star in mod.etoiles:
-            self.create_rectangle(star.x * self.ratio_x, star.y * self.ratio_y,
-                                  star.x * self.ratio_x + 2,
-                                  star.y * self.ratio_y + 2,
-                                  fill="grey", tags="stars_unowned")
-
-            for keys in mod.joueurs.keys():
-                for j in mod.joueurs[keys].etoilescontrolees:
-                    self.create_rectangle(j.x * self.ratio_x,
-                                          j.y * self.ratio_y,
-                                          j.x * self.ratio_x + 2,
-                                          j.y * self.ratio_y + 2,
-                                          fill=mod.joueurs[keys].couleur,
-                                          tags="stars_owned")
-
-            for hole in mod.trou_de_vers:
-                self.create_rectangle(hole.porte_a.x * self.ratio_x,
-                                      hole.porte_a.y * self.ratio_y,
-                                      hole.porte_a.x * self.ratio_x + 2,
-                                      hole.porte_a.y * self.ratio_y + 2,
-                                      fill=hole.porte_a.couleur,
-                                      tags="Wormhole")
-
-                self.create_rectangle(hole.porte_b.x * self.ratio_x,
-                                      hole.porte_b.y * self.ratio_y,
-                                      hole.porte_b.x * self.ratio_x + 2,
-                                      hole.porte_b.y * self.ratio_y + 2,
-                                      fill=hole.porte_b.couleur,
-                                      tags="Wormhole")
-
-            self.bind("<Configure>", self.on_resize)
 
     def refresh(self, mod):
         pass
-    # todo : Minimap refresh
+        #todo : Refresh only what necessary or the whole thing ?
+
+    def initialize(self, mod):
+        self.update_idletasks()
+
+        self.x_ratio = self.winfo_width() / mod.largeur
+        self.y_ratio = self.winfo_height() / mod.hauteur
+
+
+        for star in mod.etoiles:
+            self.create_oval(star.x * self.x_ratio - 2, star.y * self.y_ratio - 2,
+                             star.x * self.x_ratio + 2, star.y * self.y_ratio + 2,
+                             fill="grey", tags=("stars"))
+
+        for key in mod.joueurs:
+            for star in mod.joueurs[key].etoilescontrolees:
+                self.create_oval(star.x * self.x_ratio - 2, star.y * self.y_ratio - 2,
+                                 star.x * self.x_ratio + 2, star.y * self.y_ratio + 2,
+                                 fill="white", tags=("stars_owned"))
+
+        for wormhole in mod.trou_de_vers:
+            self.create_oval(wormhole.porte_a.x * self.x_ratio - 2, wormhole.porte_a.y * self.y_ratio - 2,
+                             wormhole.porte_a.x * self.x_ratio + 2, wormhole.porte_a.y * self.y_ratio + 2,
+                             fill=wormhole.porte_a.couleur, tags=("Wormhole"))
+            self.create_oval(wormhole.porte_b.x * self.x_ratio - 2, wormhole.porte_b.y * self.y_ratio - 2,
+                                wormhole.porte_b.x * self.x_ratio + 2, wormhole.porte_b.y * self.y_ratio + 2,
+                                fill=wormhole.porte_b.couleur, tags=("Wormhole"))
+
+            self.bind("<Configure>", self.on_resize)
 
     def on_resize(self, _):
-        """Redistribue les éléments lors de la redimension de la minimap"""
+        self.update_idletasks()
 
-        current_ratio_x = self.winfo_width() / 9000
-        current_ratio_y = self.winfo_height() / 9000
+        old_ratio_x = self.x_ratio
+        old_ratio_y = self.y_ratio
 
-        new_ratio_x = current_ratio_x / self.ratio_x
-        new_ratio_y = current_ratio_y / self.ratio_y
+        self.x_ratio = self.winfo_width() / 9000
+        self.y_ratio = self.winfo_height() / 9000
 
-        self.scale("stars_unowned", 0, 0, new_ratio_x, new_ratio_y)
-        self.scale("stars_owned", 0, 0, new_ratio_x, new_ratio_y)
+        diff_ratio_x = self.x_ratio / old_ratio_x
+        diff_ratio_y = self.y_ratio / old_ratio_y
 
-        self.scale("Wormhole", 0, 0, new_ratio_x, new_ratio_y)
+        for star in self.find_withtag("stars"):
+            self.coords(star, self.coords(star)[0] * diff_ratio_x, self.coords(star)[1] * diff_ratio_y,
+                        self.coords(star)[2] * diff_ratio_x, self.coords(star)[3] * diff_ratio_y)
 
-        self.ratio_x = current_ratio_x
-        self.ratio_y = current_ratio_y
-        self.update()
+        for star in self.find_withtag("stars_owned"):
+            self.coords(star, self.coords(star)[0] * diff_ratio_x, self.coords(star)[1] * diff_ratio_y,
+                        self.coords(star)[2] * diff_ratio_x, self.coords(star)[3] * diff_ratio_y)
+
+        for wormhole in self.find_withtag("Wormhole"):
+            self.coords(wormhole, self.coords(wormhole)[0] * diff_ratio_x, self.coords(wormhole)[1] * diff_ratio_y,
+                        self.coords(wormhole)[2] * diff_ratio_x, self.coords(wormhole)[3] * diff_ratio_y)
+
+
+
