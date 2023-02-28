@@ -161,11 +161,9 @@ class GameView(Frame):
         for i in range(10):
             self.grid_columnconfigure(i, weight=1,
                                       minsize=50 if i < 2 else None)
-            # This is to make the sidebar smaller than the canvas
 
             self.grid_rowconfigure(i, weight=1,
                                    minsize=50 if i == 0 else None)
-            # Thi is to make the top bar smaller than the canvas
 
         self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
@@ -175,9 +173,6 @@ class GameView(Frame):
 
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
-
-        #self.scrollX.lift(self.canvas)  # todo: check if it's necessary
-        #self.scrollY.lift(self.canvas)
 
     def refresh(self, mod):
         self.canvas.refresh(mod)
