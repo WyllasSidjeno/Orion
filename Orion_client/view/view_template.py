@@ -446,10 +446,6 @@ class Hud(Frame):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1, relief="solid")
 
-        self.ressource_label = Label(self, text="Ressources",
-                                     bg="#fcba03", fg="white",
-                                     font=("Arial", 13))
-
         for i in range(5): #configure HUD columns
             self.grid_columnconfigure(i, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -457,6 +453,7 @@ class Hud(Frame):
 
         self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid") #frame containing ressources
         self.ressource_frame.grid(row=0, column=0, sticky="nsew")
+        #self.ressource_frame.grid_propagate(False)
 
 
         for i in range(4): #separate ressources in 4 columns
@@ -464,57 +461,56 @@ class Hud(Frame):
         self.ressource_frame.rowconfigure(0, weight=1)
 
         #FRAME ATTRIBUTES
-        self.padx = 2
-        self.pady = 5
+        self.padx = 10
+        self.pady = 0
         self.border = 1 #binary value
 
-        metal_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        metal_frame = Frame(self.ressource_frame, bg="#a84632", bd=self.border, relief="solid")
         metal_frame.grid(row=0, column=0, sticky="ew", padx=self.padx, pady=self.pady)
 
-        beton_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        beton_frame = Frame(self.ressource_frame, bg="#364b8f", bd=self.border, relief="solid")
         beton_frame.grid(row=0, column=1, sticky="ew", padx=self.padx, pady=self.pady)
 
-        energy_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        energy_frame = Frame(self.ressource_frame, bg="#adba59", bd=self.border, relief="solid")
         energy_frame.grid(row=0, column=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        food_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        food_frame = Frame(self.ressource_frame, bg="#3f9160", bd=self.border, relief="solid")
         food_frame.grid(row=0, column=3, sticky="ew", padx=self.padx, pady=self.pady)
 
         #LABEL ATTRIBUTES
 
-        self.ressource_height = 5
-        self.ressource_width = 5
+        self.ressource_height = 2
+        self.ressource_width = 7
         self.text_size = 15
 
-        self.metal_label = Label(metal_frame, text="Metal: 0", bg="#a84632", fg="white", font=("Arial", self.text_size))
-        self.beton_label = Label(beton_frame, text="Beton: 0", bg="#364b8f", fg="white", font=("Arial", self.text_size))
-        self.energy_label = Label(energy_frame, text="Energy: 0", bg="#adba59", fg="white", font=("Arial", self.text_size))
-        self.food_label = Label(food_frame, text="Food: 0", bg="#3f9160", fg="white", font=("Arial", self.text_size))
+        self.metal_label = Label(metal_frame, text="Metal", bg="#a84632", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
+        self.beton_label = Label(beton_frame, text="Beton", bg="#364b8f", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
+        self.energy_label = Label(energy_frame, text="Energy", bg="#adba59", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
+        self.food_label = Label(food_frame, text="Food", bg="#3f9160", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
 
-        self.initialize()
+        self.show()
 
         self.metal_label.pack()
         self.beton_label.pack()
         self.energy_label.pack()
         self.food_label.pack()
 
-    def initialize(self):
-        """initialise le HUD ressource lors de sa création"""
-        # todo : get info to resize ressource HUD dynamically
+    def update_ressources(self, metal, beton, energy, food):
 
-        self.update()
-        self.ressource_height = self.winfo_height() #todo here
-        self.ressource_width = self.winfo_width()
-
-        self.metal_label.configure(height=self.ressource_height, width=self.ressource_width)
-        self.beton_label.configure(height=self.ressource_height, width=self.ressource_width)
-        self.energy_label.configure(height=self.ressource_height, width=self.ressource_width)
-        self.food_label.configure(height=self.ressource_height, width=self.ressource_width)
-
-        print("HUD initialized")
-
-
+        self.metal_text = "Metal: " + str(metal)
+        self.beton_text = "Beton: " + str(beton)
+        self.energy_text = "Energy: " + str(energy)
+        self.food_text = "food: " + str(food)
 
     def show(self):
-        self.ressource_label.grid(row=0, column=1)
+        self.update_ressources(1, 2, 3, 4)
+
+        self.metal_label.config(text=self.metal_text)
+        self.beton_label.config(text=self.beton_text)
+        self.energy_label.config(text=self.energy_text)
+        self.food_label.config(text=self.food_text)
 
