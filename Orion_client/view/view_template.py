@@ -270,6 +270,14 @@ class GameCanvas(Canvas):
 
         self.configure(scrollregion=(0, 0, 9000, 9000))
 
+    def move_to(self, x: float, y: float) -> None:
+        """Déplace le canvas de jeu à une position donnée
+        :param x: La position x en 0.0 - 1.0
+        :param y: La position y en 0.0 - 1.0
+        """
+        self.xview_moveto(x)
+        self.yview_moveto(y)
+
     def initialize(self, mod):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
@@ -279,6 +287,7 @@ class GameCanvas(Canvas):
                                  len(mod.etoiles) * 50)
         self.generate_unowned_stars(mod.etoiles)
         owned_stars = self.get_player_stars(mod)
+        # todo : Colors
         self.generate_owned_stars(owned_stars)
         self.generate_wormhole(mod.trou_de_vers)
 
@@ -364,6 +373,7 @@ class GameCanvas(Canvas):
         self.generate_wormhole(mod.trou_de_vers)
 
 
+
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
     def __init__(self, master: Frame):
@@ -427,13 +437,16 @@ class SideBar(Frame):
 
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
-        self.minimap_frame.grid_rowconfigure(0, weight=0)
+        self.minimap_frame.grid_rowconfigure(0, weight=1)
         self.minimap_frame.grid_columnconfigure(0, weight=1)
         self.minimap_frame.grid_rowconfigure(1, weight=6)
-        self.minimap_frame.grid_columnconfigure(1, weight=6)
-        self.minimap.grid(row=1, column=1, sticky="nsew")
 
-        self.minimap_label.grid(row=0, column=1, sticky="nsew")
+        self.minimap_label.grid(row=0, column=0, sticky="nsew")
+        self.minimap.grid(row=1, column=0, sticky="nsew")
+
+
+
+
 
         self.minimap.initialize(mod)
 
@@ -450,74 +463,38 @@ class Minimap(Canvas):
         super().__init__(master, bg=hexDark, bd=1,
                          relief="solid", highlightthickness=0)
 
+        # Make it the same size as the master
+        self.propagate(False)
+
     def refresh(self, mod):
         pass
         #todo : Refresh only what necessary or the whole thing ?
 
     def initialize(self, mod):
         self.update_idletasks()
+
         self.x_ratio = self.winfo_width() / mod.largeur
         self.y_ratio = self.winfo_height() / mod.hauteur
 
 
         for star in mod.etoiles:
-            self.create_oval(star.x * self.x_ratio - 1,
-                             star.y * self.y_ratio - 1,
-                             star.x * self.x_ratio + 1,
-                             star.y * self.y_ratio + 1,
-                             fill="grey", tags="stars")
+            self.create_oval(star.x * self.x_ratio - 2, star.y * self.y_ratio - 2,
+                             star.x * self.x_ratio + 2, star.y * self.y_ratio + 2,
+                             fill="grey", tags=("stars"))
 
-        for key in mod.joueurs.keys():
+        for key in mod.joueurs:
             for star in mod.joueurs[key].etoilescontrolees:
-                self.create_oval(star.x * self.x_ratio - 2,
-                                 star.y * self.y_ratio - 2,
-                                 star.x * self.x_ratio + 2,
-                                 star.y * self.y_ratio + 2,
-                                 fill=mod.joueurs[key].couleur,
-                                 tags="stars_owned")
+                self.create_oval(star.x * self.x_ratio - 2, star.y * self.y_ratio - 2,
+                                 star.x * self.x_ratio + 2, star.y * self.y_ratio + 2,
+                                 fill="white", tags=("stars_owned"))
 
-        for hole in mod.trou_de_vers:
-            self.create_oval(hole.porte_a.x * self.x_ratio - 1,
-                                hole.porte_a.y * self.y_ratio - 1,
-                                hole.porte_a.x * self.x_ratio + 1,
-                                hole.porte_a.y * self.y_ratio + 1,
-                                fill=hole.porte_a.couleur, tags="Wormhole")
-
-            self.create_oval(hole.porte_b.x * self.x_ratio - 1,
-                                hole.porte_b.y * self.y_ratio - 1,
-                                hole.porte_b.x * self.x_ratio + 1,
-                                hole.porte_b.y * self.y_ratio + 1,
-                                fill=hole.porte_b.couleur, tags="Wormhole")
-
-            # make it automatically resizable
-            self.bind("<Configure>", self.on_resize)
-
-    def on_resize(self, _):
-        old_x_ratio = self.x_ratio
-        old_y_ratio = self.y_ratio
-        self.x_ratio = self.winfo_width() / 9000
-        self.y_ratio = self.winfo_height() / 9000
-        ratio_diff_x = self.x_ratio / old_x_ratio
-        ratio_diff_y = self.y_ratio / old_y_ratio
-
-        for star in self.find_withtag("stars"):
-            self.coords(star, self.coords(star)[0] * ratio_diff_x,
-                        self.coords(star)[1] * ratio_diff_y,
-                        self.coords(star)[2] * ratio_diff_x,
-                        self.coords(star)[3] * ratio_diff_y)
-        for star in self.find_withtag("stars_owned"):
-            self.coords(star, self.coords(star)[0] * ratio_diff_x,
-                        self.coords(star)[1] * ratio_diff_y,
-                        self.coords(star)[2] * ratio_diff_x,
-                        self.coords(star)[3] * ratio_diff_y)
-        for hole in self.find_withtag("Wormhole"):
-            self.coords(hole, self.coords(hole)[0] * ratio_diff_x,
-                        self.coords(hole)[1] * ratio_diff_y,
-                        self.coords(hole)[2] * ratio_diff_x,
-                        self.coords(hole)[3] * ratio_diff_y)
-
-
-
+        for wormhole in mod.trou_de_vers:
+            self.create_oval(wormhole.porte_a.x * self.x_ratio - 2, wormhole.porte_a.y * self.y_ratio - 2,
+                             wormhole.porte_a.x * self.x_ratio + 2, wormhole.porte_a.y * self.y_ratio + 2,
+                             fill=wormhole.porte_a.couleur, tags=("Wormhole"))
+            self.create_oval(wormhole.porte_b.x * self.x_ratio - 2, wormhole.porte_b.y * self.y_ratio - 2,
+                                wormhole.porte_b.x * self.x_ratio + 2, wormhole.porte_b.y * self.y_ratio + 2,
+                                fill=wormhole.porte_b.couleur, tags=("Wormhole"))
 
 
 
