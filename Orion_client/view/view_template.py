@@ -8,13 +8,12 @@ hexSpaceBlack = "#23272a"
 
 
 class PlanetWindow(Frame):
-    # todo : Make sure GameCanvas is appropriate
     def __init__(self, parent: GameCanvas):
         """Initialise la fenetre"""
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
                          width=400, height=400)
 
-        self.isShown : bool = False
+        self.isShown: bool = False
 
         # # # Le Header
         self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
@@ -76,7 +75,7 @@ class PlanetWindow(Frame):
                                                 font=("Arial", 10))
         """Label contenant le nom du header du menu d'information"""
         self.stockpile_boolean_label = Label(self.side_frame,
-                                             text="Oui",
+                                             text="",
                                              bg=hexDarkGrey, fg="white",
                                              font=("Arial", 10))
         """Label contenant le nom du header du menu d'information"""
