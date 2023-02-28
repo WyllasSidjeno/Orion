@@ -2,9 +2,12 @@ from __future__ import annotations
 import random
 from tkinter import Frame, Label, Canvas, Scrollbar
 
-hexDarkGrey = "#36393f"
-hexDark = "#2f3136"
-hexSpaceBlack = "#23272a"
+hexDarkGrey: str = "#36393f"
+"""Couleur de fond des frames"""
+hexDark: str = "#2f3136"
+"""Couleur de fond de l'application"""
+hexSpaceBlack: str = "#23272a"
+"""Pour l'espace, on utilise un noir plus sombre"""
 
 
 class PlanetWindow(Frame):
