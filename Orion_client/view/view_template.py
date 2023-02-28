@@ -3,8 +3,6 @@ import random
 from tkinter import Frame, Label, Canvas, Scrollbar
 from typing import Any
 
-from model.model import Model
-
 hexDarkGrey = "#36393f"
 hexDark = "#2f3136"
 hexSpaceBlack = "#23272a"
@@ -446,17 +444,77 @@ class Minimap(Canvas):
 class Hud(Frame):
     def __init__(self, master: Frame):
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1,
-                       relief="solid")
+        self.configure(bg=hexDark, bd=1, relief="solid")
+
         self.ressource_label = Label(self, text="Ressources",
-                                     bg=hexDarkGrey, fg="white",
+                                     bg="#fcba03", fg="white",
                                      font=("Arial", 13))
 
+        for i in range(5): #configure HUD columns
+            self.grid_columnconfigure(i, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+
+        self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid") #frame containing ressources
+        self.ressource_frame.grid(row=0, column=0, sticky="nsew")
+
+
+        for i in range(4): #separate ressources in 4 columns
+            self.ressource_frame.grid_columnconfigure(i, weight=1)
+        self.ressource_frame.rowconfigure(0, weight=1)
+
+        #FRAME ATTRIBUTES
+        self.padx = 2
+        self.pady = 5
+        self.border = 1 #binary value
+
+        metal_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        metal_frame.grid(row=0, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+
+        beton_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        beton_frame.grid(row=0, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+
+        energy_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        energy_frame.grid(row=0, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+
+        food_frame = Frame(self.ressource_frame, bg=hexDark, bd=self.border, relief="solid")
+        food_frame.grid(row=0, column=3, sticky="ew", padx=self.padx, pady=self.pady)
+
+        #LABEL ATTRIBUTES
+
+        self.ressource_height = 5
+        self.ressource_width = 5
+        self.text_size = 15
+
+        self.metal_label = Label(metal_frame, text="Metal: 0", bg="#a84632", fg="white", font=("Arial", self.text_size))
+        self.beton_label = Label(beton_frame, text="Beton: 0", bg="#364b8f", fg="white", font=("Arial", self.text_size))
+        self.energy_label = Label(energy_frame, text="Energy: 0", bg="#adba59", fg="white", font=("Arial", self.text_size))
+        self.food_label = Label(food_frame, text="Food: 0", bg="#3f9160", fg="white", font=("Arial", self.text_size))
+
+        self.initialize()
+
+        self.metal_label.pack()
+        self.beton_label.pack()
+        self.energy_label.pack()
+        self.food_label.pack()
+
+    def initialize(self):
+        """initialise le HUD ressource lors de sa création"""
+        # todo : get info to resize ressource HUD dynamically
+
+        self.update()
+        self.ressource_height = self.winfo_height() #todo here
+        self.ressource_width = self.winfo_width()
+
+        self.metal_label.configure(height=self.ressource_height, width=self.ressource_width)
+        self.beton_label.configure(height=self.ressource_height, width=self.ressource_width)
+        self.energy_label.configure(height=self.ressource_height, width=self.ressource_width)
+        self.food_label.configure(height=self.ressource_height, width=self.ressource_width)
+
+        print("HUD initialized")
+
+
+
     def show(self):
-        self.ressource_label.config(text="Ressource")
-
-
-
-
-
+        self.ressource_label.grid(row=0, column=1)
 
