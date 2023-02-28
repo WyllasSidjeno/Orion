@@ -122,13 +122,18 @@ class LobbyView(Frame):
 
     def disable_join_server_button(self):
         self.join_server_button.config(state="disabled")
-        self.restart_button.config(state="normal")
-        self.connect_button.config(state="normal")
 
     def disable_restart_connect_button(self):
         self.restart_button.config(state="disabled")
         self.connect_button.config(state="disabled")
 
+    def enable_restart_button(self):
+        self.restart_button.config(state="normal")
+
+    def enable_connect_button(self):
+        self.connect_button.config(state="normal")
+
+    def enable_start_game_button(self):
         self.start_button.config(state="normal")
 
 
