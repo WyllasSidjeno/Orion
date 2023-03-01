@@ -14,12 +14,12 @@ class Ship(ABC):
     :param angle: angle du vaisseau
     :param vitesse: vitesse du vaisseau
     :param direction: direction du vaisseau"""
-    def __init__(self, x: int, y: int, angle: int, vitesse: int,
+    def __init__(self, pos: tuple, angle: int, vitesse: int,
                  position_cible: tuple[int, int] | None,
                  vie: int, owner: str):
         self.id: str = get_prochain_id()
         self.owner = owner
-        self.pos = (x, y)
+        self.pos = pos
         self.angle = angle
         self.vitesse = vitesse
         self.position_cible = position_cible
@@ -57,12 +57,12 @@ class Fighter(Ship):
     :param direction: direction du vaisseau
     :param vie: vie du vaisseau
     :param owner: proprietaire du vaisseau"""
-    def __init__(self, x:int, y: int, owner: str):
+    def __init__(self, pos, owner: str):
         angle = 0
         vitesse = 2
         direction = None
         vie = 100
-        super().__init__(x, y, angle, vitesse, direction, vie, owner)
+        super().__init__(pos, angle, vitesse, direction, vie, owner)
         self.attack_strength = 10
         self.defense_strength = 10
 
@@ -80,12 +80,12 @@ class Cargo(Ship):
     :param direction: direction du vaisseau
     :param vie: vie du vaisseau
     :param owner: proprietaire du vaisseau"""
-    def __init__(self, x:int, y: int, owner: str):
+    def __init__(self, pos, owner: str):
         angle = 0
         vitesse = 1
         direction = None
         vie = 100
-        super().__init__(x, y, angle, vitesse, direction, vie, owner)
+        super().__init__(pos, angle, vitesse, direction, vie, owner)
         self.attack_strength = 0
         self.defense_strength = 0
 
@@ -102,12 +102,12 @@ class Recon(Ship):
     :param direction: direction du vaisseau
     :param vie: vie du vaisseau
     :param owner: proprietaire du vaisseau"""
-    def __init__(self, x: int, y: int, owner: str):
+    def __init__(self, pos, owner: str):
         angle = 0
         vitesse = 3
         direction = None
         vie = 100
-        super().__init__(x, y, angle, vitesse, direction, vie, owner)
+        super().__init__(pos, angle, vitesse, direction, vie, owner)
         self.attack_strength = 0
         self.defense_strength = 0
 
