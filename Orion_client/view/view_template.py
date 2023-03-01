@@ -346,8 +346,6 @@ class GameCanvas(Canvas):
                                         mod.joueurs[joueur].flotte[
                                             armada].__repr__())
 
-        self.tag_raise("Ship")
-
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
         self.xview_scroll(-1 * int(event.delta / 120), "units")
