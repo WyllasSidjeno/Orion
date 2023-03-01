@@ -18,8 +18,8 @@ from typing import Callable
 
 class Controller:
     """Controller de l'application, incluant la connection au serveur"""
-    model: Model
     server_controller: ServerController
+    model: Model
 
     def __init__(self):
         from helper import get_random_username
@@ -29,12 +29,6 @@ class Controller:
 
         self.username: str = get_random_username()
         """Le nom de l'utilisateur"""
-
-        self.server_actions: list[str] = []
-        """Liste des actions reçues du serveur"""
-        self.player_actions: list[str] = []
-        """Liste des actions à envoyées au serveur, faite par le joueur
-        de ce client."""
 
         self.urlserveur: str = "http://127.0.0.1:8000"
         # Todo get from modele maybe ?
@@ -58,9 +52,9 @@ class Controller:
         for i in joueurs:
             listejoueurs.append(i[0])
 
-        self.model = Model(self, listejoueurs)
+        self.model = Model(listejoueurs)
 
-        self.user_controller = GameController(self.model)
+        self.user_controller = GameController(self.model, self.username)
         self.start()
 
         self.server_controller = ServerController(self.username,
@@ -71,16 +65,20 @@ class Controller:
 
     def tick(self) -> None:
         """Loop de l'application"""
-        temp = self.server_controller.update_actions(self.frame,
-                                                     self.player_actions)
-
-        if temp is not None:
-            self.update_model_actions(temp)
-        self.user_controller.view.after(1000 // 60, self.tick)
+        self.server_controller.update_actions(self.frame,
+                                              self.user_controller.
+                                              player_actions,
+                                              self.empty_player_actions)
 
         self.user_controller.tick(self.frame)
+
         if not self.user_controller.pause:
             self.frame += 1
+        self.user_controller.view.after(33, self.tick)
+
+    def empty_player_actions(self) -> None:
+        """Vide les actions du joueur"""
+        self.user_controller.player_actions = []
 
     def pause_game(self) -> None:
         """Pause the game"""
@@ -90,18 +88,16 @@ class Controller:
         """Unpause the game"""
         self.user_controller.pause = False
 
-    def update_model_actions(self, actions) -> None:
-        """Met à jour les actions du modèle"""
-        self.model.ajouter_actions_a_faire(actions)
-
 
 class GameController:
     """Controller de la partie"""
-    def __init__(self, model: Model):
+
+    def __init__(self, model: Model, username: str):
         """Initialisation du controller
 
         :param model: le modèle de la partie
         """
+        self.username: str = username
         self.model = model
         """Le modèle de la partie"""
         self.view = GameView()
@@ -110,8 +106,6 @@ class GameController:
         """Liste des actions à envoyer au serveur"""
         self.server_actions = []
         """Liste des actions reçues du serveur"""
-        self.frame = 1
-        """La frame actuelle du jeu"""
         self.pause: bool = False
         """Si le jeu est en pause"""
 
@@ -121,18 +115,22 @@ class GameController:
 
     def tick(self, frame) -> None:
         """Fait jouer le prochain coup du modèle"""
+        if frame == 1:
+            pos = self.model.joueurs[self.username].etoilemere.x, \
+                    self.model.joueurs[self.username].etoilemere.y
+            self.construct_spaceship("Fighter", pos)
         if not self.pause:
             self.model.jouer_prochain_coup(frame)
             self.view.refresh(self.model)
 
-    def update_model_actions(self, actions: list[str]) -> None:
-        """Met à jour les actions du modèle"""
-        self.model.ajouter_actions_a_faire(actions)
+    def construct_spaceship(self, type, pos) -> None:
+        """Construit un vaisseau du type donné"""
+        action = [self.username, "construct_" + type, [pos]]
+        self.player_actions.append(action)
 
 
 class ServerController:
     """Controller du serveur"""
-
     def __init__(self, username: str, url_serveur: str,
                  model: Model, pause_game: Callable, unpause_game: Callable):
         """Initialisation du controller
@@ -158,7 +156,7 @@ class ServerController:
         self.unpause_game = unpause_game
         """La fonction à appeler pour mettre le jeu en cours"""
 
-    def update_actions(self, frame: int, actions: list[str]) -> list[str]:
+    def update_actions(self, frame: int, actions: list[str], empty_player_actions: Callable):
         """Met à jour les actions du modèle
         :param frame: la frame actuelle
         :param actions: les actions à envoyer au serveur
@@ -169,7 +167,7 @@ class ServerController:
                 actions_temp = actions
             else:
                 actions_temp = None
-            actions = []
+            empty_player_actions()
             url = self.url_serveur + "/boucler_sur_jeu"
             params = {"nom": self.username,
                       "cadrejeu": frame,
@@ -181,11 +179,10 @@ class ServerController:
                     self.pause_game()
                 else:
                     self.unpause_game()
-                    self.model.ajouter_actions_a_faire(temp)
+                    self.model.ajouter_actions_a_faire(temp, frame)
             except urllib.error.URLError as e:
                 print("ERREUR ", frame, e)
                 self.pause_game()
-        return actions
 
 
 class LobbyController:

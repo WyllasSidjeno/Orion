@@ -15,7 +15,7 @@ from random import randrange, choice
 from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
-from Orion_client.model.ships import Ship, Cargo
+from Orion_client.model.ships import Ship, Cargo, Fighter
 from Orion_client.model.space_object import Wormhole, Star
 
 
@@ -24,13 +24,11 @@ class Model:
 
     Le modèle contient les données du jeu.
     """
-    def __init__(self, parent, joueurs):
+    def __init__(self, joueurs):
         """Initialise le modèle.
 
-        :param parent: le jeu auquel le modèle appartient
         :param joueurs: les joueurs du jeu
         """
-        self.parent = parent
         self.largeur: int = 9000
         self.hauteur:int = 9000
         self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
@@ -113,12 +111,14 @@ class Model:
 
         :param cadre: le cadre à jouer
         """
+
         #  NE PAS TOUCHER LES LIGNES SUIVANTES  #################
         self.cadre_courant = cadre
+
         # insertion de la prochaine action demandée par le joueur
         if cadre in self.actions_a_faire:
             for i in self.actions_a_faire[cadre]:
-                self.joueurs[i[0]].actions[i[1]](i[2])
+                self.joueurs[i[0]].action_from_server(i[1], i[2])
                 """
                 i a la forme suivante [nomjoueur, action, [arguments]
                 alors self.joueurs[i[0]] -> trouve l'objet représentant le joueur de ce nom
@@ -126,27 +126,22 @@ class Model:
             del self.actions_a_faire[cadre]
         # FIN DE L'INTERDICTION #################################
 
-        # demander aux objets de jouer leur prochain coup
-        # aux joueurs en premier
         for i in self.joueurs:
             self.joueurs[i].jouer_prochain_coup()
 
-        # NOTE si le modele (qui représente l'univers !!! )
-        #      fait des actions - on les activera ici...
         for i in self.trou_de_vers:
             i.jouer_prochain_coup()
 
-    def ajouter_actions_a_faire(self, actionsrecues: list):
+    def ajouter_actions_a_faire(self, actionsrecues: list, frame: int):
         """Ajoute les actions reçue dans la liste des actions à faire
          si et seulement si le cadre est plus petit que le cadre courant.
 
         :param actionsrecues: la liste des actions reçues du serveur
         """
-        cadrecle = None
         for i in actionsrecues:
             cadrecle = i[0]
             if cadrecle:
-                if (self.parent.cadrejeu - 1) > int(cadrecle):
+                if (frame - 1) > int(cadrecle):
                     print("PEUX PASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
                 action = literal_eval(i[1])
 
@@ -154,6 +149,8 @@ class Model:
                     self.actions_a_faire[cadrecle] = action
                 else:
                     self.actions_a_faire[cadrecle].append(action)
+
+                print("actions à faire", self.actions_a_faire)
 
 
 class Player:
@@ -185,17 +182,27 @@ class Player:
         self.etoilescontrolees: list = [etoilemere]
         """Liste des etoiles controlees par le joueur."""
 
-        self.flotte = {"Vaisseau": {},
-                       "Cargo": {}}
+        self.flotte = {}
         self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
-
-        self.actions = {}
 
     def jouer_prochain_coup(self):
         """Fonction de jeu du joueur pour un tour.
         """
         pass
+
+    def action_from_server(self, funct: str, args: list):
+        """Fonction de jeu du joueur pour un tour.
+        """
+        getattr(self, funct)(*args)
+
+    def construct_Fighter(self, pos: tuple):
+        """Fonction de jeu du joueur pour un tour.
+        """
+        # Launch the function with the arguments
+        # Add a new armada to flotte
+        self.flotte["Armada_" + str(len(self.flotte))] = Fighter(pos, "me")
+
 
 
     def deplete_energy(self, list_vaisseau: list, list_structure: list):
