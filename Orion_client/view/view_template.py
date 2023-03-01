@@ -172,7 +172,6 @@ class BuildingWindow(Frame):
 
     def __init__(self, master: Frame):
         """Crée la fenetre d'un bâtiment
-
         :param master: Frame parent
         """
         super().__init__(master)
@@ -491,6 +490,3 @@ class Minimap(Canvas):
         for wormhole in self.find_withtag("Wormhole"):
             self.coords(wormhole, self.coords(wormhole)[0] * diff_ratio_x, self.coords(wormhole)[1] * diff_ratio_y,
                         self.coords(wormhole)[2] * diff_ratio_x, self.coords(wormhole)[3] * diff_ratio_y)
-
-
-
