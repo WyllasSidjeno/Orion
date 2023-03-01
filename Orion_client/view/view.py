@@ -4,6 +4,7 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
     SideBar, PlanetWindow
 
 
+
 class LobbyView(Frame):
     def __init__(self, url_serveur: str, username: str):
         super().__init__()
@@ -205,8 +206,6 @@ class GameView(Frame):
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-
-        self.canvas.bind("<Button-1>", self.get_xy)  # DEBUG
         self.canvas.bind("<Button-1>", self.on_game_click)
 
         self.planet_window.initialize()
