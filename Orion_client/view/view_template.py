@@ -2,17 +2,21 @@ from __future__ import annotations
 import random
 from tkinter import Frame, Label, Canvas, Scrollbar
 
-hexDarkGrey = "#36393f"
-hexDark = "#2f3136"
-hexSpaceBlack = "#23272a"
+hexDarkGrey: str = "#36393f"
+"""Couleur de fond des frames"""
+hexDark: str = "#2f3136"
+"""Couleur de fond de l'application"""
+hexSpaceBlack: str = "#23272a"
+"""Pour l'espace, on utilise un noir plus sombre"""
 
 
 class PlanetWindow(Frame):
-    # todo : Make sure GameCanvas is appropriate
     def __init__(self, parent: GameCanvas):
         """Initialise la fenetre"""
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
-                         width=400, height=400)
+                         width=500, height=500)
+
+        self.isShown: bool = False
 
         # # # Le Header
         self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
@@ -74,45 +78,32 @@ class PlanetWindow(Frame):
                                                 font=("Arial", 10))
         """Label contenant le nom du header du menu d'information"""
         self.stockpile_boolean_label = Label(self.side_frame,
-                                             text="Oui",
+                                             text="",
                                              bg=hexDarkGrey, fg="white",
                                              font=("Arial", 10))
         """Label contenant le nom du header du menu d'information"""
 
-        self.configure_placement()
+        self.building_list = []
 
-        # Make it float on top of the canvas
-        # self.winfo_toplevel().attributes("-topmost", True) # This allows
-        # the window to be on top of the canvas but it doesnt allow the
-        # canvas to be on top of the window
-
-        # To make the canvas not move when the window is showed, we need to
-
-    def show(self, planet_info: dict) -> None:
-        """Affiche les informations de la planete
-
-        :param planet_info: Dictionnaire contenant les informations de la
-        planete"""
-        # todo : Make sure it works with all ressources once implemented
-        self.owner_label.config(text=planet_info["owner"])
-        self.population_label.config(text=planet_info["population"])
-        self.name_label.config(text=planet_info["name"])
-
-        # Make it so it doesnt make the window bigger and that it gets over
-        # the current content of the window
-        self.lift()
+        for i in range(8):
+            self.building_list.append(BuildingWindow(self.building_grid))
 
     def hide(self) -> None:
         """Cache la fenetre"""
-        self.lower()
+        self.place_forget()
+        self.isShown = False
 
-    def configure_placement(self) -> None:
+    def show(self):
+        self.place(relx=0.5, rely=0.5, anchor="center")
+        self.isShown = True
+
+    def initialize(self) -> None:
         """Place les widgets dans la fenetre"""
         self.place_header()
         self.place_main()
         self.place_side_bar()
-        self.place(relx=0.5, rely=0.5, anchor="center")
-        self.lower()
+        for i in self.building_list:
+            i.initialize()
 
     def place_header(self) -> None:
         """Crée le header de la fenetre, la ou les informations identifiante
@@ -140,18 +131,13 @@ class PlanetWindow(Frame):
         self.building_grid.place(relx=0.1, rely=0.1, relwidth=0.8,
                                  relheight=0.9)
 
-        # # Building frames (depending on the number of buildings)
-        # for i, building in enumerate(planet_info):
-        # setattr(self, f"{building}_frame",
-        # BuildingWindow(building_grid))
-        # if i % 2 == 0:  # If the building is on the left
-        # getattr(self,
-        # f'{building}_frame').grid(row=i // 2, column=0,
-        #   padx=10, pady=10)
-        # else:  # If the building is on the right
-        # getattr(self,
-        # f'{building}_frame').grid(row=i // 2, column=1,
-        #                          padx=10, pady=10)
+        self.building_grid.columnconfigure(0, weight=1)
+        self.building_grid.columnconfigure(1, weight=1)
+        self.building_grid.columnconfigure(2, weight=1)
+
+        self.building_grid.rowconfigure(0, weight=1)
+        self.building_grid.rowconfigure(1, weight=1)
+        self.building_grid.rowconfigure(2, weight=1)
 
     def place_side_bar(self) -> None:
         """Crée le side de la fenetre, là oú le rendement de la planete est
@@ -162,15 +148,6 @@ class PlanetWindow(Frame):
         self.ressource_label.place(anchor="center", relx=0.5, rely=0.05)
 
         # # Ressource labels
-        # for i, ressource in enumerate(planet_info):
-        #    setattr(self, f"{ressource}_label",
-        #            Label(self.side_frame,
-        #            text=ressource + " : " + str(planet_info[ressource]),
-        #                  bg=hexDarkGrey, fg="white", font=("Arial", 10)))
-        #
-        #           getattr(self, f"{ressource}_label").place(anchor="center",
-        # relx=0.5,
-        # rely=0.13 + i * 0.1)
 
         self.line.place(relx=0.1, rely=0.5, relwidth=0.8, relheight=0.01)
 
@@ -181,6 +158,11 @@ class PlanetWindow(Frame):
 
         self.stockpile_boolean_label.place(anchor="center", relx=0.5,
                                            rely=0.72)
+
+    def show_buildings(self, max_building) -> None:
+        """Affiche les bâtiments de la planete"""
+        for i in range(max_building):
+            self.building_list[i].show(row=i//3, column=i % 3, padx=5, pady=5)
 
 
 class BuildingWindow(Frame):
@@ -214,10 +196,6 @@ class BuildingWindow(Frame):
         self.upgrade_canvas.create_polygon(10, 0, 0, 20, 20, 20, fill="white")
         """Triangle blanc représentant le bouton d'amélioration"""
 
-        self.initialize()
-
-        self.bind_on_click()
-
     def initialize(self):
         """Crée le layout du bâtiment window"""
         # todo : self place les widgets ?
@@ -228,21 +206,11 @@ class BuildingWindow(Frame):
 
         self.upgrade_canvas.place(anchor="center", relx=0.2, rely=0.8)
 
-    def bind_on_click(self):
-        """Bind les fonctions de click sur les widgets"""
-        for widget in self.winfo_children():
-            widget.bind("<Button-1>", self.on_window_click)
-        self.bind("<Button-1>", self.on_window_click)
+    def hide(self):
+        self.grid_forget()
 
-        self.upgrade_canvas.bind("<Button-1>", self.on_upgrade_click)
-
-    def on_window_click(self, _):
-        """ Fonction appelée quand on clique sur la fenetre du bâtiment"""
-        print("Window clicked")
-
-    def on_upgrade_click(self, _):
-        """ Fonction appelée quand on clique sur le bouton d'amélioration"""
-        print("Upgrade clicked")
+    def show(self, **kwargs):
+        self.grid(**kwargs)
 
 
 class GameCanvas(Canvas):

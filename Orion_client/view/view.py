@@ -1,7 +1,7 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-     SideBar
+from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas\
+    , SideBar, PlanetWindow
 
 
 class LobbyView(Frame):
@@ -158,6 +158,10 @@ class GameView(Frame):
         self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
         """Représente le canvas de la vue du jeu."""
 
+        self.planet_window = PlanetWindow(self.canvas)
+        """Représente la fenêtre de planète de la vue du jeu."""
+        self.planet_window.hide()
+
         self.pack(fill="both", expand=True)
 
     def configure_grid(self):
@@ -196,7 +200,9 @@ class GameView(Frame):
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>", self.get_xy)  # DEBUG
+        self.canvas.bind("<Button-1>", self.on_game_click)  # DEBUG
+
+        self.planet_window.initialize()
 
     def on_minimap_click(self, event) -> None:
         """ Moves the canvas region to the clicked position on the minimap. """
@@ -216,7 +222,18 @@ class GameView(Frame):
         self.canvas.move_to((pctx - x), (pcty - y))
 
 
-    def get_xy(self, event) -> None:
+    def on_game_click(self, event) -> None:
         """Get xy coordinates on click"""
         x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         print("x: {}, y: {}".format(x, y))
+        tags_list = []
+        for tag in self.canvas.gettags("current"):
+            tags_list.append(tag)
+
+        if self.planet_window.isShown:
+            self.planet_window.hide()
+        elif "stars_owned" in tags_list:
+            self.planet_window.show()
+
+
+
