@@ -162,7 +162,8 @@ class PlanetWindow(Frame):
     def show_buildings(self, max_building) -> None:
         """Affiche les bâtiments de la planete"""
         for i in range(max_building):
-            self.building_list[i].show(row=i//3, column=i % 3, padx=5, pady=5)
+            self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
+                                       pady=5)
 
 
 class BuildingWindow(Frame):
@@ -341,9 +342,9 @@ class GameCanvas(Canvas):
         self.generate_wormhole(mod.trou_de_vers)
 
 
-
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
+
     def __init__(self, master: Frame):
         """Initialise la sidebar"""
         super().__init__(master)
@@ -412,10 +413,6 @@ class SideBar(Frame):
         self.minimap_label.grid(row=0, column=0, sticky="nsew")
         self.minimap.grid(row=1, column=0, sticky="nsew")
 
-
-
-
-
         self.minimap.initialize(mod)
 
     def refresh(self, mod):
@@ -424,9 +421,11 @@ class SideBar(Frame):
         :param mod: Le model"""
         self.minimap.refresh(mod)
 
+
 class Minimap(Canvas):
     x_ratio: float
     y_ratio: float
+
     def __init__(self, master: Frame):
         super().__init__(master, bg=hexDark, bd=1,
                          relief="solid", highlightthickness=0)
@@ -434,11 +433,9 @@ class Minimap(Canvas):
         # Make it the same size as the master
         self.propagate(False)
 
-
-
     def refresh(self, mod):
         pass
-        #todo : Refresh only what necessary or the whole thing ?
+        # todo : Refresh only what necessary or the whole thing ?
 
     def initialize(self, mod):
         self.update_idletasks()
@@ -446,25 +443,32 @@ class Minimap(Canvas):
         self.x_ratio = self.winfo_width() / mod.largeur
         self.y_ratio = self.winfo_height() / mod.hauteur
 
-
         for star in mod.etoiles:
-            self.create_oval(star.x * self.x_ratio - 2, star.y * self.y_ratio - 2,
-                             star.x * self.x_ratio + 2, star.y * self.y_ratio + 2,
+            self.create_oval(star.x * self.x_ratio - 2,
+                             star.y * self.y_ratio - 2,
+                             star.x * self.x_ratio + 2,
+                             star.y * self.y_ratio + 2,
                              fill="grey", tags=("stars"))
 
         for key in mod.joueurs:
             for star in mod.joueurs[key].etoilescontrolees:
-                self.create_oval(star.x * self.x_ratio - 2, star.y * self.y_ratio - 2,
-                                 star.x * self.x_ratio + 2, star.y * self.y_ratio + 2,
+                self.create_oval(star.x * self.x_ratio - 2,
+                                 star.y * self.y_ratio - 2,
+                                 star.x * self.x_ratio + 2,
+                                 star.y * self.y_ratio + 2,
                                  fill="white", tags=("stars_owned"))
 
         for wormhole in mod.trou_de_vers:
-            self.create_oval(wormhole.porte_a.x * self.x_ratio - 2, wormhole.porte_a.y * self.y_ratio - 2,
-                             wormhole.porte_a.x * self.x_ratio + 2, wormhole.porte_a.y * self.y_ratio + 2,
+            self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
+                             wormhole.porte_a.y * self.y_ratio - 2,
+                             wormhole.porte_a.x * self.x_ratio + 2,
+                             wormhole.porte_a.y * self.y_ratio + 2,
                              fill=wormhole.porte_a.couleur, tags=("Wormhole"))
-            self.create_oval(wormhole.porte_b.x * self.x_ratio - 2, wormhole.porte_b.y * self.y_ratio - 2,
-                                wormhole.porte_b.x * self.x_ratio + 2, wormhole.porte_b.y * self.y_ratio + 2,
-                                fill=wormhole.porte_b.couleur, tags=("Wormhole"))
+            self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
+                             wormhole.porte_b.y * self.y_ratio - 2,
+                             wormhole.porte_b.x * self.x_ratio + 2,
+                             wormhole.porte_b.y * self.y_ratio + 2,
+                             fill=wormhole.porte_b.couleur, tags=("Wormhole"))
 
             self.bind("<Configure>", self.on_resize)
 
@@ -481,21 +485,28 @@ class Minimap(Canvas):
         diff_ratio_y = self.y_ratio / old_ratio_y
 
         for star in self.find_withtag("stars"):
-            self.coords(star, self.coords(star)[0] * diff_ratio_x, self.coords(star)[1] * diff_ratio_y,
-                        self.coords(star)[2] * diff_ratio_x, self.coords(star)[3] * diff_ratio_y)
+            self.coords(star, self.coords(star)[0] * diff_ratio_x,
+                        self.coords(star)[1] * diff_ratio_y,
+                        self.coords(star)[2] * diff_ratio_x,
+                        self.coords(star)[3] * diff_ratio_y)
 
         for star in self.find_withtag("stars_owned"):
-            self.coords(star, self.coords(star)[0] * diff_ratio_x, self.coords(star)[1] * diff_ratio_y,
-                        self.coords(star)[2] * diff_ratio_x, self.coords(star)[3] * diff_ratio_y)
+            self.coords(star, self.coords(star)[0] * diff_ratio_x,
+                        self.coords(star)[1] * diff_ratio_y,
+                        self.coords(star)[2] * diff_ratio_x,
+                        self.coords(star)[3] * diff_ratio_y)
 
         for wormhole in self.find_withtag("Wormhole"):
-            self.coords(wormhole, self.coords(wormhole)[0] * diff_ratio_x, self.coords(wormhole)[1] * diff_ratio_y,
-                        self.coords(wormhole)[2] * diff_ratio_x, self.coords(wormhole)[3] * diff_ratio_y)
+            self.coords(wormhole, self.coords(wormhole)[0] * diff_ratio_x,
+                        self.coords(wormhole)[1] * diff_ratio_y,
+                        self.coords(wormhole)[2] * diff_ratio_x,
+                        self.coords(wormhole)[3] * diff_ratio_y)
 
 
 class ShipViewGenerator:
     """Class that generates all ships view.
     This includes Recon, Fighter and Cargo."""
+
     def __init__(self):
         self.settings = {
             "Recon": {
@@ -505,20 +516,42 @@ class ShipViewGenerator:
                 "size": 7
             },
             "Cargo": {
-                "size": 7
+                "size": 10
             }
         }
+
+    @staticmethod
+    def move(self, master: Canvas, ship_id: int, pos: tuple):
+        """Move the ship to the given position"""
+        master.coords(ship_id, pos[0], pos[1])
+
+    @staticmethod
+    def delete(self, master: Canvas, ship_id: int):
+        """Delete the ship from the canvas"""
+        master.delete(ship_id)
+
+    def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
+                           type: str) -> int:
+        """Generate a ship view depending on the type of ship"""
+        print(type)
+        if type == "Recon":
+            return self.create_recon(master, pos, couleur)
+        elif type == "Fighter":
+            return self.create_fighter(master, pos, couleur)
+        elif type == "Cargo":
+            return self.create_cargo(master, pos, couleur)
+
 
     def create_recon(self, master: Canvas, pos: tuple, couleur: str) -> int:
         """Create a triangle inside the canvas at given position while
         using the settings of the said ship"""
-        return master.create_polygon(pos[0],
-                                     pos[1] - self.settings["Recon"]["size"],
-                                     pos[0] - self.settings["Recon"]["size"],
-                                     pos[1] + self.settings["Recon"]["size"],
-                                     pos[0] + self.settings["Recon"]["size"],
-                                     pos[1] + self.settings["Recon"]["size"],
-                                     fill=couleur, tags="Recon")
+        return master.create_arc(pos[0] - self.settings["Recon"]["size"],
+                                 pos[1] - self.settings["Recon"]["size"],
+                                 pos[0] + self.settings["Recon"]["size"],
+                                 pos[1] + self.settings["Recon"]["size"],
+                                 start=0, extent=180, fill=couleur,
+                                 tags="Recon")
+
 
     def create_cargo(self, master: Canvas, pos: tuple, couleur: str) -> int:
         """Create a rectangle inside the canvas at given position while
@@ -532,28 +565,25 @@ class ShipViewGenerator:
     def create_fighter(self, master: Canvas, pos: tuple, couleur: str) -> int:
         """Create an arc inside the canvas at given position while
         using the settings of the said ship"""
-
-        return master.create_arc(pos[0] - self.settings["Fighter"]["size"],
-                                 pos[1] - self.settings["Fighter"]["size"],
-                                 pos[0] + self.settings["Fighter"]["size"],
-                                 pos[1] + self.settings["Fighter"]["size"],
-                                 start=0, extent=180, fill=couleur,
-                                 tags="Fighter")
-
-
-
+        return master.create_polygon(pos[0],
+                                     pos[1] - self.settings["Fighter"]["size"],
+                                     pos[0] - self.settings["Fighter"]["size"],
+                                     pos[1] + self.settings["Fighter"]["size"],
+                                     pos[0] + self.settings["Fighter"]["size"],
+                                     pos[1] + self.settings["Fighter"]["size"],
+                                     fill=couleur, tags="Fighter")
 
 
 if __name__ == "__main__":
     from tkinter import Tk
+
     root = Tk()
     root.title("Starship")
     root.geometry("800x600")
     root.resizable(False, False)
 
     shipcanvas = Canvas(root, bg=hexDark, bd=1,
-                            relief="solid", highlightthickness=0)
-
+                        relief="solid", highlightthickness=0)
 
     shipGen = ShipViewGenerator()
     shipGen.create_recon(shipcanvas, (15, 15), "red")
@@ -564,9 +594,3 @@ if __name__ == "__main__":
     shipGen.create_fighter(shipcanvas, (45, 45), "red")
 
     root.mainloop()
-
-
-
-
-
-

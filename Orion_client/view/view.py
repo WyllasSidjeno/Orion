@@ -1,7 +1,7 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas\
-    , SideBar, PlanetWindow
+from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas \
+    , SideBar, PlanetWindow, ShipViewGenerator
 
 
 class LobbyView(Frame):
@@ -164,6 +164,8 @@ class GameView(Frame):
 
         self.pack(fill="both", expand=True)
 
+        self.ShipViewGenerator = ShipViewGenerator()
+
     def configure_grid(self):
         """Configures the grid of the game view."""
         self.grid_propagate(False)
@@ -186,6 +188,7 @@ class GameView(Frame):
     def refresh(self, mod):
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
+
 
     def initialize(self, mod):
         self.configure_grid()
