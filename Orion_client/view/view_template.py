@@ -493,4 +493,80 @@ class Minimap(Canvas):
                         self.coords(wormhole)[2] * diff_ratio_x, self.coords(wormhole)[3] * diff_ratio_y)
 
 
+class ShipViewGenerator:
+    """Class that generates all ships view.
+    This includes Recon, Fighter and Cargo."""
+    def __init__(self):
+        self.settings = {
+            "Recon": {
+                "size": 7,
+            },
+            "Fighter": {
+                "size": 7
+            },
+            "Cargo": {
+                "size": 7
+            }
+        }
+
+    def create_recon(self, master: Canvas, pos: tuple, couleur: str) -> int:
+        """Create a triangle inside the canvas at given position while
+        using the settings of the said ship"""
+        return master.create_polygon(pos[0],
+                                     pos[1] - self.settings["Recon"]["size"],
+                                     pos[0] - self.settings["Recon"]["size"],
+                                     pos[1] + self.settings["Recon"]["size"],
+                                     pos[0] + self.settings["Recon"]["size"],
+                                     pos[1] + self.settings["Recon"]["size"],
+                                     fill=couleur, tags="Recon")
+
+    def create_cargo(self, master: Canvas, pos: tuple, couleur: str) -> int:
+        """Create a rectangle inside the canvas at given position while
+        using the settings of the said ship"""
+        return master.create_rectangle(pos[0] - self.settings["Cargo"]["size"],
+                                       pos[1] - self.settings["Cargo"]["size"],
+                                       pos[0] + self.settings["Cargo"]["size"],
+                                       pos[1] + self.settings["Cargo"]["size"],
+                                       fill=couleur, tags="Cargo")
+
+    def create_fighter(self, master: Canvas, pos: tuple, couleur: str) -> int:
+        """Create an arc inside the canvas at given position while
+        using the settings of the said ship"""
+
+        return master.create_arc(pos[0] - self.settings["Fighter"]["size"],
+                                 pos[1] - self.settings["Fighter"]["size"],
+                                 pos[0] + self.settings["Fighter"]["size"],
+                                 pos[1] + self.settings["Fighter"]["size"],
+                                 start=0, extent=180, fill=couleur,
+                                 tags="Fighter")
+
+
+
+
+
+if __name__ == "__main__":
+    from tkinter import Tk
+    root = Tk()
+    root.title("Starship")
+    root.geometry("800x600")
+    root.resizable(False, False)
+
+    shipcanvas = Canvas(root, bg=hexDark, bd=1,
+                            relief="solid", highlightthickness=0)
+
+
+    shipGen = ShipViewGenerator()
+    shipGen.create_recon(shipcanvas, (15, 15), "red")
+    shipcanvas.pack()
+
+    shipGen.create_cargo(shipcanvas, (30, 30), "red")
+
+    shipGen.create_fighter(shipcanvas, (45, 45), "red")
+
+    root.mainloop()
+
+
+
+
+
 

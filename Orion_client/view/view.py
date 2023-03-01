@@ -216,9 +216,6 @@ class GameView(Frame):
         y = (self.canvas.winfo_height() / 2) / 9000
         """ This represents the y coordinate of the center of the canvas"""
 
-        # This will move the canvas to the clicked position on the minimap
-        # By subtracting the x and y coordinates of the center of the canvas
-        # From the x and y coordinates of the clicked position on the minimap
         self.canvas.move_to((pctx - x), (pcty - y))
 
 
