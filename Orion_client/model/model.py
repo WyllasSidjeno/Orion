@@ -15,6 +15,7 @@ from random import randrange, choice
 from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
+from Orion_client.model.ships import Ship, Cargo
 from Orion_client.model.space_object import Wormhole, Star
 
 
@@ -186,6 +187,7 @@ class Player:
 
         self.flotte = {"Vaisseau": {},
                        "Cargo": {}}
+        self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
 
         self.actions = {}
@@ -194,6 +196,7 @@ class Player:
         """Fonction de jeu du joueur pour un tour.
         """
         pass
+
 
     def deplete_energy(self, list_vaisseau: list, list_structure: list):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
