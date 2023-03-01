@@ -318,9 +318,7 @@ class GameCanvas(Canvas):
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with move()
 
-        self.delete("stars_owned")
         self.delete("Wormhole")
-        self.delete("spaceship")
 
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
@@ -329,12 +327,26 @@ class GameCanvas(Canvas):
 
         for joueur in mod.joueurs.keys():
             for armada in mod.joueurs[joueur].flotte.keys():
-                self.ship_view.generate_ship_view(self,
-                                                  mod.joueurs[joueur].
-                                                  flotte[armada].pos,
-                                                  mod.joueurs[joueur].couleur,
-                                                    mod.joueurs[joueur].
-                                                    flotte[armada].__repr__())
+                if mod.joueurs[joueur].flotte[armada].new:
+                    self.ship_view. \
+                        generate_ship_view(self,
+                                           mod.joueurs[joueur].flotte[armada].
+                                           position,
+                                           mod.joueurs[joueur].couleur,
+                                           mod.joueurs[joueur].flotte[armada].
+                                           id,
+                                           mod.joueurs[joueur].flotte[armada].
+                                           __repr__())
+                    mod.joueurs[joueur].flotte[armada].new = False
+                elif mod.joueurs[joueur].flotte[
+                    armada].position_cible is not None:
+                    self.ship_view.move(self, mod.joueurs[joueur].flotte[
+                        armada].position, mod.joueurs[joueur].flotte[
+                                            armada].id,
+                                        mod.joueurs[joueur].flotte[
+                                            armada].__repr__())
+
+        self.tag_raise("Ship")
 
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
@@ -523,29 +535,60 @@ class ShipViewGenerator:
             }
         }
 
-    @staticmethod
-    def move(master: Canvas, ship_id: int, pos: tuple):
+    def move(self, canvas, pos, ship_tag, ship_type):
         """Move the ship to the given position"""
-        master.coords(ship_id, pos[0], pos[1])
+        if ship_type == "Recon":
+            self.move_recon(canvas, ship_tag, pos)
+        elif ship_type == "Fighter":
+            self.move_fighter(canvas, ship_tag, pos)
+        elif ship_type == "Cargo":
+            self.move_cargo(canvas, ship_tag, pos)
+
+    def move_recon(self, canvas, ship_tag, pos):
+        """Move the recon to the given position"""
+        # get the ship id using the ship tag
+        ship_id = canvas.find_withtag(ship_tag)[0]
+        canvas.coords(ship_id, pos[0] - self.settings["Recon"]["size"],
+                      pos[1] - self.settings["Recon"]["size"],
+                      pos[0] + self.settings["Recon"]["size"],
+                      pos[1] + self.settings["Recon"]["size"])
+
+    def move_fighter(self, canvas, ship_tag, pos):
+        """Move the fighter to the given position"""
+        ship_id = canvas.find_withtag(ship_tag)[0]
+        canvas.coords(ship_id, pos[0],
+                      pos[1] - self.settings["Fighter"]["size"],
+                      pos[0] - self.settings["Fighter"]["size"],
+                      pos[1] + self.settings["Fighter"]["size"],
+                      pos[0] + self.settings["Fighter"]["size"],
+                      pos[1] + self.settings["Fighter"]["size"])
+
+    def move_cargo(self, canvas, ship_tag, pos):
+        """Move the cargo to the given position"""
+        ship_id = canvas.find_withtag(ship_tag)[0]
+        # Move a polygon
+        canvas.coords(ship_id, pos[0] - self.settings["Cargo"]["size"],
+                      pos[1] - self.settings["Cargo"]["size"],
+                      pos[0] + self.settings["Cargo"]["size"],
+                      pos[1] + self.settings["Cargo"]["size"])
 
     @staticmethod
-    def delete(master: Canvas, ship_id: int):
+    def delete(canvas: Canvas, ship_id: int):
         """Delete the ship from the canvas"""
-        master.delete(ship_id)
+        canvas.delete(ship_id)
 
     def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
-                           ship_type: str) -> int:
+                           ship_id: int, ship_type: str) -> int:
         """Generate a ship view depending on the type of ship"""
-        print(ship_type)
         if ship_type == "Recon":
-            return self.create_recon(master, pos, couleur)
+            return self.create_recon(master, pos, couleur, ship_id)
         elif ship_type == "Fighter":
-            return self.create_fighter(master, pos, couleur)
+            print(self.create_fighter(master, pos, couleur, ship_id))
         elif ship_type == "Cargo":
-            return self.create_cargo(master, pos, couleur)
+            return self.create_cargo(master, pos, couleur, ship_id)
 
-
-    def create_recon(self, master: Canvas, pos: tuple, couleur: str) -> int:
+    def create_recon(self, master: Canvas, pos: tuple, couleur: str,
+                     ship_id: int) -> int:
         """Create a triangle inside the canvas at given position while
         using the settings of the said ship"""
         return master.create_arc(pos[0] - self.settings["Recon"]["size"],
@@ -553,19 +596,22 @@ class ShipViewGenerator:
                                  pos[0] + self.settings["Recon"]["size"],
                                  pos[1] + self.settings["Recon"]["size"],
                                  start=0, extent=180, fill=couleur,
-                                 tags="Recon")
+                                 tags=("Recon", "Ship", f'{ship_id}'))
 
-
-    def create_cargo(self, master: Canvas, pos: tuple, couleur: str) -> int:
+    def create_cargo(self, master: Canvas, pos: tuple, couleur: str,
+                     ship_id: int) -> int:
         """Create a rectangle inside the canvas at given position while
         using the settings of the said ship"""
         return master.create_rectangle(pos[0] - self.settings["Cargo"]["size"],
                                        pos[1] - self.settings["Cargo"]["size"],
                                        pos[0] + self.settings["Cargo"]["size"],
                                        pos[1] + self.settings["Cargo"]["size"],
-                                       fill=couleur, tags="Cargo")
+                                       fill=couleur, tags=("Cargo",
+                                                           "Ship",
+                                                           f'{ship_id}'))
 
-    def create_fighter(self, master: Canvas, pos: tuple, couleur: str) -> int:
+    def create_fighter(self, master: Canvas, pos: tuple, couleur: str,
+                       ship_id: int) -> int:
         """Create an arc inside the canvas at given position while
         using the settings of the said ship"""
         return master.create_polygon(pos[0],
@@ -574,4 +620,5 @@ class ShipViewGenerator:
                                      pos[1] + self.settings["Fighter"]["size"],
                                      pos[0] + self.settings["Fighter"]["size"],
                                      pos[1] + self.settings["Fighter"]["size"],
-                                     fill=couleur, tags="Fighter")
+                                     fill=couleur,
+                                     tags=("Fighter", "Ship", f'{ship_id}'))

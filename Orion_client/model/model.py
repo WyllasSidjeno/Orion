@@ -189,7 +189,8 @@ class Player:
     def jouer_prochain_coup(self):
         """Fonction de jeu du joueur pour un tour.
         """
-        pass
+        for i in self.flotte:
+            self.flotte[i].tick()
 
     def action_from_server(self, funct: str, args: list):
         """Fonction de jeu du joueur pour un tour.
