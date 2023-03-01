@@ -238,6 +238,7 @@ class GameCanvas(Canvas):
         scroll_y.config(command=self.yview)
 
         self.configure(scrollregion=(0, 0, 9000, 9000))
+        self.ship_view = ShipViewGenerator()
 
     def move_to(self, x: float, y: float) -> None:
         """Déplace le canvas de jeu à une position donnée
@@ -325,6 +326,15 @@ class GameCanvas(Canvas):
         for i in range(len(owned_stars)):
             self.generate_star(owned_stars[i], "owned_star")
         self.generate_wormhole(mod.trou_de_vers)
+
+        for joueur in mod.joueurs.keys():
+            for armada in mod.joueurs[joueur].flotte.keys():
+                self.ship_view.generate_ship_view(self,
+                                                  mod.joueurs[joueur].
+                                                  flotte[armada].pos,
+                                                  mod.joueurs[joueur].couleur,
+                                                    mod.joueurs[joueur].
+                                                    flotte[armada].__repr__())
 
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
