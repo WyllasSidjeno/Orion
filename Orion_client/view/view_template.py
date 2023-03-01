@@ -254,10 +254,13 @@ class GameCanvas(Canvas):
         # mod mandatory because of background dependancy
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
-        self.generate_unowned_stars(mod.etoiles)
+        for i in range(len(mod.etoiles)):
+            self.generate_star(mod.etoiles[i], "unowned_star")
+
         owned_stars = self.get_player_stars(mod)
         # todo : Colors
-        self.generate_owned_stars(owned_stars)
+        for i in range(len(owned_stars)):
+            self.generate_star(owned_stars[i], "owned_star")
         self.generate_wormhole(mod.trou_de_vers)
 
     @staticmethod
@@ -268,7 +271,6 @@ class GameCanvas(Canvas):
         stars = []
         for star in mod.joueurs.keys():
             for j in mod.joueurs[star].etoilescontrolees:
-                j.col = "blue"  # mod.joueurs[star].couleur
                 stars.append(j)
         return stars
 
@@ -284,16 +286,6 @@ class GameCanvas(Canvas):
 
             self.create_oval(x - size, y - size, x + size, y + size,
                              fill=col, tags="background")
-
-    def generate_unowned_stars(self, stars):
-        """Créé les étoiles qui n'appartienne à personne sur le canvas."""
-        for star in stars:
-            self.generate_star(star, "stars_unowned")
-
-    def generate_owned_stars(self, stars):
-        """Créé les étoiles qui appartiennent á un joueur sur le canvas."""
-        for star in stars:
-            self.generate_star(star, "stars_owned")
 
     def generate_star(self, star, tag: str):
         """Créé une étoile sur le canvas.
@@ -319,14 +311,6 @@ class GameCanvas(Canvas):
                          fill=door.couleur,
                          tags=("Wormhole", door.id, parent_id))
 
-    def horizontal_scroll(self, event):
-        """Effectue un scroll horizontal sur le canvas."""
-        self.xview_scroll(-1 * int(event.delta / 120), "units")
-
-    def vertical_scroll(self, event):
-        """Effectue un scroll vertical sur le canvas."""
-        self.yview_scroll(-1 * int(event.delta / 120), "units")
-
     def refresh(self, mod):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
@@ -338,8 +322,17 @@ class GameCanvas(Canvas):
         self.delete("spaceship")
 
         owned_stars = self.get_player_stars(mod)
-        self.generate_owned_stars(owned_stars)
+        for i in range(len(owned_stars)):
+            self.generate_star(owned_stars[i], "owned_star")
         self.generate_wormhole(mod.trou_de_vers)
+
+    def horizontal_scroll(self, event):
+        """Effectue un scroll horizontal sur le canvas."""
+        self.xview_scroll(-1 * int(event.delta / 120), "units")
+
+    def vertical_scroll(self, event):
+        """Effectue un scroll vertical sur le canvas."""
+        self.yview_scroll(-1 * int(event.delta / 120), "units")
 
 
 class SideBar(Frame):
@@ -433,10 +426,6 @@ class Minimap(Canvas):
         # Make it the same size as the master
         self.propagate(False)
 
-    def refresh(self, mod):
-        pass
-        # todo : Refresh only what necessary or the whole thing ?
-
     def initialize(self, mod):
         self.update_idletasks()
 
@@ -448,7 +437,7 @@ class Minimap(Canvas):
                              star.y * self.y_ratio - 2,
                              star.x * self.x_ratio + 2,
                              star.y * self.y_ratio + 2,
-                             fill="grey", tags=("stars"))
+                             fill="grey", tags="stars")
 
         for key in mod.joueurs:
             for star in mod.joueurs[key].etoilescontrolees:
@@ -456,21 +445,25 @@ class Minimap(Canvas):
                                  star.y * self.y_ratio - 2,
                                  star.x * self.x_ratio + 2,
                                  star.y * self.y_ratio + 2,
-                                 fill="white", tags=("stars_owned"))
+                                 fill="white", tags="stars_owned")
 
         for wormhole in mod.trou_de_vers:
             self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
                              wormhole.porte_a.y * self.y_ratio - 2,
                              wormhole.porte_a.x * self.x_ratio + 2,
                              wormhole.porte_a.y * self.y_ratio + 2,
-                             fill=wormhole.porte_a.couleur, tags=("Wormhole"))
+                             fill=wormhole.porte_a.couleur, tags="Wormhole")
             self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                              wormhole.porte_b.y * self.y_ratio - 2,
                              wormhole.porte_b.x * self.x_ratio + 2,
                              wormhole.porte_b.y * self.y_ratio + 2,
-                             fill=wormhole.porte_b.couleur, tags=("Wormhole"))
+                             fill=wormhole.porte_b.couleur, tags="Wormhole")
 
             self.bind("<Configure>", self.on_resize)
+
+    def refresh(self, mod):
+        pass
+        # todo : Refresh only what necessary or the whole thing ?
 
     def on_resize(self, _):
         self.update_idletasks()
@@ -521,24 +514,24 @@ class ShipViewGenerator:
         }
 
     @staticmethod
-    def move(self, master: Canvas, ship_id: int, pos: tuple):
+    def move(master: Canvas, ship_id: int, pos: tuple):
         """Move the ship to the given position"""
         master.coords(ship_id, pos[0], pos[1])
 
     @staticmethod
-    def delete(self, master: Canvas, ship_id: int):
+    def delete(master: Canvas, ship_id: int):
         """Delete the ship from the canvas"""
         master.delete(ship_id)
 
     def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
-                           type: str) -> int:
+                           ship_type: str) -> int:
         """Generate a ship view depending on the type of ship"""
-        print(type)
-        if type == "Recon":
+        print(ship_type)
+        if ship_type == "Recon":
             return self.create_recon(master, pos, couleur)
-        elif type == "Fighter":
+        elif ship_type == "Fighter":
             return self.create_fighter(master, pos, couleur)
-        elif type == "Cargo":
+        elif ship_type == "Cargo":
             return self.create_cargo(master, pos, couleur)
 
 
@@ -572,25 +565,3 @@ class ShipViewGenerator:
                                      pos[0] + self.settings["Fighter"]["size"],
                                      pos[1] + self.settings["Fighter"]["size"],
                                      fill=couleur, tags="Fighter")
-
-
-if __name__ == "__main__":
-    from tkinter import Tk
-
-    root = Tk()
-    root.title("Starship")
-    root.geometry("800x600")
-    root.resizable(False, False)
-
-    shipcanvas = Canvas(root, bg=hexDark, bd=1,
-                        relief="solid", highlightthickness=0)
-
-    shipGen = ShipViewGenerator()
-    shipGen.create_recon(shipcanvas, (15, 15), "red")
-    shipcanvas.pack()
-
-    shipGen.create_cargo(shipcanvas, (30, 30), "red")
-
-    shipGen.create_fighter(shipcanvas, (45, 45), "red")
-
-    root.mainloop()
