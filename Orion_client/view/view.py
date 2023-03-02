@@ -1,7 +1,7 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    SideBar, PlanetWindow, ShipViewGenerator
+    SideBar, ShipViewGenerator
 
 
 class GameView(Frame):

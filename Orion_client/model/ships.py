@@ -30,6 +30,10 @@ class Ship(ABC):
         self.vie_max = AlwaysInt(vie)
         self.new = True
 
+    def is_static(self) -> bool:
+        """Retourne True si le vaisseau est immobile."""
+        return self.position_cible is None
+
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
         if self.position_cible is not None:

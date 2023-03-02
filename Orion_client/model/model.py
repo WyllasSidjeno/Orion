@@ -150,7 +150,25 @@ class Model:
                 else:
                     self.actions_a_faire[cadrecle].append(action)
 
-                print("actions à faire", self.actions_a_faire)
+    def get_all_players_static_ships_positions(self):
+        """Renvoie la position de tous les vaisseaux des joueurs.
+
+        :return: la position de tous les vaisseaux des joueurs
+        """
+        positions = []
+        for i in self.joueurs:
+            positions += self.joueurs[i].get_all_static_ships_positions()
+        return positions
+
+    def get_all_planets_positions(self):
+        """Renvoie la position de tous les planètes.
+
+        :return: la position de tous les planètes
+        """
+        positions = []
+        for i in self.etoiles:
+            positions.append(i.position)
+        return positions
 
 
 class Player:
@@ -191,6 +209,13 @@ class Player:
                 return i
         return None
 
+    def get_all_static_ships_positions(self):
+        pos = []
+        for i in self.flotte:
+            if self.flotte[i].is_static():
+                pos.append(self.flotte[i].position)
+        return pos
+
     def jouer_prochain_coup(self):
         """Fonction de jeu du joueur pour un tour.
         """
@@ -205,7 +230,7 @@ class Player:
     def construct_fighter(self, star_id: str):
         """Fonction de jeu du joueur pour un tour.
         """
-        pos = self.get_star_by_id(star_id).pos
+        pos = self.get_star_by_id(star_id).position
         fighter = Fighter(pos, self.id)
         self.flotte[fighter.id] = fighter
 
@@ -213,9 +238,6 @@ class Player:
         """Fonction de jeu du joueur pour un tour.
         """
         self.flotte[ship_id].position_cible = pos
-
-
-
 
     def deplete_energy(self, list_vaisseau: list, list_structure: list):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur

@@ -82,7 +82,7 @@ class Star:
         self.proprietaire: str = ""
         self.x = x
         self.y = y
-        self.pos = (x, y)
+        self.position = (x, y)
         self.taille = randrange(4, 8)
         self.ressources = {"metal": 1000,
                            "energie": 10000,
