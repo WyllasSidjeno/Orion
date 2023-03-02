@@ -70,6 +70,8 @@ class GameView(Frame):
 
         self.canvas.bind("<Button-1>", lambda event: self.on_game_click(event,
                                                                         ship_movement_request))
+        # right click
+        self.canvas.bind("<Button-3>", lambda event: self.cancel_previous_selection())
 
         self.canvas.bind_game_requests(ship_construction_request)
 
@@ -117,6 +119,9 @@ class GameView(Frame):
                                   self.previous_selection[0],
                                   (x,y))
             self.previous_selection = None
+
+    def cancel_previous_selection(self):
+        self.previous_selection = None
 
 
 
