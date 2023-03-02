@@ -1,6 +1,6 @@
 from __future__ import annotations
 import random
-from tkinter import Frame, Label, Canvas, Scrollbar
+from tkinter import Frame, Label, Canvas, Scrollbar, Button
 
 hexDarkGrey: str = "#36393f"
 """Couleur de fond des frames"""
@@ -11,6 +11,8 @@ hexSpaceBlack: str = "#23272a"
 
 
 class PlanetWindow(Frame):
+    planet_id: int | None
+
     def __init__(self, parent: GameCanvas):
         """Initialise la fenetre"""
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
@@ -83,6 +85,11 @@ class PlanetWindow(Frame):
                                              font=("Arial", 10))
         """Label contenant le nom du header du menu d'information"""
 
+        self.construct_ship_button = Button(self.side_frame,
+                                            text="Construire un vaisseau",
+                                            bg=hexDarkGrey, fg="white",
+                                            font=("Arial", 10))
+
         self.building_list = []
 
         for i in range(8):
@@ -90,10 +97,13 @@ class PlanetWindow(Frame):
 
     def hide(self) -> None:
         """Cache la fenetre"""
+        self.planet_id = None
         self.place_forget()
         self.isShown = False
 
-    def show(self):
+    def show(self, planet_id: int) -> None:
+        """Affiche la fenetre"""
+        self.planet_id = planet_id
         self.place(relx=0.5, rely=0.5, anchor="center")
         self.isShown = True
 
@@ -158,6 +168,9 @@ class PlanetWindow(Frame):
 
         self.stockpile_boolean_label.place(anchor="center", relx=0.5,
                                            rely=0.72)
+
+        self.construct_ship_button.place(anchor="center", relx=0.5,
+                                         rely=0.85)
 
     def show_buildings(self, max_building) -> None:
         """Affiche les bâtiments de la planete"""
@@ -240,6 +253,10 @@ class GameCanvas(Canvas):
         self.configure(scrollregion=(0, 0, 9000, 9000))
         self.ship_view = ShipViewGenerator()
 
+        self.planet_window = PlanetWindow(self)
+        """Représente la fenêtre de planète de la vue du jeu."""
+        self.planet_window.hide()
+
     def move_to(self, x: float, y: float) -> None:
         """Déplace le canvas de jeu à une position donnée
         :param x: La position x en 0.0 - 1.0
@@ -312,6 +329,13 @@ class GameCanvas(Canvas):
                          fill=door.couleur,
                          tags=("Wormhole", door.id, parent_id))
 
+    def bind_game_requests(self, ship_construction):
+        """Lie les fonctions de construction de vaisseaux au canvas
+        :param ship_construction: La fonction de construction de vaisseaux"""
+        self.planet_window.construct_ship_button.bind(
+            "<Button-1>", lambda e:
+            ship_construction("fighter", self.planet_window.planet_id))
+
     def refresh(self, mod):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
@@ -328,6 +352,7 @@ class GameCanvas(Canvas):
         for joueur in mod.joueurs.keys():
             for armada in mod.joueurs[joueur].flotte.keys():
                 if mod.joueurs[joueur].flotte[armada].new:
+                    print("New ship")
                     self.ship_view. \
                         generate_ship_view(self,
                                            mod.joueurs[joueur].flotte[armada].
@@ -345,6 +370,8 @@ class GameCanvas(Canvas):
                                             armada].id,
                                         mod.joueurs[joueur].flotte[
                                             armada].__repr__())
+
+            self.tag_raise("ship")
 
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
@@ -594,7 +621,7 @@ class ShipViewGenerator:
                                  pos[0] + self.settings["Recon"]["size"],
                                  pos[1] + self.settings["Recon"]["size"],
                                  start=0, extent=180, fill=couleur,
-                                 tags=("Recon", "Ship", f'{ship_id}'))
+                                 tags=("recon", "ship", f'{ship_id}'))
 
     def create_cargo(self, master: Canvas, pos: tuple, couleur: str,
                      ship_id: int) -> int:
@@ -604,8 +631,8 @@ class ShipViewGenerator:
                                        pos[1] - self.settings["Cargo"]["size"],
                                        pos[0] + self.settings["Cargo"]["size"],
                                        pos[1] + self.settings["Cargo"]["size"],
-                                       fill=couleur, tags=("Cargo",
-                                                           "Ship",
+                                       fill=couleur, tags=("cargo",
+                                                           "ship",
                                                            f'{ship_id}'))
 
     def create_fighter(self, master: Canvas, pos: tuple, couleur: str,
@@ -619,4 +646,4 @@ class ShipViewGenerator:
                                      pos[0] + self.settings["Fighter"]["size"],
                                      pos[1] + self.settings["Fighter"]["size"],
                                      fill=couleur,
-                                     tags=("Fighter", "Ship", f'{ship_id}'))
+                                     tags=("fighter", "ship", f'{ship_id}'))

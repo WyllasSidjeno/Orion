@@ -71,7 +71,7 @@ class Fighter(Ship):
     def __init__(self, pos, owner: str):
         angle = 0
         vitesse = 2
-        position_cible = (pos[0] + 100, pos[1] + 100)
+        position_cible = None
         vie = 100
         super().__init__(pos, angle, vitesse, position_cible, vie, owner)
         self.attack_strength = 10

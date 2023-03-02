@@ -182,9 +182,14 @@ class Player:
         self.etoilescontrolees: list = [etoilemere]
         """Liste des etoiles controlees par le joueur."""
 
-        self.flotte = {}
         self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
+
+    def get_star_by_id(self, id: str):
+        for i in self.etoilescontrolees:
+            if i.id == id:
+                return i
+        return None
 
     def jouer_prochain_coup(self):
         """Fonction de jeu du joueur pour un tour.
@@ -197,12 +202,18 @@ class Player:
         """
         getattr(self, funct)(*args)
 
-    def construct_Fighter(self, pos: tuple):
+    def construct_fighter(self, star_id: str):
         """Fonction de jeu du joueur pour un tour.
         """
-        # Launch the function with the arguments
-        # Add a new armada to flotte
-        self.flotte["Armada_" + str(len(self.flotte))] = Fighter(pos, "me")
+        pos = self.get_star_by_id(star_id).pos
+        fighter = Fighter(pos, self.id)
+        self.flotte[fighter.id] = fighter
+
+    def move_fighter(self, ship_id: str, pos: tuple):
+        """Fonction de jeu du joueur pour un tour.
+        """
+        self.flotte[ship_id].position_cible = pos
+
 
 
 

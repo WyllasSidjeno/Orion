@@ -5,6 +5,7 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
 
 
 class GameView(Frame):
+
     def __init__(self):
         super().__init__()
 
@@ -25,9 +26,9 @@ class GameView(Frame):
         self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
         """Représente le canvas de la vue du jeu."""
 
-        self.planet_window = PlanetWindow(self.canvas)
-        """Représente la fenêtre de planète de la vue du jeu."""
-        self.planet_window.hide()
+        self.previous_selection: list[str] | None = None
+
+
 
         self.pack(fill="both", expand=True)
 
@@ -56,7 +57,9 @@ class GameView(Frame):
         self.configure_grid()
         self.canvas.initialize(mod)
         self.side_bar.initialize(mod)
+        self.canvas.planet_window.initialize()
 
+    def bind_game_requests(self, ship_construction_request, ship_movement_request):
         self.side_bar.minimap.bind("<Button-1>",
                                    self.on_minimap_click)
 
@@ -65,9 +68,10 @@ class GameView(Frame):
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>", self.on_game_click)  # DEBUG
+        self.canvas.bind("<Button-1>", lambda event: self.on_game_click(event,
+                                                                        ship_movement_request))
 
-        self.planet_window.initialize()
+        self.canvas.bind_game_requests(ship_construction_request)
 
     def refresh(self, mod):
         self.canvas.refresh(mod)
@@ -87,19 +91,39 @@ class GameView(Frame):
 
         self.canvas.move_to((pctx - x), (pcty - y))
 
-    def on_game_click(self, event) -> None:
+    def on_game_click(self, event, ship_movement_request) -> None:
         """Get xy coordinates on click"""
         x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
-        print("x: {}, y: {}".format(x, y))
+
         tags_list = []
         for tag in self.canvas.gettags("current"):
             tags_list.append(tag)
-        print(tags_list)
 
-        if self.planet_window.isShown:
-            self.planet_window.hide()
+        if self.canvas.planet_window.isShown:
+            self.canvas.planet_window.hide()
         elif "owned_star" in tags_list:
-            self.planet_window.show()
+            self.canvas.planet_window.show(tags_list[1])
+
+        if "ship" in tags_list:
+            print("Ship clicked")
+            if self.previous_selection is None:
+                self.previous_selection = tags_list
+                print("Ship selected")
+            elif self.previous_selection == tags_list[2]:
+                self.previous_selection = None
+                print("Ship deselected")
+        elif self.previous_selection is not None:
+            ship_movement_request(self.previous_selection[2],
+                                  self.previous_selection[0],
+                                  (x,y))
+            self.previous_selection = None
+
+
+
+
+
+
+
 
 
 class LobbyView(Frame):

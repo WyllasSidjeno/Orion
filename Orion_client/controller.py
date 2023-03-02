@@ -102,35 +102,42 @@ class GameController:
         """Le modèle de la partie"""
         self.view = GameView()
         """La vue de la partie"""
-        self.player_actions = []
-        """Liste des actions à envoyer au serveur"""
-        self.server_actions = []
-        """Liste des actions reçues du serveur"""
+        self.player_actions: list[list[str]] = []
         self.pause: bool = False
         """Si le jeu est en pause"""
 
     def start(self) -> None:
         """Démarre le controller"""
         self.view.initialize(self.model)
+        self.bind_game_requests()
 
     def tick(self, frame) -> None:
         """Fait jouer le prochain coup du modèle"""
-        if frame == 1:
-            pos = self.model.joueurs[self.username].etoilemere.x, \
-                    self.model.joueurs[self.username].etoilemere.y
-            self.construct_spaceship("Fighter", pos)
         if not self.pause:
             self.model.jouer_prochain_coup(frame)
             self.view.refresh(self.model)
 
-    def construct_spaceship(self, type, pos) -> None:
+    def bind_game_requests(self) -> None:
+        """Lie les boutons de la vue à leur fonction"""
+        self.view.bind_game_requests(self.request_spaceship_construction,
+                                     self.request_spaceship_movement)
+
+    def request_spaceship_construction(self, ship_type, planet_id) -> None:
         """Construit un vaisseau du type donné"""
-        action = [self.username, "construct_" + type, [pos]]
+        # Get the id inside of model players ...
+        action = [self.username, "construct_" + ship_type, [planet_id]]
+        self.player_actions.append(action)
+
+    def request_spaceship_movement(self, ship_id, ship_type,  pos) -> None:
+        """Déplace un vaisseau vers la planète donnée"""
+        print("move_" + ship_type, [ship_id, pos])
+        action = [self.username, "move_" + ship_type, [ship_id, pos]]
         self.player_actions.append(action)
 
 
 class ServerController:
     """Controller du serveur"""
+
     def __init__(self, username: str, url_serveur: str,
                  model: Model, pause_game: Callable, unpause_game: Callable):
         """Initialisation du controller
@@ -147,7 +154,6 @@ class ServerController:
         """L'URL du serveur"""
         self.frame_module = 2
         """Le nombre de frames entre chaque appel au serveur"""
-
         self.model = model
         """Le modèle de la partie"""
 
@@ -156,10 +162,13 @@ class ServerController:
         self.unpause_game = unpause_game
         """La fonction à appeler pour mettre le jeu en cours"""
 
-    def update_actions(self, frame: int, actions: list[str], empty_player_actions: Callable):
+    def update_actions(self, frame: int, actions: list[str],
+                       empty_player_actions: Callable):
         """Met à jour les actions du modèle
         :param frame: la frame actuelle
         :param actions: les actions à envoyer au serveur
+        :param empty_player_actions: la fonction à appeler pour vider les
+        actions du joueur
         :return: les actions à faire
         """
         if frame % self.frame_module == 0:
