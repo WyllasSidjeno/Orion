@@ -74,9 +74,8 @@ class GameView(Frame):
         self.canvas.bind("<Button-1>",
                          lambda event:
                          self.on_game_left_click(event, ship_movement_request))
-        # right click
-        self.canvas.bind("<Button-3>",
-                         lambda event: self.cancel_previous_selection())
+
+        self.canvas.bind("<Button-3>", self.on_game_right_click)
 
         self.canvas.bind_game_requests(ship_construction_request)
 
@@ -129,14 +128,27 @@ class GameView(Frame):
             self.previous_selection = None
 
     def on_game_right_click(self, event):
-        pass
+        if self.canvas.planet_window.isShown:
+            self.canvas.planet_window.hide()
+        tags_list = []
+        for tag in self.canvas.gettags("current"):
+            tags_list.append(tag)
+
+        if self.previous_selection:
+            if self.is_type(self.previous_selection, "ship"):
+                if self.is_type(tags_list, ["owned_star", "unowned_star"])\
+                        and not self.is_owner(tags_list):
+                    print("ship movement request to star")
+            self.previous_selection = None
 
     def is_owner_and_is_type(self, tags_list, object_type):
         return self.is_type(tags_list, object_type) \
             and self.is_owner(tags_list)
 
     @staticmethod
-    def is_type(tags_list: list, object_type: str):
+    def is_type(tags_list: list, object_type: str | list[str]):
+        if isinstance(object_type, list):
+            return any(tag in object_type for tag in tags_list)
         return object_type in tags_list
 
     def is_owner(self, tags_list):

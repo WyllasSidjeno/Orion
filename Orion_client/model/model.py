@@ -30,15 +30,17 @@ class Model:
         :param joueurs: les joueurs du jeu
         """
         self.largeur: int = 9000
-        self.hauteur:int = 9000
+        self.hauteur: int = 9000
+
         self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
         self.joueurs: dict = {}
         self.actions_a_faire: dict = {}
         self.etoiles: list = []
         self.trou_de_vers : list = []
         self.cadre_courant = None  # TODO: type
-        self.creeretoiles(joueurs, 1)
         nb_trou: int = int((self.hauteur * self.largeur) / 5000000)
+
+        self.creeretoiles(joueurs, 1) # Joueurs, IA.
         self.creer_troudevers(nb_trou)
 
     def creer_troudevers(self, num_wormholes : int) -> None:
