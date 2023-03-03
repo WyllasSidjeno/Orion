@@ -361,7 +361,8 @@ class GameCanvas(Canvas):
                                            mod.joueurs[joueur].couleur,
                                            mod.joueurs[joueur].flotte[
                                                armada].id,
-                                           self.username,
+                                           mod.joueurs[joueur].flotte[
+                                               armada].owner,
                                            mod.joueurs[joueur].flotte[
                                                armada].__repr__()
                                            )

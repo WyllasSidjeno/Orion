@@ -170,6 +170,17 @@ class Model:
             positions.append(i.position)
         return positions
 
+    def get_id_by_username(self, username: str) -> str | None:
+        """Renvoie l'id du joueur correspondant au nom d'utilisateur.
+
+        :param username: le nom d'utilisateur
+        :return: l'id du joueur
+        """
+        for player in self.joueurs.values():
+            if player.nom == username:
+                return player.id
+        return None
+
 
 class Player:
     """Classe du joueur.

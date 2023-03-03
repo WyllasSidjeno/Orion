@@ -6,6 +6,7 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
 
 class GameView(Frame):
     username: str
+    id: str
 
     def __init__(self):
         super().__init__()
@@ -52,8 +53,9 @@ class GameView(Frame):
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
 
-    def initialize(self, mod, username):
+    def initialize(self, mod, username, user_id):
         self.username = username
+        self.id = user_id
         self.configure_grid()
         self.canvas.initialize(mod, self.username)
         self.side_bar.initialize(mod)
@@ -111,21 +113,24 @@ class GameView(Frame):
     def look_for_building_window_interactions(self, tags_list):
         if self.canvas.planet_window.isShown:
             self.canvas.planet_window.hide()
-        elif self.is_owner_and_type(tags_list, "owned_star"):
+        elif self.is_owner_and_is_type(tags_list, "owned_star"):
             self.canvas.planet_window.show(tags_list[1])
 
     def look_for_ship_interactions(self, tags_list, pos,
                                    ship_movement_request):
-        if self.is_owner_and_type(tags_list, "ship"):
+        if self.is_owner_and_is_type(tags_list, "ship"):
+            print("ship")
             if self.previous_selection is None:
+                print("previous selection is none")
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
+            print("ship movement request")
             ship_movement_request(self.previous_selection[1],
                                   self.previous_selection[3],
                                   pos)
             self.previous_selection = None
 
-    def is_owner_and_type(self, tags_list, object_type):
+    def is_owner_and_is_type(self, tags_list, object_type):
         return self.is_type(tags_list, object_type) \
             and self.is_owner(tags_list)
 
@@ -134,7 +139,7 @@ class GameView(Frame):
         return object_type in tags_list
 
     def is_owner(self, tags_list):
-        return self.username in tags_list
+        return self.id in tags_list or self.username in tags_list
 
     def cancel_previous_selection(self):
         self.previous_selection = None

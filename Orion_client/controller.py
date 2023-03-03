@@ -108,7 +108,10 @@ class GameController:
 
     def start(self) -> None:
         """Démarre le controller"""
-        self.view.initialize(self.model, self.username)
+        # Get the ID of the player with self.username
+
+        user_id = self.model.get_id_by_username(self.username)
+        self.view.initialize(self.model, self.username, user_id)
         self.bind_game_requests()
 
     def tick(self, frame) -> None:
