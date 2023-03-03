@@ -15,7 +15,7 @@ from random import randrange, choice
 from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
-from Orion_client.model.ships import Ship, Cargo, Fighter
+from Orion_client.model.ships import Ship, Cargo, Fighter, Recon
 from Orion_client.model.space_object import Wormhole, Star
 
 
@@ -41,7 +41,7 @@ class Model:
         nb_trou: int = int((self.hauteur * self.largeur) / 5000000)
         self.creer_troudevers(nb_trou)
 
-    def creer_troudevers(self, n : int) -> None:
+    def creer_troudevers(self, num_wormholes : int) -> None:
         """Crée des trous de vers.
 
         Créé n trous de vers aléatoirement dans le modèle.
@@ -49,9 +49,9 @@ class Model:
         aléatoires groupés en paires. Les trous de vers sont ajoutés à la liste
         des trous de vers du modèle.
 
-        :param n: le nombre de trous de vers à créer"""
+        :param num_wormholes: le nombre de trous de vers à créer"""
         bordure : int = 10
-        for i in range(n):
+        for i in range(num_wormholes):
             x1 = randrange(self.largeur - (2 * bordure)) + bordure
             y1 = randrange(self.hauteur - (2 * bordure)) + bordure
             x2 = randrange(self.largeur - (2 * bordure)) + bordure
@@ -245,7 +245,21 @@ class Player:
         fighter = Fighter(pos, self.id)
         self.flotte[fighter.id] = fighter
 
-    def move_fighter(self, ship_id: str, pos: tuple):
+    def construct_recon(self, star_id: str):
+        """Fonction de jeu du joueur pour un tour.
+        """
+        pos = self.get_star_by_id(star_id).position
+        recon = Recon(pos, self.id)
+        self.flotte[recon.id] = recon
+
+    def construct_cargo(self, star_id: str):
+        """Fonction de jeu du joueur pour un tour.
+        """
+        pos = self.get_star_by_id(star_id).position
+        cargo = Cargo(pos, self.id)
+        self.flotte[cargo.id] = cargo
+
+    def move_ship(self, ship_id: str, pos: tuple):
         """Fonction de jeu du joueur pour un tour.
         """
         self.flotte[ship_id].position_cible = pos

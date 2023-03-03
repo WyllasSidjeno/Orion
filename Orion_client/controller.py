@@ -131,11 +131,11 @@ class GameController:
         action = [self.username, "construct_" + ship_type, [planet_id]]
         self.player_actions.append(action)
 
-    def request_spaceship_movement(self, ship_id : str, ship_type: str,
+    def request_spaceship_movement(self, ship_id : str,
                                    pos: tuple[int, int]) -> None:
         """Déplace un vaisseau vers la planète donnée"""
-        print("move_" + ship_type, [ship_id, pos])
-        action = [self.username, "move_" + ship_type, [ship_id, pos]]
+        print("move_ship", [ship_id, pos])
+        action = [self.username, "move_ship", [ship_id, pos]]
         self.player_actions.append(action)
 
 

@@ -64,7 +64,7 @@ class GameView(Frame):
     def bind_game_requests(self, ship_construction_request,
                            ship_movement_request):
         self.side_bar.minimap.bind("<Button-1>",
-                                   self.on_minimap_click)
+                                   self.on_minimap_left_click)
 
         self.canvas.bind("<MouseWheel>",
                          self.canvas.vertical_scroll)
@@ -73,7 +73,7 @@ class GameView(Frame):
 
         self.canvas.bind("<Button-1>",
                          lambda event:
-                         self.on_game_click(event, ship_movement_request))
+                         self.on_game_left_click(event, ship_movement_request))
         # right click
         self.canvas.bind("<Button-3>",
                          lambda event: self.cancel_previous_selection())
@@ -84,7 +84,7 @@ class GameView(Frame):
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
 
-    def on_minimap_click(self, event) -> None:
+    def on_minimap_left_click(self, event) -> None:
         """ Moves the canvas region to the clicked position on the minimap. """
         pctx = event.x / self.side_bar.minimap.winfo_width()
         """Percentage of the x coordinate on the minimap."""
@@ -98,7 +98,7 @@ class GameView(Frame):
 
         self.canvas.move_to((pctx - x), (pcty - y))
 
-    def on_game_click(self, event, ship_movement_request) -> None:
+    def on_game_left_click(self, event, ship_movement_request) -> None:
         """Get xy coordinates on click"""
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         tags_list = []
@@ -125,10 +125,11 @@ class GameView(Frame):
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
             print("ship movement request")
-            ship_movement_request(self.previous_selection[1],
-                                  self.previous_selection[3],
-                                  pos)
+            ship_movement_request(self.previous_selection[1], pos)
             self.previous_selection = None
+
+    def on_game_right_click(self, event):
+        pass
 
     def is_owner_and_is_type(self, tags_list, object_type):
         return self.is_type(tags_list, object_type) \
