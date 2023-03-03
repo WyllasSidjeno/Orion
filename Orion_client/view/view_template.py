@@ -186,7 +186,6 @@ class BuildingWindow(Frame):
 
     def __init__(self, master: Frame):
         """Crée la fenetre d'un bâtiment
-
         :param master: Frame parent
         """
         super().__init__(master)
@@ -646,3 +645,4 @@ class ShipViewGenerator:
                                      pos[1] + self.settings["Fighter"]["size"],
                                      fill=couleur,
                                      tags=("fighter", "ship", f'{ship_id}'))
+                                     

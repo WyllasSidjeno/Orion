@@ -125,12 +125,6 @@ class GameView(Frame):
 
 
 
-
-
-
-
-
-
 class LobbyView(Frame):
     def __init__(self, url_serveur: str, username: str):
         super().__init__()
@@ -258,7 +252,7 @@ class LobbyView(Frame):
 
     def disable_join_server_button(self):
         self.join_server_button.config(state="disabled")
-
+        
     def disable_restart_connect_button(self):
         self.restart_button.config(state="disabled")
         self.connect_button.config(state="disabled")
