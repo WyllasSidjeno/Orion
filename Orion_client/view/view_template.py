@@ -1,6 +1,9 @@
 from __future__ import annotations
 import random
-from tkinter import Frame, Label, Canvas, Scrollbar, Button
+from functools import partial
+from tkinter import Frame, Label, Canvas, Scrollbar, Button, OptionMenu, LEFT, \
+    Tk, StringVar, Menu
+from typing import Callable
 
 hexDarkGrey: str = "#36393f"
 """Couleur de fond des frames"""
@@ -89,7 +92,13 @@ class PlanetWindow(Frame):
                                             text="Construire un vaisseau",
                                             bg=hexDarkGrey, fg="white",
                                             font=("Arial", 10))
+        self.construct_ship_menu = ConstructShipMenu(self.side_frame)
+        x, y = self.construct_ship_button.winfo_rootx(), \
+            self.construct_ship_button.winfo_rooty()
 
+        self.construct_ship_button.bind("<Button-1>",
+                                        self.construct_ship_menu.
+                                        show)
         self.building_list = []
 
         for i in range(8):
@@ -98,12 +107,16 @@ class PlanetWindow(Frame):
     def hide(self) -> None:
         """Cache la fenetre"""
         self.planet_id = None
+        self.construct_ship_menu.current_planet_id = None
         self.place_forget()
         self.isShown = False
 
     def show(self, planet_id: int) -> None:
         """Affiche la fenetre"""
+        print("show")
+        print(planet_id)
         self.planet_id = planet_id
+        self.construct_ship_menu.current_planet_id = planet_id
         self.place(relx=0.5, rely=0.5, anchor="center")
         self.isShown = True
 
@@ -334,9 +347,8 @@ class GameCanvas(Canvas):
     def bind_game_requests(self, ship_construction):
         """Lie les fonctions de construction de vaisseaux au canvas
         :param ship_construction: La fonction de construction de vaisseaux"""
-        self.planet_window.construct_ship_button.bind(
-            "<Button-1>", lambda e:
-            ship_construction("fighter", self.planet_window.planet_id))
+        self.planet_window.construct_ship_menu.bind_game_requests(
+            ship_construction)
 
     def refresh(self, mod):
         """Rafrachit le canvas de jeu avec les données du model
@@ -560,7 +572,7 @@ class ShipViewGenerator:
                 "size": 10,
             },
             "Cargo": {
-                "size":12
+                "size": 12
             }
         }
 
@@ -612,7 +624,7 @@ class ShipViewGenerator:
         print("Generating ship view for ship id : " + ship_id)
         print("Ship type : " + ship_type
               + " at position : " + str(pos)
-                + " with color : " + couleur)
+              + " with color : " + couleur)
         if ship_type == "recon":
             self.create_recon(master, pos, couleur, ship_id, username,
                               ship_type)
@@ -632,7 +644,7 @@ class ShipViewGenerator:
                           pos[0] + self.settings["Recon"]["size"],
                           pos[1] + self.settings["Recon"]["size"],
                           start=0, extent=180, fill=couleur,
-                          tags=("ship",ship_id, username, ship_type))
+                          tags=("ship", ship_id, username, ship_type))
 
     def create_cargo(self, master: Canvas, pos: tuple, couleur: str,
                      ship_id: str, username: str, ship_type: str):
@@ -650,7 +662,7 @@ class ShipViewGenerator:
         """Create an arc inside the canvas at given position while
         using the settings of the said ship"""
         print("Creating fighter at position : " + str(pos),
-                "with color : " + couleur)
+              "with color : " + couleur)
 
         master.create_polygon(pos[0],
                               pos[1] - self.settings["Fighter"]["size"],
@@ -660,3 +672,39 @@ class ShipViewGenerator:
                               pos[1] + self.settings["Fighter"]["size"],
                               fill=couleur,
                               tags=("ship", ship_id, username, ship_type))
+
+
+class ConstructShipMenu(Menu):
+    """Menu that allows the user to construct a ship"""
+    current_planet_id: str
+
+    def __init__(self, master: Frame):
+        super().__init__(master, tearoff=0, bg=hexDarkGrey)
+        self.ship_types = ["Recon", "Fighter", "Cargo"]
+        for ship_type in self.ship_types:
+            self.add_command(label=ship_type)
+
+        # Remove the possibility to tear it
+        self.master.bind("<Button-1>", self.hide)
+
+    def hide(self, _):
+        """Hide the menu when the user clicks outside of it"""
+        self.unpost()
+
+    def bind_game_requests(self, command: Callable):
+        """Add a command to the menu that sends back the ship type"""
+        for ship_type in self.ship_types:
+            self.entryconfig(ship_type, command=partial(
+                self.command_with_st_and_id, command, ship_type))
+
+    def command_with_st_and_id(self, command: Callable, st: str):
+        """Add a command to the menu that sends back the ship type"""
+        command(st.lower(), self.current_planet_id)
+
+    def show(self, event):
+        """Show the menu at the given position"""
+        self.post(event.x_root, event.y_root)
+
+    def get_id(self):
+        """Return the current planet id"""
+        return self.current_planet_id
