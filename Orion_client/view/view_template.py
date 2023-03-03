@@ -631,8 +631,7 @@ class ShipViewGenerator:
                                        pos[1] - self.settings["Cargo"]["size"],
                                        pos[0] + self.settings["Cargo"]["size"],
                                        pos[1] + self.settings["Cargo"]["size"],
-                                       fill=couleur, tags=("cargo",
-                                                           "ship",
+                                       fill=couleur, tags=("cargo", "ship",
                                                            f'{ship_id}'))
 
     def create_fighter(self, master: Canvas, pos: tuple, couleur: str,
