@@ -5,6 +5,7 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
 
 
 class GameView(Frame):
+    username: str
 
     def __init__(self):
         super().__init__()
@@ -27,8 +28,6 @@ class GameView(Frame):
         """Représente le canvas de la vue du jeu."""
 
         self.previous_selection: list[str] | None = None
-
-
 
         self.pack(fill="both", expand=True)
 
@@ -53,13 +52,15 @@ class GameView(Frame):
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
 
-    def initialize(self, mod):
+    def initialize(self, mod, username):
+        self.username = username
         self.configure_grid()
-        self.canvas.initialize(mod)
+        self.canvas.initialize(mod, self.username)
         self.side_bar.initialize(mod)
         self.canvas.planet_window.initialize()
 
-    def bind_game_requests(self, ship_construction_request, ship_movement_request):
+    def bind_game_requests(self, ship_construction_request,
+                           ship_movement_request):
         self.side_bar.minimap.bind("<Button-1>",
                                    self.on_minimap_click)
 
@@ -68,10 +69,12 @@ class GameView(Frame):
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>", lambda event: self.on_game_click(event,
-                                                                        ship_movement_request))
+        self.canvas.bind("<Button-1>",
+                         lambda event:
+                         self.on_game_click(event, ship_movement_request))
         # right click
-        self.canvas.bind("<Button-3>", lambda event: self.cancel_previous_selection())
+        self.canvas.bind("<Button-3>",
+                         lambda event: self.cancel_previous_selection())
 
         self.canvas.bind_game_requests(ship_construction_request)
 
@@ -95,34 +98,46 @@ class GameView(Frame):
 
     def on_game_click(self, event, ship_movement_request) -> None:
         """Get xy coordinates on click"""
-        x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
-
+        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         tags_list = []
         for tag in self.canvas.gettags("current"):
             tags_list.append(tag)
 
+        self.look_for_building_window_interactions(tags_list)
+
+        self.look_for_ship_interactions(tags_list, pos,
+                                        ship_movement_request)
+
+    def look_for_building_window_interactions(self, tags_list):
         if self.canvas.planet_window.isShown:
             self.canvas.planet_window.hide()
-        elif "owned_star" in tags_list:
+        elif self.is_owner_and_type(tags_list, "owned_star"):
             self.canvas.planet_window.show(tags_list[1])
 
-        if "ship" in tags_list:
-            print("Ship clicked")
+    def look_for_ship_interactions(self, tags_list, pos,
+                                   ship_movement_request):
+        if self.is_owner_and_type(tags_list, "ship"):
             if self.previous_selection is None:
                 self.previous_selection = tags_list
-                print("Ship selected")
-            elif self.previous_selection == tags_list[2]:
-                self.previous_selection = None
-                print("Ship deselected")
         elif self.previous_selection is not None:
-            ship_movement_request(self.previous_selection[2],
-                                  self.previous_selection[0],
-                                  (x,y))
+            ship_movement_request(self.previous_selection[1],
+                                  self.previous_selection[3],
+                                  pos)
             self.previous_selection = None
+
+    def is_owner_and_type(self, tags_list, object_type):
+        return self.is_type(tags_list, object_type) \
+            and self.is_owner(tags_list)
+
+    @staticmethod
+    def is_type(tags_list: list, object_type: str):
+        return object_type in tags_list
+
+    def is_owner(self, tags_list):
+        return self.username in tags_list
 
     def cancel_previous_selection(self):
         self.previous_selection = None
-
 
 
 class LobbyView(Frame):
@@ -252,7 +267,7 @@ class LobbyView(Frame):
 
     def disable_join_server_button(self):
         self.join_server_button.config(state="disabled")
-        
+
     def disable_restart_connect_button(self):
         self.restart_button.config(state="disabled")
         self.connect_button.config(state="disabled")

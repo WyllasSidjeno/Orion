@@ -83,7 +83,7 @@ class Fighter(Ship):
 
     # Return a string representation of only the name of the class
     def __repr__(self):
-        return "Fighter"
+        return "fighter"
 
 
 class Cargo(Ship):
@@ -106,7 +106,7 @@ class Cargo(Ship):
         self.defense_strength = 0
 
     def __repr__(self):
-        return "Cargo"
+        return "cargo"
 
 
 class Recon(Ship):
@@ -129,4 +129,4 @@ class Recon(Ship):
         self.defense_strength = 0
 
     def __repr__(self):
-        return "Recon"
+        return "recon"

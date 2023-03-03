@@ -108,7 +108,7 @@ class GameController:
 
     def start(self) -> None:
         """Démarre le controller"""
-        self.view.initialize(self.model)
+        self.view.initialize(self.model, self.username)
         self.bind_game_requests()
 
     def tick(self, frame) -> None:
@@ -128,7 +128,8 @@ class GameController:
         action = [self.username, "construct_" + ship_type, [planet_id]]
         self.player_actions.append(action)
 
-    def request_spaceship_movement(self, ship_id, ship_type,  pos) -> None:
+    def request_spaceship_movement(self, ship_id : str, ship_type: str,
+                                   pos: tuple[int, int]) -> None:
         """Déplace un vaisseau vers la planète donnée"""
         print("move_" + ship_type, [ship_id, pos])
         action = [self.username, "move_" + ship_type, [ship_id, pos]]

@@ -233,6 +233,8 @@ class GameCanvas(Canvas):
     """
 
     # todo : Make the tags more streamlined and documented.
+    username: str
+
     def __init__(self, master: Frame, scroll_x: Scrollbar,
                  scroll_y: Scrollbar):
         """Initialise le canvas de jeu
@@ -264,10 +266,11 @@ class GameCanvas(Canvas):
         self.xview_moveto(x)
         self.yview_moveto(y)
 
-    def initialize(self, mod):
+    def initialize(self, mod, username):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
         :param mod: Le model"""
+        self.username = username
         # mod mandatory because of background dependancy
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
@@ -351,16 +354,17 @@ class GameCanvas(Canvas):
         for joueur in mod.joueurs.keys():
             for armada in mod.joueurs[joueur].flotte.keys():
                 if mod.joueurs[joueur].flotte[armada].new:
-                    print("New ship")
                     self.ship_view. \
                         generate_ship_view(self,
-                                           mod.joueurs[joueur].flotte[armada].
-                                           position,
+                                           mod.joueurs[joueur].flotte[
+                                               armada].position,
                                            mod.joueurs[joueur].couleur,
-                                           mod.joueurs[joueur].flotte[armada].
-                                           id,
-                                           mod.joueurs[joueur].flotte[armada].
-                                           __repr__())
+                                           mod.joueurs[joueur].flotte[
+                                               armada].id,
+                                           self.username,
+                                           mod.joueurs[joueur].flotte[
+                                               armada].__repr__()
+                                           )
                     mod.joueurs[joueur].flotte[armada].new = False
                 elif mod.joueurs[joueur].flotte[
                     armada].position_cible is not None:
@@ -552,20 +556,20 @@ class ShipViewGenerator:
                 "size": 7,
             },
             "Fighter": {
-                "size": 7
+                "size": 10,
             },
             "Cargo": {
-                "size": 10
+                "size":12
             }
         }
 
     def move(self, canvas, pos, ship_tag, ship_type):
         """Move the ship to the given position"""
-        if ship_type == "Recon":
+        if ship_type == "recon":
             self.move_recon(canvas, ship_tag, pos)
-        elif ship_type == "Fighter":
+        elif ship_type == "fighter":
             self.move_fighter(canvas, ship_tag, pos)
-        elif ship_type == "Cargo":
+        elif ship_type == "cargo":
             self.move_cargo(canvas, ship_tag, pos)
 
     def move_recon(self, canvas, ship_tag, pos):
@@ -597,52 +601,61 @@ class ShipViewGenerator:
                       pos[1] + self.settings["Cargo"]["size"])
 
     @staticmethod
-    def delete(canvas: Canvas, ship_id: int):
+    def delete(canvas: Canvas, ship_id: str):
         """Delete the ship from the canvas"""
         canvas.delete(ship_id)
 
     def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
-                           ship_id: int, ship_type: str) -> int:
+                           ship_id: str, username: str, ship_type: str):
         """Generate a ship view depending on the type of ship"""
-        if ship_type == "Recon":
-            return self.create_recon(master, pos, couleur, ship_id)
-        elif ship_type == "Fighter":
-            print(self.create_fighter(master, pos, couleur, ship_id))
-        elif ship_type == "Cargo":
-            return self.create_cargo(master, pos, couleur, ship_id)
+        print("Generating ship view for ship id : " + ship_id)
+        print("Ship type : " + ship_type
+              + " at position : " + str(pos)
+                + " with color : " + couleur)
+        if ship_type == "recon":
+            self.create_recon(master, pos, couleur, ship_id, username,
+                              ship_type)
+        elif ship_type == "fighter":
+            self.create_fighter(master, pos, couleur, ship_id, username,
+                                ship_type)
+        elif ship_type == "cargo":
+            self.create_cargo(master, pos, couleur, ship_id, username,
+                              ship_type)
 
     def create_recon(self, master: Canvas, pos: tuple, couleur: str,
-                     ship_id: int) -> int:
+                     ship_id: str, username: str, ship_type: str):
         """Create a triangle inside the canvas at given position while
         using the settings of the said ship"""
-        return master.create_arc(pos[0] - self.settings["Recon"]["size"],
-                                 pos[1] - self.settings["Recon"]["size"],
-                                 pos[0] + self.settings["Recon"]["size"],
-                                 pos[1] + self.settings["Recon"]["size"],
-                                 start=0, extent=180, fill=couleur,
-                                 tags=("recon", "ship", f'{ship_id}'))
+        master.create_arc(pos[0] - self.settings["Recon"]["size"],
+                          pos[1] - self.settings["Recon"]["size"],
+                          pos[0] + self.settings["Recon"]["size"],
+                          pos[1] + self.settings["Recon"]["size"],
+                          start=0, extent=180, fill=couleur,
+                          tags=("ship",ship_id, username, ship_type))
 
     def create_cargo(self, master: Canvas, pos: tuple, couleur: str,
-                     ship_id: int) -> int:
+                     ship_id: str, username: str, ship_type: str):
         """Create a rectangle inside the canvas at given position while
         using the settings of the said ship"""
-        return master.create_rectangle(pos[0] - self.settings["Cargo"]["size"],
-                                       pos[1] - self.settings["Cargo"]["size"],
-                                       pos[0] + self.settings["Cargo"]["size"],
-                                       pos[1] + self.settings["Cargo"]["size"],
-                                       fill=couleur, tags=("cargo", "ship",
-                                                           f'{ship_id}'))
+        master.create_rectangle(pos[0] - self.settings["Cargo"]["size"],
+                                pos[1] - self.settings["Cargo"]["size"],
+                                pos[0] + self.settings["Cargo"]["size"],
+                                pos[1] + self.settings["Cargo"]["size"],
+                                fill=couleur,
+                                tags=("ship", ship_id, username, ship_type))
 
     def create_fighter(self, master: Canvas, pos: tuple, couleur: str,
-                       ship_id: int) -> int:
+                       ship_id: str, username: str, ship_type: str):
         """Create an arc inside the canvas at given position while
         using the settings of the said ship"""
-        return master.create_polygon(pos[0],
-                                     pos[1] - self.settings["Fighter"]["size"],
-                                     pos[0] - self.settings["Fighter"]["size"],
-                                     pos[1] + self.settings["Fighter"]["size"],
-                                     pos[0] + self.settings["Fighter"]["size"],
-                                     pos[1] + self.settings["Fighter"]["size"],
-                                     fill=couleur,
-                                     tags=("fighter", "ship", f'{ship_id}'))
-                                     
+        print("Creating fighter at position : " + str(pos),
+                "with color : " + couleur)
+
+        master.create_polygon(pos[0],
+                              pos[1] - self.settings["Fighter"]["size"],
+                              pos[0] - self.settings["Fighter"]["size"],
+                              pos[1] + self.settings["Fighter"]["size"],
+                              pos[0] + self.settings["Fighter"]["size"],
+                              pos[1] + self.settings["Fighter"]["size"],
+                              fill=couleur,
+                              tags=("ship", ship_id, username, ship_type))
