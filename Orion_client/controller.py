@@ -18,8 +18,8 @@ from typing import Callable
 
 class Controller:
     """Controller de l'application, incluant la connection au serveur"""
-    model: Model
     server_controller: ServerController
+    model: Model
 
     def __init__(self):
         from helper import get_random_username
@@ -30,12 +30,6 @@ class Controller:
         self.username: str = get_random_username()
         """Le nom de l'utilisateur"""
 
-        self.server_actions: list[str] = []
-        """Liste des actions reçues du serveur"""
-        self.player_actions: list[str] = []
-        """Liste des actions à envoyées au serveur, faite par le joueur
-        de ce client."""
-
         self.urlserveur: str = "http://127.0.0.1:8000"
         # Todo get from modele maybe ?
         """L'URL du serveur"""
@@ -43,6 +37,10 @@ class Controller:
         self.user_controller: LobbyController | GameController = \
             LobbyController(self.username, self.urlserveur, self.start_game)
         """Le sous-controller utilisateur courant de l'application"""
+
+    def start(self) -> None:
+        """Démarre l'application"""
+        self.user_controller.start()
 
     def start_game(self, joueurs: list[tuple[str, str]]) -> None:
         """Debute le jeu avec les joueurs donnés en paramètre,
@@ -54,9 +52,9 @@ class Controller:
         for i in joueurs:
             listejoueurs.append(i[0])
 
-        self.model = Model(self, listejoueurs)
+        self.model = Model(listejoueurs)
 
-        self.user_controller = GameController(self.model)
+        self.user_controller = GameController(self.model, self.username)
         self.start()
 
         self.server_controller = ServerController(self.username,
@@ -64,6 +62,23 @@ class Controller:
                                                   self.pause_game,
                                                   self.unpause_game)
         self.tick()
+
+    def tick(self) -> None:
+        """Loop de l'application"""
+        self.server_controller.update_actions(self.frame,
+                                              self.user_controller.
+                                              player_actions,
+                                              self.empty_player_actions)
+
+        self.user_controller.tick(self.frame)
+
+        if not self.user_controller.pause:
+            self.frame += 1
+        self.user_controller.view.after(33, self.tick)
+
+    def empty_player_actions(self) -> None:
+        """Vide les actions du joueur"""
+        self.user_controller.player_actions = []
 
     def pause_game(self) -> None:
         """Pause the game"""
@@ -73,52 +88,28 @@ class Controller:
         """Unpause the game"""
         self.user_controller.pause = False
 
-    def tick(self) -> None:
-        """Loop de l'application"""
-        temp = self.server_controller.update_actions(self.frame,
-                                                     self.player_actions)
-
-        if temp is not None:
-            self.update_model_actions(temp)
-        self.user_controller.view.after(1000 // 60, self.tick)
-
-        self.user_controller.tick(self.frame)
-        if not self.user_controller.pause:
-            self.frame += 1
-
-    def update_model_actions(self, actions) -> None:
-        """Met à jour les actions du modèle"""
-        self.model.ajouter_actions_a_faire(actions)
-
-    def start(self) -> None:
-        """Démarre l'application"""
-        self.user_controller.start()
-
 
 class GameController:
     """Controller de la partie"""
 
-    def __init__(self, model: Model):
+    def __init__(self, model: Model, username: str):
         """Initialisation du controller
 
         :param model: le modèle de la partie
         """
+        self.username: str = username
         self.model = model
         """Le modèle de la partie"""
         self.view = GameView()
         """La vue de la partie"""
-        self.player_actions = []
-        """Liste des actions à envoyer au serveur"""
-        self.server_actions = []
-        """Liste des actions reçues du serveur"""
-        self.frame = 1
-        """La frame actuelle du jeu"""
+        self.player_actions: list[list[str]] = []
         self.pause: bool = False
         """Si le jeu est en pause"""
 
-    def update_model_actions(self, actions: list[str]) -> None:
-        """Met à jour les actions du modèle"""
-        self.model.ajouter_actions_a_faire(actions)
+    def start(self) -> None:
+        """Démarre le controller"""
+        self.view.initialize(self.model)
+        self.bind_game_requests()
 
     def tick(self, frame) -> None:
         """Fait jouer le prochain coup du modèle"""
@@ -126,9 +117,22 @@ class GameController:
             self.model.jouer_prochain_coup(frame)
             self.view.refresh(self.model)
 
-    def start(self) -> None:
-        """Démarre le controller"""
-        self.view.initialize(self.model)
+    def bind_game_requests(self) -> None:
+        """Lie les boutons de la vue à leur fonction"""
+        self.view.bind_game_requests(self.request_spaceship_construction,
+                                     self.request_spaceship_movement)
+
+    def request_spaceship_construction(self, ship_type, planet_id) -> None:
+        """Construit un vaisseau du type donné"""
+        # Get the id inside of model players ...
+        action = [self.username, "construct_" + ship_type, [planet_id]]
+        self.player_actions.append(action)
+
+    def request_spaceship_movement(self, ship_id, ship_type,  pos) -> None:
+        """Déplace un vaisseau vers la planète donnée"""
+        print("move_" + ship_type, [ship_id, pos])
+        action = [self.username, "move_" + ship_type, [ship_id, pos]]
+        self.player_actions.append(action)
 
 
 class ServerController:
@@ -150,7 +154,6 @@ class ServerController:
         """L'URL du serveur"""
         self.frame_module = 2
         """Le nombre de frames entre chaque appel au serveur"""
-
         self.model = model
         """Le modèle de la partie"""
 
@@ -159,10 +162,13 @@ class ServerController:
         self.unpause_game = unpause_game
         """La fonction à appeler pour mettre le jeu en cours"""
 
-    def update_actions(self, frame: int, actions: list[str]) -> list[str]:
+    def update_actions(self, frame: int, actions: list[str],
+                       empty_player_actions: Callable):
         """Met à jour les actions du modèle
         :param frame: la frame actuelle
         :param actions: les actions à envoyer au serveur
+        :param empty_player_actions: la fonction à appeler pour vider les
+        actions du joueur
         :return: les actions à faire
         """
         if frame % self.frame_module == 0:
@@ -170,7 +176,7 @@ class ServerController:
                 actions_temp = actions
             else:
                 actions_temp = None
-            actions = []
+            empty_player_actions()
             url = self.url_serveur + "/boucler_sur_jeu"
             params = {"nom": self.username,
                       "cadrejeu": frame,
@@ -182,11 +188,10 @@ class ServerController:
                     self.pause_game()
                 else:
                     self.unpause_game()
-                    self.model.ajouter_actions_a_faire(temp)
+                    self.model.ajouter_actions_a_faire(temp, frame)
             except urllib.error.URLError as e:
                 print("ERREUR ", frame, e)
                 self.pause_game()
-        return actions
 
 
 class LobbyController:
@@ -212,24 +217,6 @@ class LobbyController:
             self.urlserveur, self.username)
         """La vue du lobby"""
 
-    def connect_to_server(self):
-        """Se connecte au serveur"""
-        temp = call_server(self.urlserveur + "/tester_jeu",
-                           {"username": self.username})
-        if temp[0][0]:
-            string = temp[0][0]
-            if string == "dispo":
-                string = "Partie Créée"
-                self.start_game_server()
-            elif string == "attente":
-                string = "En attente de joueur"
-                self.add_player_to_game()
-            self.view.change_game_state(string)
-        self.view.disable_restart_connect_button()
-
-    def get_server_state(self):
-        return call_server(self.urlserveur + "/tester_jeu",
-                           {"username": self.username})
     def on_first_connection(self):
         """Fonction à appeler lors de la première connexion"""
         temp = self.get_server_state()
@@ -252,15 +239,24 @@ class LobbyController:
             self.view.change_game_state(string)
             self.view.disable_join_server_button()
 
-    def add_player_to_game(self):
-        """Ajoute un joueur à la partie"""
-        temp = call_server(self.urlserveur + "/inscrire_joueur",
-                           {"nom": self.username})
-        if temp:
-            self.view.change_game_state(temp[0][0])
-            self.update_lobby()
-
+    def connect_to_server(self):
+        """Se connecte au serveur"""
+        temp = call_server(self.urlserveur + "/tester_jeu",
+                           {"username": self.username})
+        if temp[0][0]:
+            string = temp[0][0]
+            if string == "dispo":
+                string = "Partie Créée"
+                self.start_game_server()
+            elif string == "attente":
+                string = "En attente de joueur"
+                self.add_player_to_game()
+            self.view.change_game_state(string)
         self.view.disable_restart_connect_button()
+
+    def get_server_state(self):
+        return call_server(self.urlserveur + "/tester_jeu",
+                           {"username": self.username})
 
     def restart_server(self):
         """Redémarre le serveur"""
@@ -279,20 +275,19 @@ class LobbyController:
         self.view.disable_restart_connect_button()
         self.view.enable_start_game_button()
 
-    def start(self):
-        """Démarre le controller de lobby"""
-        self.view.initialize()
-        self.view.show()
-        self.view.bind_server_buttons(self.on_first_connection,
-                                      self.restart_server,
-                                      self.connect_to_server,
-                                      self.start_game_signal,
-                                      self.update_username,
-                                      self.update_url)
+    def add_player_to_game(self):
+        """Ajoute un joueur à la partie"""
+        temp = call_server(self.urlserveur + "/inscrire_joueur",
+                           {"nom": self.username})
+        if temp:
+            self.view.change_game_state(temp[0][0])
+            self.update_lobby()
+
+        self.view.disable_restart_connect_button()
 
     def update_lobby(self):
         """Met à jour le lobby"""
-        temp = call_server(self.urlserveur+"/boucler_sur_lobby",
+        temp = call_server(self.urlserveur + "/boucler_sur_lobby",
                            {"nom": self.username})
         if 'courante' in temp:
             self.start_game_signal()
@@ -306,16 +301,23 @@ class LobbyController:
         """Reçoit le signal de démarrage de la partie et
         annule l'appel à la fonction update_lobby avant de
         démarrer la partie"""
-        self.launch_game()
         self.view.after_cancel(self.event_id)
         self.view.destroy()
 
-        self.start_game(self.joueurs)
-
-    def launch_game(self):
-        """Lance la partie"""
         call_server(self.urlserveur + "/lancer_partie",
                     {"nom": self.username})
+        self.start_game(self.joueurs)
+
+    def start(self):
+        """Démarre le controller de lobby"""
+        self.view.initialize()
+        self.view.show()
+        self.view.bind_server_buttons(self.on_first_connection,
+                                      self.restart_server,
+                                      self.connect_to_server,
+                                      self.start_game_signal,
+                                      self.update_username,
+                                      self.update_url)
 
     def update_username(self, event):
         """Met à jour le nom d'utilisateur"""
@@ -324,6 +326,7 @@ class LobbyController:
     def update_url(self, event):
         """Met à jour l'URL du serveur"""
         self.urlserveur = event.widget.get()
+
 
 def call_server(url, params):
     """Appelle le serveur et renvoie la réponse sous forme de dictionnaire
