@@ -104,14 +104,12 @@ def call_wrapper(target: str,
     return target, funct_name, args
 
 
-class LogHelper(dict):
+class LogHelper(list):
     """Helper pour les logs de view et de modele avant envoi au serveur ou local
     """
     # Create, in the init, two categories : model and player
     def __init__(self):
         super().__init__()
-        self['model'] = []
-        self['player'] = []
 
     def add(self, target: str, funct_name: str, *args: Any) -> None:
         """Ajoute une action.
@@ -121,81 +119,30 @@ class LogHelper(dict):
         :param add_func_name: Les noms des fonctions à ajouter.
         :param args: Les arguments de la fonction.
         """
-
-        print(f"LogHelper.add({target}, {funct_name}, {args})")
-
-        if target == 'model':
-            self.add_model_action(funct_name, *args)
-        else:
-            self.add_player_action(target, funct_name, *args)
+        self.append((target, funct_name, args))
 
     def add_log(self, log) -> None:
         """Ajoute un log.
         :param log: Le log.
         """
-        if log:
-            print(f"LogHelper.add_log({log})")
-            target = log[0][0]
-            func_name = log[0][1]
-            args = log[0][2]
-            self.add(target, func_name, *args)
+        self.append(log)
 
-    def add_player_action(self, username: str, funct_name: str,
-                          *args: Any) -> None:
-        """Ajoute une action de joueur.
-        :param player: Le joueur.
-        :param funct_name: Le nom de la fonction.
-        :param args: Les arguments de la fonction.
-        """
-        self['player'].append(call_wrapper(username, funct_name, *args))
-
-    def add_model_action(self, funct_name: str, *args: Any) -> None:
-        """Ajoute une action de model.
-        :param funct_name: Le nom de la fonction.
-        :param args: Les arguments de la fonction.
-        """
-        self['model'].append(call_wrapper('model', funct_name, *args))
-
-    def get_and_clear(self) -> dict[list[str | list[Any] | tuple[Any]]]:
+    def get_and_clear(self):
         """Recupere les logs et supprime ses propres logs.
         :return: Les logs.
         :rtype: dict[str, list[list[str | list[Any] | tuple[Any]]]]
         """
-        copy = self.copy()
+        log = self.copy()
         self.clear()
-        return copy
+        return log
 
-    def copy(self):
-        """Copie les logs.
-        :return: Les logs.
+    def change_main_players(self, username) -> None:
+        """Change les mentions de "main_player" par "username".
+        :param username: Le nouveau nom.
         """
-        return self['model'].copy(), self['player'].copy()
-
-    def clear(self) -> None:
-        """Supprime les logs."""
-        self['model'].clear()
-        self['player'].clear()
-
-    def __bool__(self):
-        """Renvoie True si le log n'est pas vide.
-        :return: True si le log n'est pas vide.
-        :rtype: bool
-        """
-        return bool(self['model'] or self['player'])
-
-if __name__ == '__main__':
-    # Test de loghelper
-    log = LogHelper()
-    log.add_player_action('username', 'move_ship', 1, 2)
-    log.add_model_action('add_player', 'username', 1, 2)
-
-    print(log.get_and_clear())
-
-    log_with_wrapper = call_wrapper('username', 'move_ship', 1, 2)
-    print(log_with_wrapper)
-    log_with_wrapper2 = call_wrapper('model', 'add_player', 'username', 1, 2)
-    print(log_with_wrapper2)
-
+        for i, log in enumerate(self):
+            if log[0] == 'main_player':
+                self[i] = (username, *log[1:])
 
 
 
