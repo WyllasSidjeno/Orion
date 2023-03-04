@@ -3,7 +3,9 @@ import random
 from functools import partial
 from tkinter import Frame, Label, Canvas, Scrollbar, Button, OptionMenu, LEFT, \
     Tk, StringVar, Menu
-from typing import Callable
+from typing import Callable, Any
+
+from Orion_client.helper import LogHelper
 
 hexDarkGrey: str = "#36393f"
 """Couleur de fond des frames"""
@@ -20,6 +22,8 @@ class PlanetWindow(Frame):
         """Initialise la fenetre"""
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
                          width=500, height=500)
+
+        self.log: LogHelper = LogHelper()
 
         self.isShown: bool = False
 
@@ -97,12 +101,18 @@ class PlanetWindow(Frame):
             self.construct_ship_button.winfo_rooty()
 
         self.construct_ship_button.bind("<Button-1>",
-                                        self.construct_ship_menu.
-                                        show)
+                                        self.show_construct_menu)
+        self.bind("<Button-1>", self.construct_ship_menu.hide)
+
         self.building_list = []
 
         for i in range(8):
             self.building_list.append(BuildingWindow(self.building_grid))
+
+    def show_construct_menu(self, event) -> None:
+        """Affiche le menu de construction de vaisseau"""
+        self.construct_ship_menu.show(event, self.planet_id)
+
 
     def hide(self) -> None:
         """Cache la fenetre"""
@@ -111,10 +121,14 @@ class PlanetWindow(Frame):
         self.place_forget()
         self.isShown = False
 
+    def get_all_view_logs(self)-> dict[list[str | list[Any] | tuple[Any]]]:
+        """Retourne tous les logs de la fenetre"""
+        for i in self.construct_ship_menu.log.get_and_clear():
+            self.log.add_log(i)
+        return self.log.get_and_clear()
+
     def show(self, planet_id: int) -> None:
         """Affiche la fenetre"""
-        print("show")
-        print(planet_id)
         self.planet_id = planet_id
         self.construct_ship_menu.current_planet_id = planet_id
         self.place(relx=0.5, rely=0.5, anchor="center")
@@ -256,6 +270,7 @@ class GameCanvas(Canvas):
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
+        self.log = LogHelper()
         self.configure(bg=hexSpaceBlack, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scroll_x.set,
@@ -279,11 +294,10 @@ class GameCanvas(Canvas):
         self.xview_moveto(x)
         self.yview_moveto(y)
 
-    def initialize(self, mod, username):
+    def initialize(self, mod):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
         :param mod: Le model"""
-        self.username = username
         # mod mandatory because of background dependancy
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
@@ -344,12 +358,6 @@ class GameCanvas(Canvas):
                          fill=door.couleur,
                          tags=("Wormhole", door.id, parent_id))
 
-    def bind_game_requests(self, ship_construction):
-        """Lie les fonctions de construction de vaisseaux au canvas
-        :param ship_construction: La fonction de construction de vaisseaux"""
-        self.planet_window.construct_ship_menu.bind_game_requests(
-            ship_construction)
-
     def refresh(self, mod):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
@@ -388,6 +396,13 @@ class GameCanvas(Canvas):
                                             armada].__repr__())
 
             self.tag_raise("ship")
+    def get_all_view_logs(self):
+        """Récupère tous les logs du canvas de jeu."""
+        for i in self.planet_window.get_all_view_logs():
+            self.log.add_log(i)
+
+        return self.log.get_and_clear()
+
 
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
@@ -404,6 +419,7 @@ class SideBar(Frame):
     def __init__(self, master: Frame):
         """Initialise la sidebar"""
         super().__init__(master)
+        self.log = LogHelper()
         self.configure(bg=hexDark, bd=1,
                        relief="solid")
 
@@ -621,10 +637,6 @@ class ShipViewGenerator:
     def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
                            ship_id: str, username: str, ship_type: str):
         """Generate a ship view depending on the type of ship"""
-        print("Generating ship view for ship id : " + ship_id)
-        print("Ship type : " + ship_type
-              + " at position : " + str(pos)
-              + " with color : " + couleur)
         if ship_type == "recon":
             self.create_recon(master, pos, couleur, ship_id, username,
                               ship_type)
@@ -676,35 +688,25 @@ class ShipViewGenerator:
 
 class ConstructShipMenu(Menu):
     """Menu that allows the user to construct a ship"""
-    current_planet_id: str
-
+    planet_id: str
     def __init__(self, master: Frame):
         super().__init__(master, tearoff=0, bg=hexDarkGrey)
+        self.log = LogHelper()
         self.ship_types = ["Recon", "Fighter", "Cargo"]
-        for ship_type in self.ship_types:
-            self.add_command(label=ship_type)
 
-        # Remove the possibility to tear it
-        self.master.bind("<Button-1>", self.hide)
+        for i in range(len(self.ship_types)):
+            self.add_command(label=self.ship_types[i],
+                             command=partial(self.add_event_to_log, i))
+
+    def add_event_to_log(self, i):
+        self.log.add("main_player", "construct_ship", self.planet_id,
+                     self.ship_types[i].lower())
 
     def hide(self, _):
         """Hide the menu when the user clicks outside of it"""
         self.unpost()
 
-    def bind_game_requests(self, command: Callable):
-        """Add a command to the menu that sends back the ship type"""
-        for ship_type in self.ship_types:
-            self.entryconfig(ship_type, command=partial(
-                self.command_with_st_and_id, command, ship_type))
-
-    def command_with_st_and_id(self, command: Callable, st: str):
-        """Add a command to the menu that sends back the ship type"""
-        command(st.lower(), self.current_planet_id)
-
-    def show(self, event):
+    def show(self, event, planet_id):
         """Show the menu at the given position"""
+        self.planet_id = planet_id
         self.post(event.x_root, event.y_root)
-
-    def get_id(self):
-        """Return the current planet id"""
-        return self.current_planet_id

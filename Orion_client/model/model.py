@@ -15,6 +15,7 @@ from random import randrange, choice
 from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
+from Orion_client.model import ships
 from Orion_client.model.ships import Ship, Cargo, Fighter, Recon
 from Orion_client.model.space_object import Wormhole, Star
 
@@ -243,26 +244,20 @@ class Player:
         """
         getattr(self, funct)(*args)
 
-    def construct_fighter(self, star_id: str):
+    def construct_ship(self, planet_id, type_ship):
         """Fonction de jeu du joueur pour un tour.
         """
-        pos = self.get_star_by_id(star_id).position
-        fighter = Fighter(pos, self.id)
-        self.flotte[fighter.id] = fighter
+        pos = self.get_star_by_id(planet_id).position
+        ship = None
+        if type_ship == "fighter":
+            ship = Fighter(pos, self.id)
+        elif type_ship == "cargo":
+            ship = Cargo(pos, self.id)
+        elif type_ship == "recon":
+            ship = Recon(pos, self.id)
 
-    def construct_recon(self, star_id: str):
-        """Fonction de jeu du joueur pour un tour.
-        """
-        pos = self.get_star_by_id(star_id).position
-        recon = Recon(pos, self.id)
-        self.flotte[recon.id] = recon
-
-    def construct_cargo(self, star_id: str):
-        """Fonction de jeu du joueur pour un tour.
-        """
-        pos = self.get_star_by_id(star_id).position
-        cargo = Cargo(pos, self.id)
-        self.flotte[cargo.id] = cargo
+        if ship:
+            self.flotte[ship.id] = ship
 
     def move_ship(self, ship_id: str, pos: tuple):
         """Fonction de jeu du joueur pour un tour.
