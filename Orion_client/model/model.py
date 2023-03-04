@@ -248,16 +248,16 @@ class Player:
         """Fonction de jeu du joueur pour un tour.
         """
         pos = self.get_star_by_id(planet_id).position
+        ship = None
         if type_ship == "fighter":
-            self.flotte[get_prochain_id()] = Fighter(pos, self.id)
+            ship = Fighter(pos, self.id)
         elif type_ship == "cargo":
-            self.flotte[get_prochain_id()] = Cargo(pos, self.id)
+            ship = Cargo(pos, self.id)
         elif type_ship == "recon":
-            self.flotte[get_prochain_id()] = Recon(pos, self.id)
+            ship = Recon(pos, self.id)
 
-
-
-
+        if ship:
+            self.flotte[ship.id] = ship
 
     def move_ship(self, ship_id: str, pos: tuple):
         """Fonction de jeu du joueur pour un tour.

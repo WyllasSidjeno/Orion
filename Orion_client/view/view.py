@@ -123,13 +123,14 @@ class GameView(Frame):
 
     def look_for_ship_interactions(self, tags_list, pos):
         if self.is_owner_and_is_type(tags_list, "ship"):
-            print("ship")
+            print("ship", tags_list[1])
             if self.previous_selection is None:
                 print("previous selection is none")
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
             print("ship movement request")
-            self.log.add(self.username, "move_ship", tags_list[1], pos)
+            self.log.add(self.username, "move_ship", self.previous_selection[1]
+                         ,pos)
             self.previous_selection = None
 
     def on_game_right_click(self, event):

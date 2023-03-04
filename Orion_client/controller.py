@@ -170,12 +170,10 @@ class ServerController:
         """
 
         actions.change_main_players(self.username)
-        print("actions", actions)
 
         if frame % self.frame_module == 0:
             if actions:
                 actions_temp = actions.copy()
-                print("actions_temp", actions_temp)
             else:
                 actions_temp = None
             actions.clear()
@@ -190,7 +188,6 @@ class ServerController:
                     self.pause_game()
                 else:
                     self.unpause_game()
-                    print("temp actions", temp)
                     self.model.ajouter_actions_a_faire(temp, frame)
             except urllib.error.URLError as e:
                 print("ERREUR ", frame, e)
