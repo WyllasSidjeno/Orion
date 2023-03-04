@@ -8,7 +8,7 @@ import functools
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from Orion_client.model.model import Player, Model
+    from Orion_client.model.modele import Player, Modele
 
 prochainid: int = 0
 """Prochain identifiant a utiliser."""
@@ -94,7 +94,7 @@ class AlwaysInt(int, metaclass=Inherited):
 def call_wrapper(target: str,
                  funct_name: str,
                  *args: Any) -> tuple[str, str, tuple[Any]]:
-    """Wrapper pour les fonctions de Player et Model.
+    """Wrapper pour les fonctions de Player et Modele.
     :param target: Le joueur ou le model.
     :type target: str ('username' ou 'model')
     :param funct_name: Le nom de la fonction.

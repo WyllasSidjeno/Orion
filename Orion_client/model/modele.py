@@ -17,14 +17,15 @@ from ast import literal_eval
 from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model import ships
 from Orion_client.model.ships import Ship, Cargo, Fighter, Recon
-from Orion_client.model.space_object import Wormhole, Star
+from Orion_client.model.space_object import TrouDeVers, Etoile
 
 
-class Model:
+class Modele:
     """Classe du modèle.
 
     Le modèle contient les données du jeu.
     """
+
     def __init__(self, joueurs):
         """Initialise le modèle.
 
@@ -33,116 +34,116 @@ class Model:
         self.largeur: int = 9000
         self.hauteur: int = 9000
 
-        self.nb_etoiles:int = int((self.hauteur * self.largeur) / 500000)
         self.joueurs: dict = {}
-        self.actions_a_faire: dict = {}
+        self.log: dict = {}
         self.etoiles: list = []
-        self.trou_de_vers : list = []
-        self.cadre_courant = None  # TODO: type
-        nb_trou: int = int((self.hauteur * self.largeur) / 5000000)
+        self.trou_de_vers: list = []
 
-        self.creeretoiles(joueurs, 1)
-        self.creer_troudevers(nb_trou)
+        self.creer_etoiles(int((self.hauteur * self.largeur) / 500000))
+        self.creer_joueurs(joueurs)
+        self.creer_IAs(1)
 
-    def creer_troudevers(self, num_wormholes : int) -> None:
-        """Crée des trous de vers.
+        self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
 
-        Créé n trous de vers aléatoirement dans le modèle.
-        Les trous de vers sont des portes de vers. Ils sont créés en deux points
-        aléatoires groupés en paires. Les trous de vers sont ajoutés à la liste
-        des trous de vers du modèle.
+    def creer_trou_de_vers(self, num_wormholes: int):
+        """Crée n trous de vers.
 
         :param num_wormholes: le nombre de trous de vers à créer"""
-        bordure : int = 10
-        for i in range(num_wormholes):
-            x1 = randrange(self.largeur - (2 * bordure)) + bordure
-            y1 = randrange(self.hauteur - (2 * bordure)) + bordure
-            x2 = randrange(self.largeur - (2 * bordure)) + bordure
-            y2 = randrange(self.hauteur - (2 * bordure)) + bordure
-            self.trou_de_vers.append(Wormhole(x1, y1, x2, y2))
+        for _ in range(num_wormholes):
+            x1 = randrange(10, self.largeur - 10)
+            y1 = randrange(10, self.hauteur - 10)
+            x2 = randrange(10, self.largeur - 10)
+            y2 = randrange(10, self.hauteur - 10)
+            self.trou_de_vers.append(TrouDeVers(x1, y1, x2, y2))
 
-    def creeretoiles(self, joueurs: dict, ias: int = 0):
-        """Crée des étoiles, d'une certaine couleur dependant du joueur.
+    def creer_etoiles(self, nb_etoiles: int):
+        """Crée des étoiles, d'une certaine couleur dépendant du joueur.
 
-        Créé des étoiles aléatoirement dans le modèle dependant du nombre
-        d'étoiles du modèle. Les étoiles sont ajoutées à la liste des étoiles
-        du modèle et retirée du compteur des étoiles à créer.
-
-        :param joueurs: les joueurs du jeu
-        :param ias: le nombre d'AI à créer
+        :param nb_etoiles: le nombre d'étoiles à créer
         """
         bordure = 10
-        for i in range(self.nb_etoiles):
-            x = randrange(self.largeur - (2 * bordure)) + bordure
-            y = randrange(self.hauteur - (2 * bordure)) + bordure
-            self.etoiles.append(Star(self, x, y))
-        np = len(joueurs) + ias
-        etoile_occupee = []
-        while np:
+        self.etoiles = [
+            Etoile(self, randrange(self.largeur - (2 * bordure)) + bordure,
+                   randrange(self.hauteur - (2 * bordure)) + bordure) for _ in
+            range(nb_etoiles)]
+
+    def creer_joueurs(self, joueurs: list):
+        """Créé les joueurs et leur attribue une etoile mère.
+
+        :param joueurs: la liste des joueurs à créer
+        """
+        couleurs = ["red", "blue", "lightgreen", "yellow", "lightblue", "pink",
+                    "gold", "purple"]
+        etoiles_occupee = []
+        for i in range(len(joueurs)):
             p = choice(self.etoiles)
-            if p not in etoile_occupee:
-                etoile_occupee.append(p)
-                self.etoiles.remove(p)
-                np -= 1
+            etoiles_occupee.append(p)
+            self.etoiles.remove(p)
 
-        couleurs = ["red", "blue", "lightgreen", "yellow",
-                    "lightblue", "pink", "gold", "purple"]
-        for i in joueurs:
-            etoile = etoile_occupee.pop(0)
-            self.joueurs[i] = Player(self, i, etoile, couleurs.pop(0))
-            x = etoile.x
-            y = etoile.y
-            dist = 500
+        for i, joueur in enumerate(joueurs):
+            etoile = etoiles_occupee[i]
+            self.joueurs[joueur] = Player(joueur, etoile,
+                                          couleurs.pop(0))
             for e in range(5):
-                x1 = randrange(x - dist, x + dist)
-                y1 = randrange(y - dist, y + dist)
-                self.etoiles.append(Star(self, x1, y1))
+                self.etoiles.append(
+                    Etoile(self, randrange(etoile.x - 500, etoile.x + 500),
+                           randrange(etoile.y - 500, etoile.y + 500)))
 
-        # AI- creation des ias
-        couleursia = ["orange", "green", "cyan",
-                      "SeaGreen1", "turquoise1", "firebrick1"]
+    def creer_IAs(self, ias: int = 0):
+        """Créer les IAs et leur attribue une etoile mère.
+
+        :param ias: le nombre d'IA à créer
+        """
+        couleurs_ia = ["orange", "green", "cyan", "SeaGreen1", "turquoise1",
+                       "firebrick1"]
+        etoiles_occupee = []
         for i in range(ias):
-            self.joueurs["IA_" + str(i)] = AI(self, "IA_" + str(i),
-                                              etoile_occupee.pop(0),
-                                              couleursia.pop(0))
+            p = choice(self.etoiles)
+            etoiles_occupee.append(p)
+            self.etoiles.remove(p)
+        for i in range(ias):
+            self.joueurs[f"IA_{i}"] = AI(f"IA_{i}",
+                                         etoiles_occupee.pop(0),
+                                         couleurs_ia.pop(0))
 
-    def jouer_prochain_coup(self, cadre):
+    def tick(self, cadre):
         """Joue le prochain coup pour chaque objet.
 
-        Joue le prochain coup pour chaque objet du modèle. Ils y vont dans cette ordre
-        : joueur, trou de vers.
-
-        :param cadre: le cadre à jouer
+        :param cadre: le cadre à jouer (frame)
         """
 
         #  NE PAS TOUCHER LES LIGNES SUIVANTES  #################
         self.cadre_courant = cadre
 
         # insertion de la prochaine action demandée par le joueur
-        if cadre in self.actions_a_faire:
-            for i in self.actions_a_faire[cadre]:
+        if cadre in self.log:
+            for i in self.log[cadre]:
                 print("action recue", i)
                 # Ici, if i[0] == model j'envoie l'action au model
                 # Sinon, je l'envoie au joueur
-                self.joueurs[i[0]].action_from_server(i[1], i[2])
+                if i[0] == "model":
+                    getattr(self, i[1])(i[2])
+                else:
+                    self.joueurs[i[0]].action_from_server(i[1], i[2])
                 """
                 i a la forme suivante [nomjoueur, action, [arguments]
                 alors self.joueurs[i[0]] -> trouve l'objet représentant le joueur de ce nom
                 """
-            del self.actions_a_faire[cadre]
+            del self.log[cadre]
         # FIN DE L'INTERDICTION #################################
 
         for i in self.joueurs:
-            self.joueurs[i].jouer_prochain_coup()
+            self.joueurs[i].tick()
 
         for i in self.trou_de_vers:
-            i.jouer_prochain_coup()
+            i.tick()
 
-    def ajouter_actions_a_faire(self, actionsrecues: list, frame: int):
+    def ajouter_actions(self, actionsrecues: list, frame: int):
         """Ajoute les actions reçue dans la liste des actions à faire
          si et seulement si le cadre est plus petit que le cadre courant.
 
         :param actionsrecues: la liste des actions reçues du serveur
+        :param frame: le cadre courant
         """
         for i in actionsrecues:
             cadrecle = i[0]
@@ -151,13 +152,14 @@ class Model:
                     print("PEUX PASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
                 action = literal_eval(i[1])
 
-                if cadrecle not in self.actions_a_faire.keys():
-                    self.actions_a_faire[cadrecle] = action
+                if cadrecle not in self.log.keys():
+                    self.log[cadrecle] = action
                 else:
-                    self.actions_a_faire[cadrecle].append(action)
+                    self.log[cadrecle].append(action)
 
     def get_all_players_static_ships_positions(self):
-        """Renvoie la position de tous les vaisseaux des joueurs.
+        """Renvoie la position de tous les vaisseaux des joueurs qui ne bougent
+        pas.
 
         :return: la position de tous les vaisseaux des joueurs
         """
@@ -167,7 +169,7 @@ class Model:
         return positions
 
     def get_all_planets_positions(self):
-        """Renvoie la position de tous les planètes.
+        """Renvoie la position de toutes les planètes.
 
         :return: la position de tous les planètes
         """
@@ -195,8 +197,8 @@ class Player:
     Il possede une flotte de vaisseaux, une liste d'etoiles controlees et une
     liste d'actions.
     """
-    def __init__(self, parent: Model, nom: str,
-                 etoilemere: Star, couleur: str):
+
+    def __init__(self, nom: str, etoilemere: Etoile, couleur: str):
         """Initialise le joueur.
 
         :param parent: le jeu auquel le joueur appartient
@@ -204,13 +206,12 @@ class Player:
         :param etoilemere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
         """
-        self.consommationJoueur = AlwaysInt(10)
+        self.consommation_joueur = AlwaysInt(10)
         self.energie = AlwaysInt(10000)
-        self.id : str = get_prochain_id()
-        self.parent = parent
+        self.id: str = get_prochain_id()
         self.nom = nom
-        self.etoilemere = etoilemere
-        self.etoilemere.proprietaire = self.nom
+        self.etoile_mere = etoilemere
+        self.etoile_mere.proprietaire = self.nom
         self.couleur = couleur
         self.log: list = []
         """Liste des actions du joueur."""
@@ -220,20 +221,7 @@ class Player:
         self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
 
-    def get_star_by_id(self, id: str):
-        for i in self.etoilescontrolees:
-            if i.id == id:
-                return i
-        return None
-
-    def get_all_static_ships_positions(self):
-        pos = []
-        for i in self.flotte:
-            if self.flotte[i].is_static():
-                pos.append(self.flotte[i].position)
-        return pos
-
-    def jouer_prochain_coup(self):
+    def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
         for i in self.flotte:
@@ -284,7 +272,21 @@ class Player:
             self.consoStructure += structure.consommation
         # TODO Ajuster la méthode si on doit s'en servir
         # TODO comme getter (return) ou affectation directe à la classe Joueur
-        self.energie -= AlwaysInt((self.consoVaisseau + self.consoStructure + self.consommationJoueur))
+        self.energie -= AlwaysInt((self.consoVaisseau + self.consoStructure
+                                   + self.consommation_joueur))
+
+    def get_star_by_id(self, id: str):
+        for i in self.etoilescontrolees:
+            if i.id == id:
+                return i
+        return None
+
+    def get_all_static_ships_positions(self):
+        pos = []
+        for i in self.flotte:
+            if self.flotte[i].is_static():
+                pos.append(self.flotte[i].position)
+        return pos
 
 
 class AI(Player):
@@ -292,23 +294,24 @@ class AI(Player):
 
     L'AI est le personnage non-joueur qui joue le jeu.
     """
-    def __init__(self, parent: Model, nom: str,
-                 etoilemere: Star, couleur: str) -> None:
+
+    def __init__(self, nom: str,
+                 etoilemere: Etoile, couleur: str) -> None:
         """Initialise l'AI.
 
-        :param parent: le jeu auquel l'AI appartient
         :param nom: le nom de l'AI
         :param etoilemere: l'etoile mere de l'AI
         :param couleur: la couleur de l'AI
         """
-        Player.__init__(self, parent, nom, etoilemere, couleur)
+        Player.__init__(self, nom, etoilemere, couleur)
         self.cooldownmax: int = 1000
         """Cooldown max de l'AI avant son prochain vaisseau."""
         self.cooldown: int = 20
         """Cooldown en cours de l'AI avant son prochain vaisseau."""
 
-    def jouer_prochain_coup(self) -> None:
+    def tick(self) -> None:
         pass
+
 
 class Population:
     """ Population de la planète découverte
@@ -346,14 +349,12 @@ class Population:
         self.is_under_siege = isUnderSiege
         # déterminer au moment de l'appel de la méthode si la population est sous-attaque.
         if not self.is_under_siege:
-            self.nb_humains *= AlwaysInt((100 + self.pourcentBonus) + (self.totalNourriture / self.nb_humains))
+            self.nb_humains *= AlwaysInt((100 + self.pourcentBonus) + (
+                        self.totalNourriture / self.nb_humains))
         else:  # si la population de la planete est attaquée
-            self.nb_humains = AlwaysInt(self.nb_humains * ((100 - self.pourcentBonus) / 100))
+            self.nb_humains = AlwaysInt(
+                self.nb_humains * ((100 - self.pourcentBonus) / 100))
 
         # Si le retour est 0 ou moins
         # d'un chiffre acceptable pour la subsistance de la planète (à déterminer),
         # elle peut alors être conquise.
-
-
-
-

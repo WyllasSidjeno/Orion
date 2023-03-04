@@ -356,7 +356,7 @@ class GameCanvas(Canvas):
         self.create_oval(door.x - door.pulse, door.y - door.pulse,
                          door.x + door.pulse, door.y + door.pulse,
                          fill=door.couleur,
-                         tags=("Wormhole", door.id, parent_id))
+                         tags=("TrouDeVers", door.id, parent_id))
 
     def refresh(self, mod):
         """Rafrachit le canvas de jeu avec les données du model
@@ -364,7 +364,7 @@ class GameCanvas(Canvas):
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with move()
 
-        self.delete("Wormhole")
+        self.delete("TrouDeVers")
 
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
@@ -531,12 +531,12 @@ class Minimap(Canvas):
                              wormhole.porte_a.y * self.y_ratio - 2,
                              wormhole.porte_a.x * self.x_ratio + 2,
                              wormhole.porte_a.y * self.y_ratio + 2,
-                             fill=wormhole.porte_a.couleur, tags="Wormhole")
+                             fill=wormhole.porte_a.couleur, tags="TrouDeVers")
             self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                              wormhole.porte_b.y * self.y_ratio - 2,
                              wormhole.porte_b.x * self.x_ratio + 2,
                              wormhole.porte_b.y * self.y_ratio + 2,
-                             fill=wormhole.porte_b.couleur, tags="Wormhole")
+                             fill=wormhole.porte_b.couleur, tags="TrouDeVers")
 
             self.bind("<Configure>", self.on_resize)
 
@@ -568,7 +568,7 @@ class Minimap(Canvas):
                         self.coords(star)[2] * diff_ratio_x,
                         self.coords(star)[3] * diff_ratio_y)
 
-        for wormhole in self.find_withtag("Wormhole"):
+        for wormhole in self.find_withtag("TrouDeVers"):
             self.coords(wormhole, self.coords(wormhole)[0] * diff_ratio_x,
                         self.coords(wormhole)[1] * diff_ratio_y,
                         self.coords(wormhole)[2] * diff_ratio_x,

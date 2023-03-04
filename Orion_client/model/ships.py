@@ -61,7 +61,6 @@ class Ship(ABC):
         print(self.position + self.position_cible)
 
 
-
 class Fighter(Ship):
     """Classe representant un chasseur.
     :param x: coordonnee x du vaisseau

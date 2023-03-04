@@ -8,7 +8,7 @@ from random import seed
 
 from Orion_client.helper import call_wrapper, LogHelper
 from Orion_client.view.view import GameView, LobbyView
-from Orion_client.model.model import Model
+from Orion_client.model.modele import Modele
 
 # cprofile
 from cProfile import Profile
@@ -20,7 +20,7 @@ from typing import Callable
 class Controller:
     """Controller de l'application, incluant la connection au serveur"""
     server_controller: ServerController
-    model: Model
+    model: Modele
 
     def __init__(self):
         from helper import get_random_username
@@ -53,7 +53,7 @@ class Controller:
         for i in joueurs:
             listejoueurs.append(i[0])
 
-        self.model = Model(listejoueurs)
+        self.model = Modele(listejoueurs)
 
         self.user_controller = GameController(self.model, self.username)
         self.start()
@@ -93,7 +93,7 @@ class Controller:
 class GameController:
     """Controller de la partie"""
 
-    def __init__(self, model: Model, username: str):
+    def __init__(self, model: Modele, username: str):
         """Initialisation du controller
 
         :param model: le modèle de la partie
@@ -118,7 +118,7 @@ class GameController:
     def tick(self, frame) -> None:
         """Fait jouer le prochain coup du modèle"""
         if not self.pause:
-            self.model.jouer_prochain_coup(frame)
+            self.model.tick(frame)
             self.view.refresh(self.model)
 
         self.get_all_view_logs()
@@ -136,7 +136,7 @@ class ServerController:
     """Controller du serveur"""
 
     def __init__(self, username: str, url_serveur: str,
-                 model: Model, pause_game: Callable, unpause_game: Callable):
+                 model: Modele, pause_game: Callable, unpause_game: Callable):
         """Initialisation du controller
 
         :param username: le nom de l'utilisateur
@@ -188,7 +188,7 @@ class ServerController:
                     self.pause_game()
                 else:
                     self.unpause_game()
-                    self.model.ajouter_actions_a_faire(temp, frame)
+                    self.model.ajouter_actions(temp, frame)
             except urllib.error.URLError as e:
                 print("ERREUR ", frame, e)
                 self.pause_game()
@@ -196,7 +196,7 @@ class ServerController:
 
 class LobbyController:
     """Controller du lobby"""
-    model: Model
+    model: Modele
     """Le modèle du lobby"""
     joueurs: list[list[str]]
     """La liste des joueurs"""
