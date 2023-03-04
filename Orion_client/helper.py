@@ -176,6 +176,13 @@ class LogHelper(dict):
         self['model'].clear()
         self['player'].clear()
 
+    def __bool__(self):
+        """Renvoie True si le log n'est pas vide.
+        :return: True si le log n'est pas vide.
+        :rtype: bool
+        """
+        return bool(self['model'] or self['player'])
+
 if __name__ == '__main__':
     # Test de loghelper
     log = LogHelper()

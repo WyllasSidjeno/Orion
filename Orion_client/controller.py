@@ -68,7 +68,7 @@ class Controller:
         """Loop de l'application"""
         self.server_controller.update_actions(self.frame,
                                               self.user_controller.
-                                              player_actions,
+                                              log,
                                               self.empty_player_actions)
 
         self.user_controller.tick(self.frame)
@@ -104,7 +104,6 @@ class GameController:
         """Le modèle de la partie"""
         self.view = GameView()
         """La vue de la partie"""
-        self.player_actions: list[list[str]] = []
         self.pause: bool = False
         """Si le jeu est en pause"""
 
@@ -122,8 +121,6 @@ class GameController:
             self.model.jouer_prochain_coup(frame)
             self.view.refresh(self.model)
 
-        self.get_all_view_logs()
-
 
     def bind_game_requests(self) -> None:
         """Lie les boutons de la vue à leur fonction"""
@@ -133,6 +130,8 @@ class GameController:
         """Retourne la liste des logs de la vue"""
         for i in self.view.get_all_view_logs():
             self.log.add_log(i)
+        if self.log:
+            return self.log.get_and_clear()
 class ServerController:
     """Controller du serveur"""
 
@@ -160,7 +159,7 @@ class ServerController:
         self.unpause_game = unpause_game
         """La fonction à appeler pour mettre le jeu en cours"""
 
-    def update_actions(self, frame: int, actions: list[str],
+    def update_actions(self, frame: int, actions,
                        empty_player_actions: Callable):
         """Met à jour les actions du modèle
         :param frame: la frame actuelle
@@ -169,6 +168,7 @@ class ServerController:
         actions du joueur
         :return: les actions à faire
         """
+        print("ACTIONS", actions)
         if frame % self.frame_module == 0:
             if actions:
                 actions_temp = actions
