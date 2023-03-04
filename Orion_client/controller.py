@@ -6,7 +6,7 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.helper import call_wrapper
+from Orion_client.helper import call_wrapper, LogHelper
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.model import Model
 
@@ -98,6 +98,7 @@ class GameController:
 
         :param model: le modèle de la partie
         """
+        self.log = LogHelper()
         self.username: str = username
         self.model = model
         """Le modèle de la partie"""
@@ -121,24 +122,17 @@ class GameController:
             self.model.jouer_prochain_coup(frame)
             self.view.refresh(self.model)
 
+        self.get_all_view_logs()
+
+
     def bind_game_requests(self) -> None:
         """Lie les boutons de la vue à leur fonction"""
-        self.view.bind_game_requests(self.request_spaceship_construction,
-                                     self.request_spaceship_movement)
+        self.view.bind_game_requests()
 
-    def request_spaceship_construction(self, ship_type, planet_id) -> None:
-        """Construit un vaisseau du type donné"""
-        # Get the id inside of model players ...
-        action = call_wrapper(self.username, "construct", ship_type, planet_id)
-        self.player_actions.append(action)
-
-    def request_spaceship_movement(self, ship_id : str,
-                                   pos: tuple[int, int]) -> None:
-        """Déplace un vaisseau vers la planète donnée"""
-        action = call_wrapper(self.username, "move_ship", None, ship_id, pos)
-        self.player_actions.append(action)
-
-
+    def get_all_view_logs(self):
+        """Retourne la liste des logs de la vue"""
+        for i in self.view.get_all_view_logs():
+            self.log.add_log(i)
 class ServerController:
     """Controller du serveur"""
 

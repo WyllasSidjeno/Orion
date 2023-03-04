@@ -1,5 +1,6 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
+from Orion_client.helper import LogHelper
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
     SideBar, ShipViewGenerator
 
@@ -10,6 +11,8 @@ class GameView(Frame):
 
     def __init__(self):
         super().__init__()
+
+        self.log = LogHelper()
 
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
@@ -57,12 +60,11 @@ class GameView(Frame):
         self.username = username
         self.id = user_id
         self.configure_grid()
-        self.canvas.initialize(mod, self.username)
+        self.canvas.initialize(mod)
         self.side_bar.initialize(mod)
         self.canvas.planet_window.initialize()
 
-    def bind_game_requests(self, ship_construction_request,
-                           ship_movement_request):
+    def bind_game_requests(self):
         self.side_bar.minimap.bind("<Button-1>",
                                    self.on_minimap_left_click)
 
@@ -71,17 +73,21 @@ class GameView(Frame):
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>",
-                         lambda event:
-                         self.on_game_left_click(event, ship_movement_request))
+        self.canvas.bind("<Button-1>", self.on_game_left_click)
+
 
         self.canvas.bind("<Button-3>", self.on_game_right_click)
-
-        self.canvas.bind_game_requests(ship_construction_request)
+        #todo : Log the ship construction request
 
     def refresh(self, mod):
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
+
+    def get_all_view_logs(self):
+        for i in self.canvas.get_all_view_logs():
+            self.log.add_log(i)
+
+        return self.log.get_and_clear()
 
     def on_minimap_left_click(self, event) -> None:
         """ Moves the canvas region to the clicked position on the minimap. """
@@ -97,8 +103,9 @@ class GameView(Frame):
 
         self.canvas.move_to((pctx - x), (pcty - y))
 
-    def on_game_left_click(self, event, ship_movement_request) -> None:
+    def on_game_left_click(self, event) -> None:
         """Get xy coordinates on click"""
+        # TODO : Move to Canvas and add log.
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         tags_list = []
         for tag in self.canvas.gettags("current"):
@@ -106,8 +113,7 @@ class GameView(Frame):
 
         self.look_for_building_window_interactions(tags_list)
 
-        self.look_for_ship_interactions(tags_list, pos,
-                                        ship_movement_request)
+        self.look_for_ship_interactions(tags_list, pos)
 
     def look_for_building_window_interactions(self, tags_list):
         if self.canvas.planet_window.isShown:
@@ -115,8 +121,7 @@ class GameView(Frame):
         elif self.is_owner_and_is_type(tags_list, "owned_star"):
             self.canvas.planet_window.show(tags_list[1])
 
-    def look_for_ship_interactions(self, tags_list, pos,
-                                   ship_movement_request):
+    def look_for_ship_interactions(self, tags_list, pos):
         if self.is_owner_and_is_type(tags_list, "ship"):
             print("ship")
             if self.previous_selection is None:
@@ -124,7 +129,7 @@ class GameView(Frame):
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
             print("ship movement request")
-            ship_movement_request(self.previous_selection[1], pos)
+            self.log.add(self.username, "move_ship", tags_list[1], pos)
             self.previous_selection = None
 
     def on_game_right_click(self, event):
