@@ -6,6 +6,7 @@ import urllib.parse
 import urllib.request
 from random import seed
 
+from Orion_client.helper import call_wrapper
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.model import Model
 
@@ -128,14 +129,13 @@ class GameController:
     def request_spaceship_construction(self, ship_type, planet_id) -> None:
         """Construit un vaisseau du type donné"""
         # Get the id inside of model players ...
-        action = [self.username, "construct_" + ship_type, [planet_id]]
+        action = call_wrapper(self.username, "construct", ship_type, planet_id)
         self.player_actions.append(action)
 
     def request_spaceship_movement(self, ship_id : str,
                                    pos: tuple[int, int]) -> None:
         """Déplace un vaisseau vers la planète donnée"""
-        print("move_ship", [ship_id, pos])
-        action = [self.username, "move_ship", [ship_id, pos]]
+        action = call_wrapper(self.username, "move_ship", None, ship_id, pos)
         self.player_actions.append(action)
 
 

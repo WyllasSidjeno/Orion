@@ -40,7 +40,7 @@ class Model:
         self.cadre_courant = None  # TODO: type
         nb_trou: int = int((self.hauteur * self.largeur) / 5000000)
 
-        self.creeretoiles(joueurs, 1) # Joueurs, IA.
+        self.creeretoiles(joueurs, 1)
         self.creer_troudevers(nb_trou)
 
     def creer_troudevers(self, num_wormholes : int) -> None:
@@ -120,6 +120,9 @@ class Model:
         # insertion de la prochaine action demandée par le joueur
         if cadre in self.actions_a_faire:
             for i in self.actions_a_faire[cadre]:
+                print("action recue", i)
+                # Ici, if i[0] == model j'envoie l'action au model
+                # Sinon, je l'envoie au joueur
                 self.joueurs[i[0]].action_from_server(i[1], i[2])
                 """
                 i a la forme suivante [nomjoueur, action, [arguments]

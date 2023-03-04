@@ -6,6 +6,10 @@ et des angles a partir de coordonnees cartesiennes.
 from typing import Any
 import functools
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from Orion_client.model.model import Player, Model
+
 prochainid: int = 0
 """Prochain identifiant a utiliser."""
 
@@ -85,3 +89,18 @@ class AlwaysInt(int, metaclass=Inherited):
         if method.startswith('__'):
             if f"__r{method[2:-2]}__" in dir(int):
                 _implements[int].append(method)
+
+
+def call_wrapper(target : str, funct_name:str,
+                 add_func_name: str | None = None,
+                 *args: Any) -> list[str | list[Any] | tuple[Any]]:
+    """Wrapper pour les fonctions de Player et Model.
+    :param target: Le joueur ou le model.
+    :type target: str ('username' ou 'model')
+    :param funct_name: Le nom de la fonction.
+    :param add_func_name: Les noms des fonctions à ajouter.
+    :param args: Les arguments de la fonction.
+    """
+    if add_func_name is not None:
+        funct_name += f'_{add_func_name}'
+    return [target, funct_name, args]
