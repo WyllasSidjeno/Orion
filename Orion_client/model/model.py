@@ -309,16 +309,5 @@ class Population:
         else:  # si la population de la planete est attaquée
             self.nb_humains = AlwaysInt(self.nb_humains * ((100 - self.pourcentBonus) / 100))
 
-        # Si le retour est 0 ou moins
-        # d'un chiffre acceptable pour la subsistance de la planète (à déterminer),
-        # elle peut alors être conquise.
-
-        self.is_under_siege = isUnderSiege
-        # déterminer au moment de l'appel de la méthode si la population est sous-attaque.
-        if not self.is_under_siege:
-            self.nb_humains *= AlwaysInt((100 + self.pourcentBonus) + (self.totalNourriture / self.nb_humains))
-        else:  # si la population de la planete est attaquée
-            self.nb_humains = AlwaysInt(self.nb_humains * ((100 - self.pourcentBonus) / 100))
-
         # Todo : Si le retour est 0 ou moins ou en dessous d'un seuil acceptable pour la subsistance de la population
         # Todo : (à déterminer), elle peut alors être conquise.
