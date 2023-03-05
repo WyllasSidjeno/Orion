@@ -47,17 +47,18 @@ class Ship(ABC):
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
+        #todo : Extend signature to ID.
         self.direction_angle = atan2(self.position_cible[1] - self.position[1],
                                      self.position_cible[0] - self.position[0])
 
-        if math.hypot(self.position_cible[0] - self.position[0],
-                        self.position_cible[1] - self.position[1]) < self.vitesse:
+        if math.hypot(
+                self.position_cible[0] - self.position[0],
+                self.position_cible[1] - self.position[1]) < self.vitesse:
             self.position = self.position_cible
         else:
-            self.position = (self.position[0] + self.vitesse * cos(self.direction_angle),
-                             self.position[1] + self.vitesse * sin(self.direction_angle))
-
-
+            self.position = \
+                (self.position[0] + self.vitesse * cos(self.direction_angle),
+                 self.position[1] + self.vitesse * sin(self.direction_angle))
 
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
@@ -87,11 +88,9 @@ class Militaire(Ship):
         # do colonize after
 
 
-
 class Transport(Ship):
     """Classe representant un vaisseau de transport.
     """
-
     def __init__(self, pos: tuple, owner: str):
         """Initialise un vaisseau de transport."""
         angle = 0
