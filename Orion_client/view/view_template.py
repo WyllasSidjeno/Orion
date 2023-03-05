@@ -1,9 +1,12 @@
 from __future__ import annotations
 import random
 from functools import partial
-from tkinter import Frame, Label, Canvas, Scrollbar, Button, OptionMenu, LEFT, \
-    Tk, StringVar, Menu
-from typing import Callable, Any
+from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Orion_client.model.modele import Modele
+    from Orion_client.model.space_object import TrouDeVers, PorteDeVers
 
 from Orion_client.helper import LogHelper
 
@@ -15,9 +18,8 @@ hexSpaceBlack: str = "#23272a"
 """Pour l'espace, on utilise un noir plus sombre"""
 
 
-class PlanetWindow(Frame):
-    planet_id: int | None
-
+class EtoileWindow(Frame):
+    planet_id: int
     def __init__(self, parent: GameCanvas):
         """Initialise la fenetre"""
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
@@ -25,15 +27,16 @@ class PlanetWindow(Frame):
 
         self.log: LogHelper = LogHelper()
 
-        self.isShown: bool = False
+        self.is_shown: bool = False
+        """Si la fenetre est affichee"""
 
         # # # Le Header
         self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
                                          bd=1, relief="solid")
         """Frame contenant les informations identifiantes de la planete"""
 
-        self.owner_label = Label(self.header_frame, bg=hexDarkGrey,
-                                 fg="white", font=("Arial", 15))
+        self.proprietaire_label = Label(self.header_frame, bg=hexDarkGrey,
+                                        fg="white", font=("Arial", 15))
         """Label contenant le nom du proprietaire de la planete"""
 
         self.population_canvas = Canvas(self.header_frame, bg=hexDarkGrey,
@@ -47,21 +50,21 @@ class PlanetWindow(Frame):
                                       font=("Arial", 8))
         """Label contenant la population"""
 
-        self.name_label = Label(self.header_frame,
-                                bg=hexDarkGrey, fg="white",
-                                font=("Arial", 20))
+        self.nom_label = Label(self.header_frame,
+                               bg=hexDarkGrey, fg="white",
+                               font=("Arial", 20))
         """Label contenant le nom de la planete"""
 
         # # # La main frame
         self.main_frame: Frame = Frame(self, bg=hexDarkGrey, bd=1,
                                        relief="solid")
         """Frame contenant les batiments de la planete"""
-        self.building_label = Label(self.main_frame, text="Batiments",
+        self.batiment_label = Label(self.main_frame, text="Batiments",
                                     bg=hexDarkGrey, fg="white",
                                     font=("Arial", 13))
         """Label contenant le nom du header du menu de batiment"""
 
-        self.building_grid = Frame(self.main_frame, bg=hexDarkGrey)
+        self.batiment_grid = Frame(self.main_frame, bg=hexDarkGrey)
         """Frame contenant les batiments de la planete"""
 
         # # # Side Frame
@@ -107,7 +110,7 @@ class PlanetWindow(Frame):
         self.building_list = []
 
         for i in range(8):
-            self.building_list.append(BuildingWindow(self.building_grid))
+            self.building_list.append(BuildingWindow(self.batiment_grid))
 
     def show_construct_menu(self, event) -> None:
         """Affiche le menu de construction de vaisseau"""
@@ -116,12 +119,11 @@ class PlanetWindow(Frame):
 
     def hide(self) -> None:
         """Cache la fenetre"""
-        self.planet_id = None
         self.construct_ship_menu.current_planet_id = None
         self.place_forget()
-        self.isShown = False
+        self.is_shown = False
 
-    def get_all_view_logs(self)-> dict[list[str | list[Any] | tuple[Any]]]:
+    def get_all_view_logs(self) -> list[str]:
         """Retourne tous les logs de la fenetre"""
         for i in self.construct_ship_menu.log.get_and_clear():
             self.log.add_log(i)
@@ -132,7 +134,7 @@ class PlanetWindow(Frame):
         self.planet_id = planet_id
         self.construct_ship_menu.current_planet_id = planet_id
         self.place(relx=0.5, rely=0.5, anchor="center")
-        self.isShown = True
+        self.is_shown = True
 
     def initialize(self) -> None:
         """Place les widgets dans la fenetre"""
@@ -148,12 +150,12 @@ class PlanetWindow(Frame):
         """
         self.header_frame.place(relx=0, rely=0, relwidth=1, relheight=0.2)
 
-        self.owner_label.place(anchor="center", relx=0.12, rely=0.2)
+        self.proprietaire_label.place(anchor="center", relx=0.12, rely=0.2)
 
         self.population_canvas.place(anchor="center", relx=0.85, rely=0.45)
         self.population_label.place(anchor="center", relx=0.5, rely=0.5)
 
-        self.name_label.place(anchor="center", relx=0.1, rely=0.7)
+        self.nom_label.place(anchor="center", relx=0.1, rely=0.7)
 
     def place_main(self) -> None:
         """Crée le main de la fenetre, là ou les bâtiments sont affichés
@@ -161,20 +163,20 @@ class PlanetWindow(Frame):
         # Start with the main frame
         self.main_frame.place(relx=0, rely=0.2, relwidth=0.60, relheight=0.8)
 
-        self.building_label.place(anchor="center", relx=0.5, rely=0.05)
+        self.batiment_label.place(anchor="center", relx=0.5, rely=0.05)
 
         # # Building grid
 
-        self.building_grid.place(relx=0.1, rely=0.1, relwidth=0.8,
+        self.batiment_grid.place(relx=0.1, rely=0.1, relwidth=0.8,
                                  relheight=0.9)
 
-        self.building_grid.columnconfigure(0, weight=1)
-        self.building_grid.columnconfigure(1, weight=1)
-        self.building_grid.columnconfigure(2, weight=1)
+        self.batiment_grid.columnconfigure(0, weight=1)
+        self.batiment_grid.columnconfigure(1, weight=1)
+        self.batiment_grid.columnconfigure(2, weight=1)
 
-        self.building_grid.rowconfigure(0, weight=1)
-        self.building_grid.rowconfigure(1, weight=1)
-        self.building_grid.rowconfigure(2, weight=1)
+        self.batiment_grid.rowconfigure(0, weight=1)
+        self.batiment_grid.rowconfigure(1, weight=1)
+        self.batiment_grid.rowconfigure(2, weight=1)
 
     def place_side_bar(self) -> None:
         """Crée le side de la fenetre, là oú le rendement de la planete est
@@ -199,7 +201,7 @@ class PlanetWindow(Frame):
         self.construct_ship_button.place(anchor="center", relx=0.5,
                                          rely=0.85)
 
-    def show_buildings(self, max_building) -> None:
+    def show_buildings(self, max_building: int) -> None:
         """Affiche les bâtiments de la planete"""
         for i in range(max_building):
             self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
@@ -282,7 +284,7 @@ class GameCanvas(Canvas):
         self.configure(scrollregion=(0, 0, 9000, 9000))
         self.ship_view = ShipViewGenerator()
 
-        self.planet_window = PlanetWindow(self)
+        self.planet_window = EtoileWindow(self)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.planet_window.hide()
 
@@ -294,7 +296,7 @@ class GameCanvas(Canvas):
         self.xview_moveto(x)
         self.yview_moveto(y)
 
-    def initialize(self, mod):
+    def initialize(self, mod: Modele):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
         :param mod: Le model"""
@@ -302,26 +304,26 @@ class GameCanvas(Canvas):
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
         for i in range(len(mod.etoiles)):
-            self.generate_star(mod.etoiles[i], "unowned_star")
+            self.generate_etoile(mod.etoiles[i], "unowned_star")
 
         owned_stars = self.get_player_stars(mod)
         # todo : Colors
         for i in range(len(owned_stars)):
-            self.generate_star(owned_stars[i], "owned_star")
-        self.generate_wormhole(mod.trou_de_vers)
+            self.generate_etoile(owned_stars[i], "owned_star")
+        self.generate_trou_de_vers(mod.trou_de_vers)
 
     @staticmethod
-    def get_player_stars(mod):
+    def get_player_stars(mod: Modele):
         """Récupère les étoiles contrôlées par le joueur
         :param mod: Le model
         :return: Une liste d'étoiles"""
         stars = []
         for star in mod.joueurs.keys():
-            for j in mod.joueurs[star].etoilescontrolees:
+            for j in mod.joueurs[star].etoiles_controlees:
                 stars.append(j)
         return stars
 
-    def generate_background(self, width, height, n):
+    def generate_background(self, width: int, height: int, n: int):
         """ Genère un background de n étoiles de tailles aléatoires
         :param width: La largeur du background
         :param height: La hauteur du background
@@ -334,7 +336,7 @@ class GameCanvas(Canvas):
             self.create_oval(x - size, y - size, x + size, y + size,
                              fill=col, tags="background")
 
-    def generate_star(self, star, tag: str):
+    def generate_etoile(self, star, tag: str):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
@@ -344,36 +346,37 @@ class GameCanvas(Canvas):
                          fill="grey",
                          tags=(tag, star.id, star.proprietaire))
 
-    def generate_wormhole(self, wormholes):
+    def generate_trou_de_vers(self, trou_de_vers : list[TrouDeVers]):
         """Créé deux portes de trou de vers sur le canvas. """
 
-        for wormhole in wormholes:
-            self.generate_wormdoor(wormhole.porte_a, wormhole.id)
-            self.generate_wormdoor(wormhole.porte_b, wormhole.id)
+        for wormhole in trou_de_vers:
+            self.generate_porte_de_vers(wormhole.porte_a, wormhole.id)
+            self.generate_porte_de_vers(wormhole.porte_b, wormhole.id)
 
-    def generate_wormdoor(self, door, parent_id: str):
+    def generate_porte_de_vers(self, porte: PorteDeVers, parent_id: str):
         """Créé une porte de trou de vers sur le canvas."""
-        self.create_oval(door.x - door.pulse, door.y - door.pulse,
-                         door.x + door.pulse, door.y + door.pulse,
-                         fill=door.couleur,
-                         tags=("TrouDeVers", door.id, parent_id))
+        self.create_oval(porte.x - porte.pulse, porte.y - porte.pulse,
+                         porte.x + porte.pulse, porte.y + porte.pulse,
+                         fill=porte.couleur,
+                         tags=("TrouDeVers", porte.id, parent_id))
 
-    def refresh(self, mod):
+    def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
         # todo : Optimize the movement so we do not have to
-        #  delete but only move it with move()
+        #  delete but only move it with a move or coords function
 
         self.delete("TrouDeVers")
 
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
-            self.generate_star(owned_stars[i], "owned_star")
-        self.generate_wormhole(mod.trou_de_vers)
+            self.generate_etoile(owned_stars[i], "etoile_occupee")
+
+        self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
 
         for joueur in mod.joueurs.keys():
             for armada in mod.joueurs[joueur].flotte.keys():
-                if mod.joueurs[joueur].flotte[armada].new:
+                if mod.joueurs[joueur].flotte[armada].nouveau:
                     self.ship_view. \
                         generate_ship_view(self,
                                            mod.joueurs[joueur].flotte[
@@ -386,7 +389,7 @@ class GameCanvas(Canvas):
                                            mod.joueurs[joueur].flotte[
                                                armada].__repr__()
                                            )
-                    mod.joueurs[joueur].flotte[armada].new = False
+                    mod.joueurs[joueur].flotte[armada].nouveau = False
                 elif mod.joueurs[joueur].flotte[
                     armada].position_cible is not None:
                     self.ship_view.move(self, mod.joueurs[joueur].flotte[
@@ -395,14 +398,14 @@ class GameCanvas(Canvas):
                                         mod.joueurs[joueur].flotte[
                                             armada].__repr__())
 
-            self.tag_raise("ship")
-    def get_all_view_logs(self):
+        self.tag_raise("vaisseau")
+
+    def get_all_view_logs(self) -> list[str]:
         """Récupère tous les logs du canvas de jeu."""
         for i in self.planet_window.get_all_view_logs():
             self.log.add_log(i)
 
         return self.log.get_and_clear()
-
 
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
@@ -495,17 +498,20 @@ class SideBar(Frame):
 
 
 class Minimap(Canvas):
+    """ Représente la minimap du jeu."""
     x_ratio: float
     y_ratio: float
 
     def __init__(self, master: Frame):
+        """Initialise la minimap"""
         super().__init__(master, bg=hexDark, bd=1,
                          relief="solid", highlightthickness=0)
 
         # Make it the same size as the master
         self.propagate(False)
 
-    def initialize(self, mod):
+    def initialize(self, mod: Modele):
+        """Initialise la minimap avec les données du model"""
         self.update_idletasks()
 
         self.x_ratio = self.winfo_width() / mod.largeur
@@ -516,15 +522,15 @@ class Minimap(Canvas):
                              star.y * self.y_ratio - 2,
                              star.x * self.x_ratio + 2,
                              star.y * self.y_ratio + 2,
-                             fill="grey", tags="stars")
+                             fill="grey", tags="etoile")
 
         for key in mod.joueurs:
-            for star in mod.joueurs[key].etoilescontrolees:
+            for star in mod.joueurs[key].etoiles_controlees:
                 self.create_oval(star.x * self.x_ratio - 2,
                                  star.y * self.y_ratio - 2,
                                  star.x * self.x_ratio + 2,
                                  star.y * self.y_ratio + 2,
-                                 fill="white", tags="stars_owned")
+                                 fill="white", tags="etoile_controlee")
 
         for wormhole in mod.trou_de_vers:
             self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
@@ -540,11 +546,13 @@ class Minimap(Canvas):
 
             self.bind("<Configure>", self.on_resize)
 
-    def refresh(self, mod):
+    def refresh(self, mod: Modele):
+        """Rafraichit la minimap avec les données du model"""
         pass
         # todo : Refresh only what necessary or the whole thing ?
 
     def on_resize(self, _):
+        """Gère le redimensionnement de la minimap"""
         self.update_idletasks()
 
         old_ratio_x = self.x_ratio
@@ -556,13 +564,13 @@ class Minimap(Canvas):
         diff_ratio_x = self.x_ratio / old_ratio_x
         diff_ratio_y = self.y_ratio / old_ratio_y
 
-        for star in self.find_withtag("stars"):
+        for star in self.find_withtag("etoile"):
             self.coords(star, self.coords(star)[0] * diff_ratio_x,
                         self.coords(star)[1] * diff_ratio_y,
                         self.coords(star)[2] * diff_ratio_x,
                         self.coords(star)[3] * diff_ratio_y)
 
-        for star in self.find_withtag("stars_owned"):
+        for star in self.find_withtag("etoile_controlee"):
             self.coords(star, self.coords(star)[0] * diff_ratio_x,
                         self.coords(star)[1] * diff_ratio_y,
                         self.coords(star)[2] * diff_ratio_x,
@@ -577,57 +585,57 @@ class Minimap(Canvas):
 
 class ShipViewGenerator:
     """Class that generates all ships view.
-    This includes Recon, Fighter and Cargo."""
+    This includes Reconnaissance, Militaire and Transportation."""
 
     def __init__(self):
         self.settings = {
-            "Recon": {
+            "Reconnaissance": {
                 "size": 7,
             },
-            "Fighter": {
+            "Militaire": {
                 "size": 10,
             },
-            "Cargo": {
+            "Transport": {
                 "size": 12
             }
         }
 
     def move(self, canvas, pos, ship_tag, ship_type):
         """Move the ship to the given position"""
-        if ship_type == "recon":
-            self.move_recon(canvas, ship_tag, pos)
-        elif ship_type == "fighter":
-            self.move_fighter(canvas, ship_tag, pos)
-        elif ship_type == "cargo":
-            self.move_cargo(canvas, ship_tag, pos)
+        if ship_type == "reconnaissance":
+            self.move_reconnaissance(canvas, ship_tag, pos)
+        elif ship_type == "militaire":
+            self.move_militaire(canvas, ship_tag, pos)
+        elif ship_type == "transport":
+            self.move_transportation(canvas, ship_tag, pos)
 
-    def move_recon(self, canvas, ship_tag, pos):
+    def move_reconnaissance(self, canvas, ship_tag, pos):
         """Move the recon to the given position"""
         # get the ship id using the ship tag
         ship_id = canvas.find_withtag(ship_tag)[0]
-        canvas.coords(ship_id, pos[0] - self.settings["Recon"]["size"],
-                      pos[1] - self.settings["Recon"]["size"],
-                      pos[0] + self.settings["Recon"]["size"],
-                      pos[1] + self.settings["Recon"]["size"])
+        canvas.coords(ship_id, pos[0] - self.settings["Reconnaissance"]["size"],
+                      pos[1] - self.settings["Reconnaissance"]["size"],
+                      pos[0] + self.settings["Reconnaissance"]["size"],
+                      pos[1] + self.settings["Reconnaissance"]["size"])
 
-    def move_fighter(self, canvas, ship_tag, pos):
+    def move_militaire(self, canvas, ship_tag, pos):
         """Move the fighter to the given position"""
         ship_id = canvas.find_withtag(ship_tag)[0]
         canvas.coords(ship_id, pos[0],
-                      pos[1] - self.settings["Fighter"]["size"],
-                      pos[0] - self.settings["Fighter"]["size"],
-                      pos[1] + self.settings["Fighter"]["size"],
-                      pos[0] + self.settings["Fighter"]["size"],
-                      pos[1] + self.settings["Fighter"]["size"])
+                      pos[1] - self.settings["Militaire"]["size"],
+                      pos[0] - self.settings["Militaire"]["size"],
+                      pos[1] + self.settings["Militaire"]["size"],
+                      pos[0] + self.settings["Militaire"]["size"],
+                      pos[1] + self.settings["Militaire"]["size"])
 
-    def move_cargo(self, canvas, ship_tag, pos):
+    def move_transportation(self, canvas, ship_tag, pos):
         """Move the cargo to the given position"""
         ship_id = canvas.find_withtag(ship_tag)[0]
         # Move a polygon
-        canvas.coords(ship_id, pos[0] - self.settings["Cargo"]["size"],
-                      pos[1] - self.settings["Cargo"]["size"],
-                      pos[0] + self.settings["Cargo"]["size"],
-                      pos[1] + self.settings["Cargo"]["size"])
+        canvas.coords(ship_id, pos[0] - self.settings["Transport"]["size"],
+                      pos[1] - self.settings["Transport"]["size"],
+                      pos[0] + self.settings["Transport"]["size"],
+                      pos[1] + self.settings["Transport"]["size"])
 
     @staticmethod
     def delete(canvas: Canvas, ship_id: str):
@@ -637,76 +645,78 @@ class ShipViewGenerator:
     def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
                            ship_id: str, username: str, ship_type: str):
         """Generate a ship view depending on the type of ship"""
-        if ship_type == "recon":
-            self.create_recon(master, pos, couleur, ship_id, username,
-                              ship_type)
-        elif ship_type == "fighter":
-            self.create_fighter(master, pos, couleur, ship_id, username,
-                                ship_type)
-        elif ship_type == "cargo":
-            self.create_cargo(master, pos, couleur, ship_id, username,
-                              ship_type)
+        if ship_type == "reconnaissance":
+            self.create_reconnaissance(master, pos, couleur, ship_id, username,
+                                       ship_type)
+        elif ship_type == "militaire":
+            self.create_militaire(master, pos, couleur, ship_id, username,
+                                  ship_type)
+        elif ship_type == "transportation":
+            self.create_transportation(master, pos, couleur, ship_id, username,
+                                       ship_type)
 
-    def create_recon(self, master: Canvas, pos: tuple, couleur: str,
+    def create_reconnaissance(self, master: Canvas, pos: tuple, couleur: str,
                      ship_id: str, username: str, ship_type: str):
-        """Create a triangle inside the canvas at given position while
-        using the settings of the said ship"""
-        master.create_arc(pos[0] - self.settings["Recon"]["size"],
-                          pos[1] - self.settings["Recon"]["size"],
-                          pos[0] + self.settings["Recon"]["size"],
-                          pos[1] + self.settings["Recon"]["size"],
+        """Creer un arc dans le canvas à la position donnée tout en
+        utilisant les paramètres du vaisseau"""
+        master.create_arc(pos[0] - self.settings["Reconnaissance"]["size"],
+                          pos[1] - self.settings["Reconnaissance"]["size"],
+                          pos[0] + self.settings["Reconnaissance"]["size"],
+                          pos[1] + self.settings["Reconnaissance"]["size"],
                           start=0, extent=180, fill=couleur,
-                          tags=("ship", ship_id, username, ship_type))
+                          tags=("vaisseau", ship_id, username, ship_type))
 
-    def create_cargo(self, master: Canvas, pos: tuple, couleur: str,
+    def create_transportation(self, master: Canvas, pos: tuple, couleur: str,
                      ship_id: str, username: str, ship_type: str):
-        """Create a rectangle inside the canvas at given position while
-        using the settings of the said ship"""
-        master.create_rectangle(pos[0] - self.settings["Cargo"]["size"],
-                                pos[1] - self.settings["Cargo"]["size"],
-                                pos[0] + self.settings["Cargo"]["size"],
-                                pos[1] + self.settings["Cargo"]["size"],
+        """Creer un rectangle dans le canvas à la position donnée tout en
+        utilisant les paramètres du vaisseau"""
+        master.create_rectangle(pos[0] - self.settings["Transport"]["size"],
+                                pos[1] - self.settings["Transport"]["size"],
+                                pos[0] + self.settings["Transport"]["size"],
+                                pos[1] + self.settings["Transport"]["size"],
                                 fill=couleur,
-                                tags=("ship", ship_id, username, ship_type))
+                                tags=("vaisseau", ship_id, username, ship_type))
 
-    def create_fighter(self, master: Canvas, pos: tuple, couleur: str,
+    def create_militaire(self, master: Canvas, pos: tuple, couleur: str,
                        ship_id: str, username: str, ship_type: str):
-        """Create an arc inside the canvas at given position while
-        using the settings of the said ship"""
-        print("Creating fighter at position : " + str(pos),
-              "with color : " + couleur)
+        """Creer un triangle dans le canvas à la position donnée tout en
+        utilisant les paramètres du vaisseau"""
 
         master.create_polygon(pos[0],
-                              pos[1] - self.settings["Fighter"]["size"],
-                              pos[0] - self.settings["Fighter"]["size"],
-                              pos[1] + self.settings["Fighter"]["size"],
-                              pos[0] + self.settings["Fighter"]["size"],
-                              pos[1] + self.settings["Fighter"]["size"],
+                              pos[1] - self.settings["Militaire"]["size"],
+                              pos[0] - self.settings["Militaire"]["size"],
+                              pos[1] + self.settings["Militaire"]["size"],
+                              pos[0] + self.settings["Militaire"]["size"],
+                              pos[1] + self.settings["Militaire"]["size"],
                               fill=couleur,
-                              tags=("ship", ship_id, username, ship_type))
+                              tags=("vaisseau", ship_id, username, ship_type))
 
 
 class ConstructShipMenu(Menu):
-    """Menu that allows the user to construct a ship"""
+    """Menu deroulant qui affiche la possibilite des constructions de vaisseaux
+    """
     planet_id: str
+
     def __init__(self, master: Frame):
+        """Initialise le menu deroulant"""
         super().__init__(master, tearoff=0, bg=hexDarkGrey)
         self.log = LogHelper()
-        self.ship_types = ["Recon", "Fighter", "Cargo"]
+        self.ship_types = ["Reconnaissance", "Militaire", "Transport"]
 
         for i in range(len(self.ship_types)):
             self.add_command(label=self.ship_types[i],
                              command=partial(self.add_event_to_log, i))
 
     def add_event_to_log(self, i):
+        """Ajoute un evenement de construction de vaisseau au log"""
         self.log.add("main_player", "construct_ship", self.planet_id,
                      self.ship_types[i].lower())
 
     def hide(self, _):
-        """Hide the menu when the user clicks outside of it"""
+        """Cache le menu"""
         self.unpost()
 
     def show(self, event, planet_id):
-        """Show the menu at the given position"""
+        """Montre le menu a la position de la souris"""
         self.planet_id = planet_id
         self.post(event.x_root, event.y_root)

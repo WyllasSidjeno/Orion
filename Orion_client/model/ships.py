@@ -10,25 +10,29 @@ from math import atan2, sin, cos
 class Ship(ABC):
     """La classe mère de tout les vaisseaux. Elle contient les
     attributs et les méthodes communes à tout les vaisseaux.
-    :param x: coordonnee x du vaisseau
-    :param y: coordonnee y du vaisseau
-    :param angle: angle du vaisseau
-    :param vitesse: vitesse du vaisseau
-    :param direction: direction du vaisseau"""
+    """
 
     def __init__(self, pos: tuple, angle: int, vitesse: int,
                  position_cible: tuple[int, int] | None,
                  vie: int, owner: str):
-        self.id = get_prochain_id()
-        self.owner = owner
-        self.position = pos
-        self.angle = angle
-        self.vitesse = vitesse
-        self.position_cible = position_cible
-        self.direction_angle = 0
-        self.vie = AlwaysInt(vie)
-        self.vie_max = AlwaysInt(vie)
-        self.new = True
+        """Initialise un vaisseau.
+        :param pos: Position du vaisseau
+        :param angle: Angle du vaisseau
+        :param vitesse: Vitesse du vaisseau
+        :param position_cible: Position cible du vaisseau
+        :param vie: Vie du vaisseau
+        :param owner: Proprietaire du vaisseau
+        """
+        self.id: str = get_prochain_id()
+        self.owner: str = owner
+        self.position: tuple = pos
+        self.angle = angle  # TODO : Type
+        self.vitesse: AlwaysInt = AlwaysInt(vitesse)
+        self.position_cible: tuple = position_cible
+        self.direction_angle = 0  # TODO: Type
+        self.vie: AlwaysInt = AlwaysInt(vie)
+        self.vie_max: AlwaysInt = AlwaysInt(vie)
+        self.nouveau: bool = True
 
     def is_static(self) -> bool:
         """Retourne True si le vaisseau est immobile."""
@@ -43,7 +47,7 @@ class Ship(ABC):
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
-        # If the ship has reached its target, stop moving
+        #todo : might need optimization Romain ??d
         if self.position_cible is None or self.position == self.position_cible:
             return
         # Calculate the distance and angle to the target
@@ -56,22 +60,17 @@ class Ship(ABC):
             self.position = self.position_cible
         else:
             self.position = (self.position[0] + self.vitesse * math.cos(angle),
+                             # Todo : transtyper int ?
                              self.position[1] + self.vitesse * math.sin(angle))
 
-        print(self.position + self.position_cible)
 
-
-class Fighter(Ship):
-    """Classe representant un chasseur.
-    :param x: coordonnee x du vaisseau
-    :param y: coordonnee y du vaisseau
-    :param angle: angle du vaisseau
-    :param vitesse: vitesse du vaisseau
-    :param direction: direction du vaisseau
-    :param vie: vie du vaisseau
-    :param owner: proprietaire du vaisseau"""
-
-    def __init__(self, pos, owner: str):
+class Militaire(Ship):
+    """Classe representant un vaisseau militaire.
+    """
+    def __init__(self, pos: tuple, owner: str):
+        """Initialise un vaisseau militaire.
+        :param pos: Position du vaisseau
+        :param owner: Proprietaire du vaisseau"""
         angle = 0
         vitesse = 2
         position_cible = None
@@ -82,20 +81,16 @@ class Fighter(Ship):
 
     # Return a string representation of only the name of the class
     def __repr__(self):
-        return "fighter"
+        """"""
+        return "militaire"
 
 
-class Cargo(Ship):
-    """Classe representant un cargo.
-    :param x: coordonnee x du vaisseau
-    :param y: coordonnee y du vaisseau
-    :param angle: angle du vaisseau
-    :param vitesse: vitesse du vaisseau
-    :param direction: direction du vaisseau
-    :param vie: vie du vaisseau
-    :param owner: proprietaire du vaisseau"""
+class Transport(Ship):
+    """Classe representant un vaisseau de transport.
+    """
 
-    def __init__(self, pos, owner: str):
+    def __init__(self, pos: tuple, owner: str):
+        """Initialise un vaisseau de transport."""
         angle = 0
         vitesse = 1
         position_cible = None
@@ -105,27 +100,21 @@ class Cargo(Ship):
         self.defense_strength = 0
 
     def __repr__(self):
-        return "cargo"
+        return "transportation"
 
 
-class Recon(Ship):
-    """Classe representant un chasseur.
-    :param x: coordonnee x du vaisseau
-    :param y: coordonnee y du vaisseau
-    :param angle: angle du vaisseau
-    :param vitesse: vitesse du vaisseau
-    :param direction: direction du vaisseau
-    :param vie: vie du vaisseau
-    :param owner: proprietaire du vaisseau"""
-
-    def __init__(self, pos, owner: str):
+class Reconnaissance(Ship):
+    """Classe représentant un vaisseau de reconnaissance.
+    """
+    def __init__(self, pos: tuple, owner: str):
+        """Initialise un vaisseau de reconnaissance."""
         angle = 0
         vitesse = 3
         position_cible = None
         vie = 100
         super().__init__(pos, angle, vitesse, position_cible, vie, owner)
-        self.attack_strength = 0
+        self.attack_strength = 0  # TODO : Make this part of the mother class
         self.defense_strength = 0
 
     def __repr__(self):
-        return "recon"
+        return "reconnaissance"

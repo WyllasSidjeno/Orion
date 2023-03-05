@@ -109,7 +109,7 @@ class GameController:
 
     def start(self) -> None:
         """Démarre le controller"""
-        # Get the ID of the player with self.username
+        # Get the ID of the player with self.nom
 
         user_id = self.model.get_id_by_username(self.username)
         self.view.initialize(self.model, self.username, user_id)
@@ -242,7 +242,7 @@ class LobbyController:
     def connect_to_server(self):
         """Se connecte au serveur"""
         temp = call_server(self.urlserveur + "/tester_jeu",
-                           {"username": self.username})
+                           {"nom": self.username})
         if temp[0][0]:
             string = temp[0][0]
             if string == "dispo":
@@ -256,7 +256,7 @@ class LobbyController:
 
     def get_server_state(self):
         return call_server(self.urlserveur + "/tester_jeu",
-                           {"username": self.username})
+                           {"nom": self.username})
 
     def restart_server(self):
         """Redémarre le serveur"""

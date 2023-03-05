@@ -6,13 +6,14 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
 
 
 class GameView(Frame):
-    username: str
+    nom: str
     id: str
 
     def __init__(self):
         super().__init__()
 
         self.log = LogHelper()
+        """Module assistant pour les logs."""
 
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
@@ -32,13 +33,14 @@ class GameView(Frame):
         """Représente le canvas de la vue du jeu."""
 
         self.previous_selection: list[str] | None = None
+        """Représente la sélection précédente de l'utilisateur dans la vue."""
 
         self.pack(fill="both", expand=True)
 
-        self.ShipViewGenerator = ShipViewGenerator()
+        """Générateur de vue de vaisseau semi-statique pour le canvas."""
 
     def configure_grid(self):
-        """Configures the grid of the game view."""
+        """Configures la grid de la vue principale du jeu."""
         self.grid_propagate(False)
         for i in range(10):
             self.grid_columnconfigure(i, weight=1,
@@ -56,15 +58,19 @@ class GameView(Frame):
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
 
-    def initialize(self, mod, username, user_id):
-        self.username = username
+    def initialize(self, mod, username: str, user_id: str):
+        """Initialise la vue du jeu apres son lancement et lors de la
+        reception du modele."""
+        self.nom = username
         self.id = user_id
+
         self.configure_grid()
         self.canvas.initialize(mod)
         self.side_bar.initialize(mod)
         self.canvas.planet_window.initialize()
 
     def bind_game_requests(self):
+        """Binds les fonctions de la vue du jeu aux evenements du canvas."""
         self.side_bar.minimap.bind("<Button-1>",
                                    self.on_minimap_left_click)
 
@@ -74,23 +80,22 @@ class GameView(Frame):
                          self.canvas.horizontal_scroll)
 
         self.canvas.bind("<Button-1>", self.on_game_left_click)
-
-
         self.canvas.bind("<Button-3>", self.on_game_right_click)
-        #todo : Log the ship construction request
 
     def refresh(self, mod):
+        """Refresh la vue du jeu."""
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
 
     def get_all_view_logs(self):
+        """Retourne tous les logs de la vue et des sous-vues."""
         for i in self.canvas.get_all_view_logs():
             self.log.add_log(i)
 
         return self.log.get_and_clear()
 
     def on_minimap_left_click(self, event) -> None:
-        """ Moves the canvas region to the clicked position on the minimap. """
+        """ Bouge le canvas vers la position du clic sur la minimap."""
         pctx = event.x / self.side_bar.minimap.winfo_width()
         """Percentage of the x coordinate on the minimap."""
         pcty = event.y / self.side_bar.minimap.winfo_height()
@@ -104,37 +109,45 @@ class GameView(Frame):
         self.canvas.move_to((pctx - x), (pcty - y))
 
     def on_game_left_click(self, event) -> None:
-        """Get xy coordinates on click"""
-        # TODO : Move to Canvas and add log.
+        """ Gère les interactions de la vue du jeu lors d'un clic gauche."""
+
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         tags_list = []
         for tag in self.canvas.gettags("current"):
             tags_list.append(tag)
 
-        self.look_for_building_window_interactions(tags_list)
+        self.look_for_etoile_window_interactions(tags_list)
 
         self.look_for_ship_interactions(tags_list, pos)
 
-    def look_for_building_window_interactions(self, tags_list):
-        if self.canvas.planet_window.isShown:
+    def look_for_etoile_window_interactions(self, tags_list: list[str]):
+        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
+        une etoile dans le canvas."""
+        print("etoile", tags_list)
+        if self.canvas.planet_window.is_shown:
             self.canvas.planet_window.hide()
-        elif self.is_owner_and_is_type(tags_list, "owned_star"):
+        elif self.is_owner_and_is_type(tags_list, "etoile_occupee"):
             self.canvas.planet_window.show(tags_list[1])
 
-    def look_for_ship_interactions(self, tags_list, pos):
-        if self.is_owner_and_is_type(tags_list, "ship"):
+    def look_for_ship_interactions(self, tags_list: list[str],
+                                   pos: tuple[int, int]):
+        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
+        un vaisseau dans le canvas sur la selection actuelle et la selection
+        précédente."""
+        if self.is_owner_and_is_type(tags_list, "vaisseau"):
             print("ship", tags_list[1])
             if self.previous_selection is None:
                 print("previous selection is none")
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
             print("ship movement request")
-            self.log.add(self.username, "move_ship", self.previous_selection[1]
-                         ,pos)
+            self.log.add(self.nom, "move_ship", self.previous_selection[1]
+                         , pos)
             self.previous_selection = None
 
-    def on_game_right_click(self, event):
-        if self.canvas.planet_window.isShown:
+    def on_game_right_click(self, _):
+        """Gère les interactions de la vue du jeu lors d'un clic droit."""
+        if self.canvas.planet_window.is_shown:
             self.canvas.planet_window.hide()
         tags_list = []
         for tag in self.canvas.gettags("current"):
@@ -142,25 +155,31 @@ class GameView(Frame):
 
         if self.previous_selection:
             if self.is_type(self.previous_selection, "ship"):
-                if self.is_type(tags_list, ["owned_star", "unowned_star"])\
+                if self.is_type(tags_list, ["etoile_occupee", "etoile"])\
                         and not self.is_owner(tags_list):
                     print("ship movement request to star")
             self.previous_selection = None
 
-    def is_owner_and_is_type(self, tags_list, object_type):
+    def is_owner_and_is_type(self, tags_list: list[str],
+                             object_type: str | list[str]) -> bool:
+        """Retourne True si l'objet est de type object_type
+        et que l'utilisateur"""
         return self.is_type(tags_list, object_type) \
             and self.is_owner(tags_list)
 
     @staticmethod
-    def is_type(tags_list: list, object_type: str | list[str]):
+    def is_type(tags_list: list, object_type: str | list[str]) -> bool:
+        """Retourne True si l'objet est de type object_type"""
         if isinstance(object_type, list):
             return any(tag in object_type for tag in tags_list)
         return object_type in tags_list
 
-    def is_owner(self, tags_list):
-        return self.id in tags_list or self.username in tags_list
+    def is_owner(self, tags_list) -> bool:
+        """Retourne True si l'objet appartient au joueur de cette vue."""
+        return self.id in tags_list or self.nom in tags_list
 
     def cancel_previous_selection(self):
+        """Annule la selection précédente."""
         self.previous_selection = None
 
 
@@ -184,7 +203,7 @@ class LobbyView(Frame):
                                             bg=hexDark, fg="white",
                                             font=("Arial", 10))
 
-        self.player_name_label = Label(self, text="Player name: ",
+        self.player_name_label = Label(self, text="Joueur name: ",
                                        bg=hexDark, fg="white",
                                        font=("Arial", 10))
         self.player_name_entry = Entry(self, width=30)

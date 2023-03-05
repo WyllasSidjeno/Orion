@@ -16,7 +16,7 @@ from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model import ships
-from Orion_client.model.ships import Ship, Cargo, Fighter, Recon
+from Orion_client.model.ships import Ship, Transport, Militaire, Reconnaissance
 from Orion_client.model.space_object import TrouDeVers, Etoile
 
 
@@ -41,7 +41,7 @@ class Modele:
 
         self.creer_etoiles(int((self.hauteur * self.largeur) / 500000))
         self.creer_joueurs(joueurs)
-        self.creer_IAs(1)
+        self.creer_ias(1)
 
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
 
@@ -64,8 +64,8 @@ class Modele:
         bordure = 10
         self.etoiles = [
             Etoile(self, randrange(self.largeur - (2 * bordure)) + bordure,
-                   randrange(self.hauteur - (2 * bordure)) + bordure) for _ in
-            range(nb_etoiles)]
+                   randrange(self.hauteur - (2 * bordure)) + bordure)
+            for _ in range(nb_etoiles)]
 
     def creer_joueurs(self, joueurs: list):
         """Créé les joueurs et leur attribue une etoile mère.
@@ -82,14 +82,13 @@ class Modele:
 
         for i, joueur in enumerate(joueurs):
             etoile = etoiles_occupee[i]
-            self.joueurs[joueur] = Player(joueur, etoile,
-                                          couleurs.pop(0))
+            self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0))
             for e in range(5):
                 self.etoiles.append(
                     Etoile(self, randrange(etoile.x - 500, etoile.x + 500),
                            randrange(etoile.y - 500, etoile.y + 500)))
 
-    def creer_IAs(self, ias: int = 0):
+    def creer_ias(self, ias: int = 0):
         """Créer les IAs et leur attribue une etoile mère.
 
         :param ias: le nombre d'IA à créer
@@ -102,8 +101,7 @@ class Modele:
             etoiles_occupee.append(p)
             self.etoiles.remove(p)
         for i in range(ias):
-            self.joueurs[f"IA_{i}"] = AI(f"IA_{i}",
-                                         etoiles_occupee.pop(0),
+            self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
                                          couleurs_ia.pop(0))
 
     def tick(self, cadre):
@@ -178,19 +176,19 @@ class Modele:
             positions.append(i.position)
         return positions
 
-    def get_id_by_username(self, username: str) -> str | None:
+    def get_id_by_username(self, nom: str) -> str | None:
         """Renvoie l'id du joueur correspondant au nom d'utilisateur.
 
-        :param username: le nom d'utilisateur
+        :param nom: le nom d'utilisateur
         :return: l'id du joueur
         """
-        for player in self.joueurs.values():
-            if player.nom == username:
-                return player.id
+        for joueur in self.joueurs.values():
+            if joueur.nom == nom:
+                return joueur.id
         return None
 
 
-class Player:
+class Joueur:
     """Classe du joueur.
 
     Le joueur est le personnage qui joue le jeu.
@@ -198,24 +196,24 @@ class Player:
     liste d'actions.
     """
 
-    def __init__(self, nom: str, etoilemere: Etoile, couleur: str):
+    def __init__(self, nom: str, etoile_mere: Etoile, couleur: str):
         """Initialise le joueur.
 
         :param parent: le jeu auquel le joueur appartient
         :param nom: le nom du joueur
-        :param etoilemere: l'etoile mere du joueur
+        :param etoile_mere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
         """
         self.consommation_joueur = AlwaysInt(10)
         self.energie = AlwaysInt(10000)
         self.id: str = get_prochain_id()
         self.nom = nom
-        self.etoile_mere = etoilemere
+        self.etoile_mere = etoile_mere
         self.etoile_mere.proprietaire = self.nom
         self.couleur = couleur
         self.log: list = []
         """Liste des actions du joueur."""
-        self.etoilescontrolees: list = [etoilemere]
+        self.etoiles_controlees: list = [etoile_mere]
         """Liste des etoiles controlees par le joueur."""
 
         self.flotte: dict[str, list[Ship] | Ship] = {}
@@ -228,27 +226,39 @@ class Player:
             self.flotte[i].tick()
 
     def action_from_server(self, funct: str, args: list):
-        """Fonction de jeu du joueur pour un tour.
+        """Fonction qui active une action du joueur reçue du serveur en
+        fonction de la fonction et des arguments envoyés.
+
+        :param funct: la fonction à activer
+        :param args: les arguments de la fonction
+
         """
         getattr(self, funct)(*args)
 
     def construct_ship(self, planet_id, type_ship):
-        """Fonction de jeu du joueur pour un tour.
+        """Déclence la construction d'un vaisseau sur une planète dépendant
+        du type de vaisseau demandé.
+
+        :param planet_id: l'id de la planète sur laquelle construire le vaisseau
+        :param type_ship: le type de vaisseau à construire
         """
-        pos = self.get_star_by_id(planet_id).position
+        pos = self.get_etoile_by_id(planet_id).position
         ship = None
-        if type_ship == "fighter":
-            ship = Fighter(pos, self.id)
-        elif type_ship == "cargo":
-            ship = Cargo(pos, self.id)
-        elif type_ship == "recon":
-            ship = Recon(pos, self.id)
+        if type_ship == "militaire":
+            ship = Militaire(pos, self.id)
+        elif type_ship == "transport":
+            ship = Transport(pos, self.id)
+        elif type_ship == "reconnaissance":
+            ship = Reconnaissance(pos, self.id)
 
         if ship:
             self.flotte[ship.id] = ship
 
     def move_ship(self, ship_id: str, pos: tuple):
-        """Fonction de jeu du joueur pour un tour.
+        """Fonction qui permet de déplacer un vaisseau spécifiquement.
+
+        :param ship_id: l'id du vaisseau à déplacer
+        :param pos: la position cible du vaisseau
         """
         self.flotte[ship_id].position_cible = pos
 
@@ -275,13 +285,20 @@ class Player:
         self.energie -= AlwaysInt((self.consoVaisseau + self.consoStructure
                                    + self.consommation_joueur))
 
-    def get_star_by_id(self, id: str):
-        for i in self.etoilescontrolees:
-            if i.id == id:
+    def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
+        """Renvoie l'étoile correspondant à l'id donné.
+
+        :param etoile_id: l'id de l'étoile
+        :return: l'étoile correspondant à l'id
+        """
+        for i in self.etoiles_controlees:
+            if i.id == etoile_id:
                 return i
         return None
 
     def get_all_static_ships_positions(self):
+        """Renvoie la position de tous les vaisseaux statiques du joueur.
+        """
         pos = []
         for i in self.flotte:
             if self.flotte[i].is_static():
@@ -289,21 +306,21 @@ class Player:
         return pos
 
 
-class AI(Player):
+class AI(Joueur):
     """Classe de l'AI.
 
     L'AI est le personnage non-joueur qui joue le jeu.
     """
 
     def __init__(self, nom: str,
-                 etoilemere: Etoile, couleur: str) -> None:
+                 etoile_mere: Etoile, couleur: str) -> None:
         """Initialise l'AI.
 
         :param nom: le nom de l'AI
-        :param etoilemere: l'etoile mere de l'AI
+        :param etoile_mere: l'etoile mere de l'AI
         :param couleur: la couleur de l'AI
         """
-        Player.__init__(self, nom, etoilemere, couleur)
+        Joueur.__init__(self, nom, etoile_mere, couleur)
         self.cooldownmax: int = 1000
         """Cooldown max de l'AI avant son prochain vaisseau."""
         self.cooldown: int = 20
