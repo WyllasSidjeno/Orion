@@ -606,7 +606,7 @@ class ShipViewGenerator:
             self.move_reconnaissance(canvas, ship_tag, pos)
         elif ship_type == "militaire":
             self.move_militaire(canvas, ship_tag, pos)
-        elif ship_type == "transport":
+        elif ship_type == "transportation":
             self.move_transportation(canvas, ship_tag, pos)
 
     def move_reconnaissance(self, canvas, ship_tag, pos):
@@ -632,7 +632,8 @@ class ShipViewGenerator:
         """Move the cargo to the given position"""
         ship_id = canvas.find_withtag(ship_tag)[0]
         # Move a polygon
-        canvas.coords(ship_id, pos[0] - self.settings["Transport"]["size"],
+        canvas.coords(ship_id,
+                      pos[0] - self.settings["Transport"]["size"],
                       pos[1] - self.settings["Transport"]["size"],
                       pos[0] + self.settings["Transport"]["size"],
                       pos[1] + self.settings["Transport"]["size"])

@@ -27,7 +27,7 @@ class Ship(ABC):
         self.owner: str = owner
         self.position: tuple = pos
         self.angle = angle  # TODO : Type
-        self.vitesse: AlwaysInt = AlwaysInt(vitesse)
+        self.vitesse = vitesse
         self.position_cible: tuple = position_cible
         self.direction_angle = 0  # TODO: Type
         self.vie: AlwaysInt = AlwaysInt(vie)
@@ -47,21 +47,16 @@ class Ship(ABC):
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
-        #todo : might need optimization Romain ??d
-        if self.position_cible is None or self.position == self.position_cible:
-            return
-        # Calculate the distance and angle to the target
-        dx = self.position_cible[0] - self.position[0]
-        dy = self.position_cible[1] - self.position[1]
-        dist = (dx ** 2 + dy ** 2) ** 0.5
-        angle = math.atan2(dy, dx)
-        # Move the ship towards the target
-        if dist < self.vitesse:
+        self.direction_angle = atan2(self.position_cible[1] - self.position[1],
+                                     self.position_cible[0] - self.position[0])
+
+        if math.hypot(self.position_cible[0] - self.position[0],
+                        self.position_cible[1] - self.position[1]) < self.vitesse:
             self.position = self.position_cible
         else:
-            self.position = (self.position[0] + self.vitesse * math.cos(angle),
-                             # Todo : transtyper int ?
-                             self.position[1] + self.vitesse * math.sin(angle))
+            self.position = (self.position[0] + self.vitesse * cos(self.direction_angle),
+                             self.position[1] + self.vitesse * sin(self.direction_angle))
+
 
 
 class Militaire(Ship):
@@ -84,6 +79,14 @@ class Militaire(Ship):
         """"""
         return "militaire"
 
+    def move(self) -> None:
+        """Fait avancer le vaisseau d'une unite de temps."""
+        super().move()
+        if self.position == self.position_cible:
+            self.position_cible = None
+        # do colonize after
+
+
 
 class Transport(Ship):
     """Classe representant un vaisseau de transport.
@@ -92,7 +95,7 @@ class Transport(Ship):
     def __init__(self, pos: tuple, owner: str):
         """Initialise un vaisseau de transport."""
         angle = 0
-        vitesse = 1
+        vitesse = 3
         position_cible = None
         vie = 100
         super().__init__(pos, angle, vitesse, position_cible, vie, owner)
@@ -101,6 +104,13 @@ class Transport(Ship):
 
     def __repr__(self):
         return "transportation"
+
+    def move(self) -> None:
+        """Fait avancer le vaisseau d'une unite de temps."""
+        super().move()
+        if self.position == self.position_cible:
+            self.position_cible = None
+            # do go back after moving to target
 
 
 class Reconnaissance(Ship):
@@ -118,3 +128,10 @@ class Reconnaissance(Ship):
 
     def __repr__(self):
         return "reconnaissance"
+
+    def move(self) -> None:
+        """Fait avancer le vaisseau d'une unite de temps."""
+        super().move()
+        if self.position == self.position_cible:
+            self.position_cible = None
+            # do colonize on arrival
