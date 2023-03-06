@@ -262,28 +262,26 @@ class Joueur:
         """
         self.flotte[ship_id].position_cible = pos
 
-    def deplete_energy(self, list_vaisseau: list, list_structure: list):
+    def deplete_energy(self):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
-        :param list_vaisseau: Liste des vaisseaux du joueur
-        :param list_structure: Liste des structure du joueur à sa disposition
+            Compile la quantité d'énergie consommée que requiert les différents bâtiments et vaisseaux à la disposition du joueur.
+            puis réaffecte la quantité d'énergie disponible au joueur.
+        """
+        # Consommation d'énergie des structures du joueur
+        for e in self.etoilescontrolees:
+            for b in e.buildinglist:
+                if isinstance(b, Building):
+                    self.consoStructures += b.consumption
 
-        :return: quantité total d'énergie consommée.
-            """
-        self.consoVaisseau = 0
-        self.consoStructure = 0
+        # Consommation des vaisseaux de la flotte du joueur.
+        for key, value in self.flotte.items():
+            if isinstance(value, Ship):
+                value = [value]
+            for vaisseau in value:
+                if not vaisseau.docked:
+                    self.consoVaisseaux += vaisseau.consommation
 
-        for vaisseau in list_vaisseau:
-            if vaisseau.docked:
-                self.consoVaisseau += vaisseau.consommation / 2
-            else:
-                self.consoVaisseau += vaisseau.consommation
-
-        for structure in list_structure:
-            self.consoStructure += structure.consommation
-        # TODO Ajuster la méthode si on doit s'en servir
-        # TODO comme getter (return) ou affectation directe à la classe Joueur
-        self.energie -= AlwaysInt((self.consoVaisseau + self.consoStructure
-                                   + self.consommation_joueur))
+        self.ressources["Energie"] -= AlwaysInt((self.consoVaisseaux + self.consoStructures + self.consommation_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.
