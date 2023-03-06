@@ -87,8 +87,8 @@ class Star:
         self.x = x
         self.y = y
         self.taille = randrange(4, 8)
-        self.output = Ressource(metal=random.randint(0, 1000),
-                                energie=1,
-                                beton=random.randint(0, 1000),
-                                nourriture=random.randint(0, 1000))
+        self.output = Ressource(metal=random.randint(10, 50),
+                                energie=0,
+                                beton=random.randint(10, 50),
+                                nourriture=random.randint(10, 30))
         self.buildinglist: list[Building] = [PowerPlant(), ConcreteFactory()]

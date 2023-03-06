@@ -200,23 +200,24 @@ class Player:
         self.ressources_cumul()
         print()
         print(self.ressources)
-        pass
+
 
     def ressources_cumul(self):
         for e in self.etoilescontrolees:
-            print(e.buildinglist[0].output)
+            print("nb building: " + str(len(e.buildinglist)))
 
             if e.transit:
                 planetRes: Ressource = e.output
                 for b in e.buildinglist:
+                    print(b.name)
                     if isinstance(b, PowerPlant):
                         planetRes += b.output
                     elif isinstance(b, ResearchCenter):
                         continue
                     else:
-                        planetRes *= b.output
+                        for key in planetRes:
+                            planetRes[key] = planetRes[key] * b.output[key]
                 self.ressources += planetRes
-        pass
 
 
 class AI(Player):
