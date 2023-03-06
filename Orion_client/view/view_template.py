@@ -104,7 +104,7 @@ class EtoileWindow(Frame):
             self.construct_ship_button.winfo_rooty()
 
         self.construct_ship_button.bind("<Button-1>",
-                                        self.show_construct_menu)
+                                       self.show_construct_menu)
         self.bind("<Button-1>", self.construct_ship_menu.hide)
 
         self.building_list = []
@@ -367,6 +367,7 @@ class GameCanvas(Canvas):
         #  delete but only move it with a move or coords function
 
         self.delete("TrouDeVers")
+        self.delete("etoile_occupee")
 
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
