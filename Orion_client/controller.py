@@ -5,8 +5,8 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from view.view import GameView, LobbyView
-from model.model import Model
+from Orion_client.view.view import GameView, LobbyView
+from Orion_client.model.model import Model
 
 # cprofile
 from cProfile import Profile
@@ -20,22 +20,20 @@ class Controller:
     model: Model
     """Le modèle de l'application"""
     def __init__(self):
-        from helper import get_random_username
         """Initialisation du controller"""
         self.frame = 1
         """La frame actuelle du jeu"""
 
-        self.username: str = get_random_username()
+        self.username: str = "p1"  # todo: Check JM code
         """Le nom de l'utilisateur"""
 
-        self.server_actions: list[str] = []
+        self.server_actions: list[str] = []  # todo : Make sure
         """Liste des actions reçues du serveur"""
-        self.player_actions: list[str] = []
+        self.player_actions: list[str] = []  # todo Make sure
         """Liste des actions à envoyées au serveur, faite par le joueur
         de ce client."""
 
-        self.urlserveur: str = "http://127.0.0.1:8000"
-        # Todo get from modele maybe ?
+        self.urlserveur: str = "http://127.0.0.1:8000"  # Todo get from modele maybe ?
         """L'URL du serveur"""
 
         self.user_controller: LobbyController | GameController = \
@@ -64,6 +62,8 @@ class Controller:
                                                   self.urlserveur, self.model,
                                                   self.pause_game,
                                                   self.unpause_game)
+
+
         self.tick()
 
     def pause_game(self) -> None:
@@ -84,8 +84,7 @@ class Controller:
         self.user_controller.view.after(1000 // 60, self.tick)
 
         self.user_controller.tick(self.frame)
-        if not self.user_controller.pause:
-            self.frame += 1
+        self.frame += 1
 
     def update_model_actions(self, actions) -> None:
         """Met à jour les actions du modèle"""
@@ -180,7 +179,6 @@ class ServerController:
                     print("ATTEND QUELQU'UN")
                     self.pause_game()
                 else:
-                    self.unpause_game()
                     self.model.ajouter_actions_a_faire(temp)
             except urllib.error.URLError as e:
                 print("ERREUR ", frame, e)
@@ -211,57 +209,26 @@ class LobbyController:
             self.urlserveur, self.username)
         """La vue du lobby"""
 
-    def connect_to_server(self):
+    def connect_to_server(self, _):
         """Se connecte au serveur"""
+        # Todo : Could be renamed to : connect_to_lobby or get_lobby_state
         print("Connecting to server...")
         url = self.urlserveur + "/tester_jeu"
         params = {"username": self.username}
         temp = call_server(url, params)
-
         if temp[0][0]:
             string = temp[0][0]
+            self.view.change_game_state(string)
             if string == "dispo":
-                string = "Partie Créée"
                 self.start_game_server()
             elif string == "attente":
-                string = "En attente de joueur"
-                self.add_player_to_game()
-            self.view.change_game_state(string)
-        self.view.disable_restart_connect_button()
+                pass
 
-    def get_server_state(self):
-        print("Connecting to server...")
-        url = self.urlserveur + "/tester_jeu"
-        params = {"username": self.username}
-        temp = call_server(url, params)
-        if temp[0][0]:
-            string = temp[0][0]
-            if string == "dispo":
-               string = "Disponible"
-            elif string == "attente":
-                string = "En attente de joueur"
-            else:
-                string = "Serveur occupé"
-
-            self.update_lobby()
-            self.view.change_game_state(string)
-            self.view.disable_join_server_button()
-
-
-    def add_player_to_game(self):
-        """Ajoute un joueur à la partie"""
-        print("Adding player to game...")
-        url = self.urlserveur + "/inscrire_joueur"
-        params = {"nom": self.username}
-        temp = call_server(url, params)
-        if temp:
-            self.view.change_game_state(temp[0][0])
-
-    def restart_server(self):
+    def restart_server(self, _):
         """Redémarre le serveur"""
         print("Restarting server...")
         url = self.urlserveur + "/reset_jeu"
-        temp = call_server(url, 0)
+        temp = call_server(url, None)
         if temp:
             self.view.change_game_state(temp[0][0])
 
@@ -273,17 +240,14 @@ class LobbyController:
         temp = call_server(url, params)
         if temp:
             self.view.change_game_state(temp[0][0])
+            self.view.after(1000, self.update_lobby)
 
     def start(self):
         """Démarre le controller de lobby"""
         self.view.initialize()
         self.view.show()
-        self.view.bind_server_buttons(self.get_server_state,
-                                      self.restart_server,
-                                      self.connect_to_server,
-                                      self.start_game_signal,
-                                      self.update_username,
-                                      self.update_url)
+        self.view.connect_button.bind("<Button-1>", self.connect_to_server)
+        self.view.restart_button.bind("<Button-1>", self.restart_server)
 
     def update_lobby(self):
         """Met à jour le lobby"""
@@ -294,9 +258,12 @@ class LobbyController:
             self.start_game_signal(temp)
         else:
             self.joueurs = temp
-            self.view.update_player_list(self.joueurs)
+            self.view.update_player_list(self.joueurs[0])
             self.event_id = self.view.after(1000, self.update_lobby)
-    def start_game_signal(self):
+            self.view.start_button.bind("<Button-1>",
+                                        self.start_game_signal)
+
+    def start_game_signal(self, _):
         """Reçoit le signal de démarrage de la partie et
         annule l'appel à la fonction update_lobby avant de
         démarrer la partie"""
@@ -304,17 +271,6 @@ class LobbyController:
         self.view.destroy()
 
         self.start_game(self.joueurs)
-
-    def update_username(self, event):
-        """Met à jour le nom d'utilisateur"""
-        username = event.widget.get()
-        self.username = username
-
-
-    def update_url(self, event):
-        """Met à jour l'URL du serveur"""
-        url = event.widget.get()
-        self.urlserveur = url
 
 
 def call_server(url, params):
