@@ -6,6 +6,10 @@ et des angles a partir de coordonnees cartesiennes.
 from typing import Any
 import functools
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from Orion_client.model.modele import Joueur, Modele
+
 prochainid: int = 0
 """Prochain identifiant a utiliser."""
 
@@ -85,3 +89,59 @@ class AlwaysInt(int, metaclass=Inherited):
         if method.startswith('__'):
             if f"__r{method[2:-2]}__" in dir(int):
                 _implements[int].append(method)
+
+
+def call_wrapper(target: str,
+                 funct_name: str,
+                 *args: Any) -> tuple[str, str, tuple[Any]]:
+    """Wrapper pour les fonctions de Joueur et Modele.
+    :param target: Le joueur ou le model.
+    :type target: str ('nom' ou 'model')
+    :param funct_name: Le nom de la fonction.
+    :param add_func_name: Les noms des fonctions à ajouter.
+    :param args: Les arguments de la fonction.
+    """
+    return target, funct_name, args
+
+
+class LogHelper(list):
+    """Helper pour les logs de view et de modele avant envoi au serveur ou local
+    """
+    def __init__(self):
+        super().__init__()
+
+    def add(self, target: str, funct_name: str, *args: Any) -> None:
+        """Ajoute une action.
+        :param target: Le joueur ou le model.
+        :type target: str ('nom' ou 'model')
+        :param funct_name: Le nom de la fonction.
+        :param add_func_name: Les noms des fonctions à ajouter.
+        :param args: Les arguments de la fonction.
+        """
+        self.append((target, funct_name, args))
+
+    def add_log(self, log) -> None:
+        """Ajoute un log.
+        :param log: Le log.
+        """
+        self.append(log)
+
+    def get_and_clear(self):
+        """Recupere les logs et supprime ses propres logs.
+        :return: Les logs.
+        :rtype: dict[str, list[list[str | list[Any] | tuple[Any]]]]
+        """
+        log = self.copy()
+        self.clear()
+        return log
+
+    def change_main_players(self, username) -> None:
+        """Change les mentions de "main_player" par "nom".
+        :param username: Le nouveau nom.
+        """
+        for i, log in enumerate(self):
+            if log[0] == 'main_player':
+                self[i] = (username, *log[1:])
+
+
+
