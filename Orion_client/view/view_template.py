@@ -483,11 +483,18 @@ class SideBar(Frame):
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
         self.minimap_frame.grid_rowconfigure(0, weight=1)
-        self.minimap_frame.grid_columnconfigure(0, weight=1)
-        self.minimap_frame.grid_rowconfigure(1, weight=6)
+        self.minimap_frame.grid_rowconfigure(1, weight=3)
+        self.minimap_frame.grid_rowconfigure(2, weight=1)
 
-        self.minimap_label.grid(row=0, column=0, sticky="nsew")
-        self.minimap.grid(row=1, column=0, sticky="nsew")
+        self.minimap_frame.grid_columnconfigure(0, weight=1)
+        self.minimap_frame.grid_columnconfigure(1, weight=2)
+        self.minimap_frame.grid_columnconfigure(2, weight=1)
+
+        self.minimap_frame.grid_propagate(False)
+
+        self.minimap_label.grid(row=0, column=1, sticky="nsew")
+        self.minimap.grid(row=1, column=1, sticky="nsew")
+        self.minimap_frame.grid_propagate(False)
 
         self.minimap.initialize(mod)
 
@@ -502,18 +509,21 @@ class Minimap(Canvas):
     """ Représente la minimap du jeu."""
     x_ratio: float
     y_ratio: float
+    old_x_ratio: float
+    old_y_ratio: float
 
     def __init__(self, master: Frame):
         """Initialise la minimap"""
         super().__init__(master, bg=hexDark, bd=1,
                          relief="solid", highlightthickness=0)
 
-        # Make it the same size as the master
         self.propagate(False)
 
     def initialize(self, mod: Modele):
         """Initialise la minimap avec les données du model"""
         self.update_idletasks()
+        size = min(self.winfo_width(), self.winfo_height())
+        self.config(width=size, height=size)
 
         self.x_ratio = self.winfo_width() / mod.largeur
         self.y_ratio = self.winfo_height() / mod.hauteur
@@ -523,27 +533,33 @@ class Minimap(Canvas):
                              star.y * self.y_ratio - 2,
                              star.x * self.x_ratio + 2,
                              star.y * self.y_ratio + 2,
-                             fill="grey", tags="etoile")
+                             fill="grey", tags="etoile"
+                             , outline=hexSpaceBlack)
 
         for key in mod.joueurs:
             for star in mod.joueurs[key].etoiles_controlees:
+                print(star.x, star.y, star.id)
                 self.create_oval(star.x * self.x_ratio - 2,
                                  star.y * self.y_ratio - 2,
                                  star.x * self.x_ratio + 2,
                                  star.y * self.y_ratio + 2,
-                                 fill="white", tags="etoile_controlee")
+                                 fill=mod.joueurs[key].couleur,
+                                 tags="etoile_controlee",
+                                 outline=hexSpaceBlack)
 
         for wormhole in mod.trou_de_vers:
             self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
                              wormhole.porte_a.y * self.y_ratio - 2,
                              wormhole.porte_a.x * self.x_ratio + 2,
                              wormhole.porte_a.y * self.y_ratio + 2,
-                             fill=wormhole.porte_a.couleur, tags="TrouDeVers")
+                             fill="purple", tags="TrouDeVers"
+                             , outline=hexSpaceBlack)
             self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                              wormhole.porte_b.y * self.y_ratio - 2,
                              wormhole.porte_b.x * self.x_ratio + 2,
                              wormhole.porte_b.y * self.y_ratio + 2,
-                             fill=wormhole.porte_b.couleur, tags="TrouDeVers")
+                             fill="purple", tags="TrouDeVers",
+                             outline=hexSpaceBlack)
 
             self.bind("<Configure>", self.on_resize)
 
@@ -554,34 +570,56 @@ class Minimap(Canvas):
 
     def on_resize(self, _):
         """Gère le redimensionnement de la minimap"""
-        self.update_idletasks()
+        print("resize")
+        width = self.winfo_width()
+        height = self.winfo_height()
 
-        old_ratio_x = self.x_ratio
-        old_ratio_y = self.y_ratio
+        self.old_x_ratio = self.x_ratio
+        self.old_y_ratio = self.y_ratio
 
-        self.x_ratio = self.winfo_width() / 9000
-        self.y_ratio = self.winfo_height() / 9000
-
-        diff_ratio_x = self.x_ratio / old_ratio_x
-        diff_ratio_y = self.y_ratio / old_ratio_y
+        self.x_ratio = width / 9000
+        self.y_ratio = height / 9000
 
         for star in self.find_withtag("etoile"):
-            self.coords(star, self.coords(star)[0] * diff_ratio_x,
-                        self.coords(star)[1] * diff_ratio_y,
-                        self.coords(star)[2] * diff_ratio_x,
-                        self.coords(star)[3] * diff_ratio_y)
+            x1, y1, x2, y2 = self.coords(star)
+            new_x1 = x1 * self.x_ratio / self.old_x_ratio
+            new_y1 = y1 * self.y_ratio / self.old_y_ratio
+            new_x2 = x2 * self.x_ratio / self.old_x_ratio
+            new_y2 = y2 * self.y_ratio / self.old_y_ratio
+            self.delete(star)
+            self.create_oval(new_x1, new_y1, new_x2, new_y2,
+                                fill="grey", tags="etoile",
+                                outline=hexSpaceBlack)
 
         for star in self.find_withtag("etoile_controlee"):
-            self.coords(star, self.coords(star)[0] * diff_ratio_x,
-                        self.coords(star)[1] * diff_ratio_y,
-                        self.coords(star)[2] * diff_ratio_x,
-                        self.coords(star)[3] * diff_ratio_y)
+            x1, y1, x2, y2 = self.coords(star)
+            color = self.itemcget(star, "fill")
+            new_x1 = x1 * self.x_ratio / self.old_x_ratio
+            new_y1 = y1 * self.y_ratio / self.old_y_ratio
+            new_x2 = x2 * self.x_ratio / self.old_x_ratio
+            new_y2 = y2 * self.y_ratio / self.old_y_ratio
+            self.delete(star)
+            self.create_oval(new_x1, new_y1, new_x2, new_y2,
+                             fill=color, tags="etoile_controlee",
+                             outline=hexSpaceBlack)
 
         for wormhole in self.find_withtag("TrouDeVers"):
-            self.coords(wormhole, self.coords(wormhole)[0] * diff_ratio_x,
-                        self.coords(wormhole)[1] * diff_ratio_y,
-                        self.coords(wormhole)[2] * diff_ratio_x,
-                        self.coords(wormhole)[3] * diff_ratio_y)
+            x1, y1, x2, y2 = self.coords(wormhole)
+            new_x1 = x1 * self.x_ratio / self.old_x_ratio
+            new_y1 = y1 * self.y_ratio / self.old_y_ratio
+            new_x2 = x2 * self.x_ratio / self.old_x_ratio
+            new_y2 = y2 * self.y_ratio / self.old_y_ratio
+            self.delete(wormhole)
+            self.create_oval(new_x1, new_y1, new_x2, new_y2,
+                             fill="purple", tags="TrouDeVers",
+                             outline=hexSpaceBlack)
+
+        self.old_x_ratio = self.x_ratio
+        self.old_y_ratio = self.y_ratio
+
+
+
+
 
 
 class ShipViewGenerator:
