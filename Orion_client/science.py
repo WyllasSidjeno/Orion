@@ -109,6 +109,7 @@ class Controller:
         button : acheter
         button : annuler"""
         # appeler la fonction is_unlockable et science_bloquer
+
         buyScience = tk.Frame(self.root, bg="#2f3136", highlightbackground="#F7CE25", highlightthickness=2)
         buyLabel = tk.Label(buyScience, text="Buy science?", fg="#F7CE25", bg="#2f3136", font=("Arial", 10))
 
@@ -123,6 +124,9 @@ class Controller:
         annulerBouton.grid(row=1, column=1, sticky="nsew")
         buyLabel.grid(row=0, column=0, sticky="nsew")
 
+    # def refresh(self, mod):
+    #     self.root.refresh(mod)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -131,27 +135,3 @@ if __name__ == "__main__":
     controller = Controller()
     controller.show_science(ArbreScience)
     root.mainloop()
-
-# class FenetreScience(tk.Frame):
-#     def __init__(self, master: tk.Frame):
-#         super().__init__(master)
-#         self.root = root
-#
-#         self.root.columnconfigure(0, weight=1)
-#         self.root.rowconfigure(0, weight=1)
-#
-#         self.nom_science = tk.Label(self.root, text="Science", bg="blue", font=("Arial", 10))
-#
-#         self.canvas = tk.Canvas(self.root)
-#         self.canvas.grid(column=0, row=0, sticky="nsew")
-#
-#         self.nom_science.grid(column=0, row=0, columnspan=1)
-
-# science_grid = tk.Frame(self.root, width=110, height=110, bg="orange")
-# border = tk.Frame(self.root, background="red", padx=400, pady=400)
-# # self.canvas.create_line(x1, y1 - 20, x1 + 50, y1 - 20, fill="black")
-#
-# if i % maxRow == 0 and i != 0:
-#     maxColumn += 1
-# setattr(self, f"{science}_{i}", science_grid.grid(row=i % maxRow, column=maxColumn))
-# setattr(self, f"{science}_{i}", border.place(x=i*100, y=10))
