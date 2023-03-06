@@ -154,8 +154,8 @@ class GameView(Frame):
             tags_list.append(tag)
 
         if self.previous_selection:
-            if self.is_type(self.previous_selection, "ship"):
-                if self.is_type(tags_list, ["etoile_occupee", "etoile"])\
+            if self.is_type(self.previous_selection, "vaisseau"):
+                if self.is_type(tags_list, ["etoile_occupee", "etoile"]) \
                         and not self.is_owner(tags_list):
                     print("ship movement request to star")
             self.previous_selection = None
@@ -266,6 +266,7 @@ class LobbyView(Frame):
     def bind_server_buttons(self, join_server, restart_server,
                             connect_server, start_game_server,
                             update_username, update_url):
+        pass
         self.join_server_button.config(command=join_server)
 
         self.restart_button.config(command=restart_server)

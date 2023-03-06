@@ -1,12 +1,13 @@
 from __future__ import annotations
 import json
+import time
 import urllib
 import urllib.error
 import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.helper import call_wrapper, LogHelper
+from Orion_client.helper import LogHelper
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.modele import Modele
 
@@ -25,7 +26,7 @@ class Controller:
     def __init__(self):
         from helper import get_random_username
         """Initialisation du controller"""
-        self.frame = 1
+        self.frame = 0
         """La frame actuelle du jeu"""
 
         self.username: str = get_random_username()
@@ -55,6 +56,7 @@ class Controller:
 
         self.model = Modele(listejoueurs)
 
+        self.user_controller.view.destroy()
         self.user_controller = GameController(self.model, self.username)
         self.start()
 
@@ -66,16 +68,20 @@ class Controller:
 
     def tick(self) -> None:
         """Loop de l'application"""
+        start_time = time.perf_counter()
+
         self.server_controller.update_actions(self.frame,
-                                              self.user_controller.
-                                              log,
+                                              self.user_controller.log,
                                               self.empty_player_actions)
 
         self.user_controller.tick(self.frame)
 
         if not self.user_controller.pause:
             self.frame += 1
-        self.user_controller.view.after(33, self.tick)
+
+        elapsed_time = time.perf_counter() - start_time
+        delay_time = max(0, int(60 - elapsed_time * 1000))
+        self.user_controller.view.after(delay_time, self.tick)
 
     def empty_player_actions(self) -> None:
         """Vide les actions du joueur"""
@@ -122,7 +128,6 @@ class GameController:
             self.view.refresh(self.model)
 
         self.get_all_view_logs()
-
 
     def bind_game_requests(self) -> None:
         """Lie les boutons de la vue à leur fonction"""
