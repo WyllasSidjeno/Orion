@@ -4,6 +4,7 @@ from random import randrange
 from Orion_client.helper import get_prochain_id
 from Orion_client.model.building import Building, PowerPlant, ConcreteFactory
 from Orion_client.model.ressource import Ressource
+from Orion_client.model.modele import Population
 
 
 class TrouDeVers:
@@ -96,6 +97,7 @@ class Etoile:
         self.ressources = {"metal": 1000,
                            "energie": 10000,
                            "existentielle": 100}
+        self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
 
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup

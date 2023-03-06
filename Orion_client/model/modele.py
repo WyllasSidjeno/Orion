@@ -15,9 +15,10 @@ from random import randrange, choice
 from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
-from Orion_client.model import ships
+from Orion_client.model.building import Building
 from Orion_client.model.ships import Ship, Transport, Militaire, Reconnaissance
 from Orion_client.model.space_object import TrouDeVers, Etoile
+from Orion_client.model.ressource import Ressource
 
 
 class Modele:
@@ -204,6 +205,7 @@ class Joueur:
         :param etoile_mere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
         """
+
         self.consommation_joueur = AlwaysInt(10)
         self.energie = AlwaysInt(10000)
         self.id: str = get_prochain_id()
@@ -218,6 +220,8 @@ class Joueur:
 
         self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
+
+        self.ressources_total = Ressource(metal=100, beton=100, energie=500, nourriture=100)
 
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
@@ -267,21 +271,24 @@ class Joueur:
             Compile la quantité d'énergie consommée que requiert les différents bâtiments et vaisseaux à la disposition du joueur.
             puis réaffecte la quantité d'énergie disponible au joueur.
         """
+        conso_structures: int = 0
+        conso_vaisseaux: int = 0
         # Consommation d'énergie des structures du joueur
-        for e in self.etoilescontrolees:
+        for e in self.etoiles_controlees:
             for b in e.buildinglist:
                 if isinstance(b, Building):
-                    self.consoStructures += b.consumption
+                    conso_structures += b.consumption
 
         # Consommation des vaisseaux de la flotte du joueur.
         for key, value in self.flotte.items():
             if isinstance(value, Ship):
                 value = [value]
-            for vaisseau in value:
-                if not vaisseau.docked:
-                    self.consoVaisseaux += vaisseau.consommation
+           # for vaisseau in value:
+              #  if not vaisseau.docked:
+            #        conso_vaisseaux += vaisseau.consommation
+        # Todo: Ajouter les variables bool docked et int consommation dans le modele vaisseau (2e sprint)
 
-        self.ressources["Energie"] -= AlwaysInt((self.consoVaisseaux + self.consoStructures + self.consommation_joueur))
+        self.ressources_total["Energie"] -= AlwaysInt((conso_vaisseaux + conso_structures + self.consommation_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.
