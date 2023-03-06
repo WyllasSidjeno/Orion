@@ -3,78 +3,145 @@
 Ce module contient des methodes statiques pour calculer des points
 et des angles a partir de coordonnees cartesiennes.
 """
-import math
+from typing import Any
+import functools
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from Orion_client.model.modele import Joueur, Modele
+
+prochainid: int = 0
+"""Prochain identifiant a utiliser."""
 
 
-class AlwaysInt(int):
-    """Classe qui permet de forcer un int a etre un int meme si on lui
-    donne un float.
+def get_prochain_id() -> str:
+    """Recupere le prochain id a utiliser.
+    # Tel que : self.__class__.prochainid += 1
+    #           return f'id_{self.__class__.prochainid}'
+    :return: L'ID a utiliser.
+    :rtype: str
+    """
+    global prochainid
+    prochainid += 1
+    return f'id_{prochainid}'
 
-    Elle forme une boucle de surcharge sur l'ensemble des methodes de int
-    pour les appliquer sur l'objet lui-meme à l'exception des methodes
-    magiques (commencant par __) hormis les methodes magiques de division."""
+
+def get_random_username() -> str:
+    """Recupere un id aleatoire.
+    :return: L'ID a utiliser.
+    :rtype: str
+    """
+    import random
+    return f'Joueur_{random.randint(0, 1000)}'
+
+
+class Inherited(type):
+    """Permet de reféfinir des méthodes héritées afin que le type de
+    retour soit celui de la sous-classe.
+    """
+
+    def __new__(
+            cls,
+            name: str,
+            bases: tuple[type, ...],
+            namespace: dict[str, Any]
+    ):
+
+        implemented: dict[type, list[str]] = namespace['_implements']
+
+        for base, methods in implemented.items():
+            for method_name in methods:
+                # Force early binding
+                def outer(method_name=method_name):
+                    method = getattr(base, method_name)
+
+                    @functools.wraps(method)
+                    def inner(self, *args, **kwargs):
+                        res = method.__call__(self, *args, **kwargs)
+                        reflected = f"__r{method_name[2:-2]}__"
+
+                        # Implement reflected methods
+                        if (
+                                res is NotImplemented
+                                and len(args) == 1  # Only binary ops
+                                and reflected in dir(args[0])
+                        ):
+                            res = getattr(args[0], reflected).__call__(self)
+
+                        return self.__class__(res)
+
+                    return inner
+
+                namespace[method_name] = outer(method_name)
+
+        return super().__new__(cls, name, bases, namespace)
+
+
+class AlwaysInt(int, metaclass=Inherited):
+    _implements = {
+        int: [
+            '__abs__', '__invert__', '__neg__', '__pos__',
+            '__ceil__', '__floor__', '__trunc__',
+        ]
+    }
+
     for method in dir(int):
-        if not method.startswith('__'):
-            exec(f'def {method}(self, *args, **kwargs): '
-                 f'return int(self).__{method}__(*args, **kwargs)')
-        elif method.__contains__('div'):
-            exec(f'def {method}(self, *args, **kwargs): '
-                 f'return int(int(self).{method}(*args, **kwargs))')
+        if method.startswith('__'):
+            if f"__r{method[2:-2]}__" in dir(int):
+                _implements[int].append(method)
 
-class Helper(object):
-    """Classe de geometrie 2D
 
-    Cette classe contient des methodes statiques pour calculer des points
-    et des angles a partir de coordonnees cartesiennes."""
-    def getAngledPoint(angle: float, longueur: float, cx: float,
-                       cy: float) -> tuple:
-        """Calcule un point a partir d'un angle et d'une longueur
+def call_wrapper(target: str,
+                 funct_name: str,
+                 *args: Any) -> tuple[str, str, tuple[Any]]:
+    """Wrapper pour les fonctions de Joueur et Modele.
+    :param target: Le joueur ou le model.
+    :type target: str ('nom' ou 'model')
+    :param funct_name: Le nom de la fonction.
+    :param add_func_name: Les noms des fonctions à ajouter.
+    :param args: Les arguments de la fonction.
+    """
+    return target, funct_name, args
 
-        :param angle: l'angle en radians
-        :param longueur: la longueur du segment
-        :param cx: coordonnee x du centre
-        :param cy: coordonnee y du centre
 
-        :return: le point calcule"""
+class LogHelper(list):
+    """Helper pour les logs de view et de modele avant envoi au serveur ou local
+    """
+    def __init__(self):
+        super().__init__()
 
-        x = (math.cos(angle) * longueur) + cx
-        y = (math.sin(angle) * longueur) + cy
-        return (x, y)
+    def add(self, target: str, funct_name: str, *args: Any) -> None:
+        """Ajoute une action.
+        :param target: Le joueur ou le model.
+        :type target: str ('nom' ou 'model')
+        :param funct_name: Le nom de la fonction.
+        :param add_func_name: Les noms des fonctions à ajouter.
+        :param args: Les arguments de la fonction.
+        """
+        self.append((target, funct_name, args))
 
-    getAngledPoint = staticmethod(getAngledPoint)
-    # permet d'appeler la methode sans instancier la classe (methode statique)
+    def add_log(self, log) -> None:
+        """Ajoute un log.
+        :param log: Le log.
+        """
+        self.append(log)
 
-    def calcAngle(x1: int, y1: int, x2: int, y2: int) -> float:
-        """Calcule l'angle entre deux points
+    def get_and_clear(self):
+        """Recupere les logs et supprime ses propres logs.
+        :return: Les logs.
+        :rtype: dict[str, list[list[str | list[Any] | tuple[Any]]]]
+        """
+        log = self.copy()
+        self.clear()
+        return log
 
-        :param x1: coordonnee x du premier point
-        :param y1: coordonnee y du premier point
-        :param x2: coordonnee x du deuxieme point
-        :param y2: coordonnee y du deuxieme point
+    def change_main_players(self, username) -> None:
+        """Change les mentions de "main_player" par "nom".
+        :param username: Le nouveau nom.
+        """
+        for i, log in enumerate(self):
+            if log[0] == 'main_player':
+                self[i] = (username, *log[1:])
 
-        :return: l'angle en radians"""
 
-        dx = x2 - x1
-        dy = y2 - y1
-        angle: float = (math.atan2(dy, dx))
-        return angle
 
-    calcAngle = staticmethod(calcAngle)
-
-    def calcDistance(x1: int, y1: int, x2: int, y2: int) -> float:
-        """Calcule la distance entre deux points en utilisant
-        le theoreme de Pythagore
-
-        :param x1: coordonnee x du premier point
-        :param y1: coordonnee y du premier point
-        :param x2: coordonnee x du deuxieme point
-        :param y2: coordonnee y du deuxieme point
-
-        :return: la distance entre les deux points"""
-
-        dx = abs(x2 - x1) ** 2
-        dy = abs(y2 - y1) ** 2
-        distance = math.sqrt(dx + dy)
-        return distance
-
-    calcDistance = staticmethod(calcDistance)
