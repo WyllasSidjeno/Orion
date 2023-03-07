@@ -45,7 +45,7 @@ class Ship(ABC):
             if self.position == self.position_cible:
                 self.position_cible = None
 
-    def move(self) -> None:
+    def move(self, *args) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
         #todo : Extend signature to ID.
         self.direction_angle = atan2(self.position_cible[1] - self.position[1],
@@ -115,6 +115,8 @@ class Transport(Ship):
 class Reconnaissance(Ship):
     """Classe représentant un vaisseau de reconnaissance.
     """
+    planet_id: int
+    planet_owner: str
     def __init__(self, pos: tuple, owner: str):
         """Initialise un vaisseau de reconnaissance."""
         angle = 0
@@ -128,9 +130,18 @@ class Reconnaissance(Ship):
     def __repr__(self):
         return "reconnaissance"
 
-    def move(self) -> None:
-        """Fait avancer le vaisseau d'une unite de temps."""
+    def move(self, planet_id, proprietaire) -> None:
+        """Fait avancer le vaisseau d'une unite de temps et colonise
+        la planète si celle-ci est vide"""
         super().move()
+        if planet_id:
+            self.planet_id = planet_id
+        if proprietaire:
+            self.planet_owner = proprietaire
+
         if self.position == self.position_cible:
+            if self.planet_owner is "":
+                pass
+                #  todo : log.add(self.owner, self.planet_id)
+
             self.position_cible = None
-            # do colonize on arrival

@@ -282,6 +282,7 @@ class Joueur:
         # Consommation des vaisseaux de la flotte du joueur.
         for key, value in self.flotte.items():
             if isinstance(value, Ship):
+                pass
                 value = [value]
            # for vaisseau in value:
               #  if not vaisseau.docked:
