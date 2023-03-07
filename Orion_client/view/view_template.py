@@ -336,14 +336,14 @@ class GameCanvas(Canvas):
             self.create_oval(x - size, y - size, x + size, y + size,
                              fill=col, tags="background")
 
-    def generate_etoile(self, star, tag: str):
+    def generate_etoile(self, star, tag: str, *args):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
         size = star.taille * 2  # Legacy JM
         self.create_oval(star.x - size, star.y - size,
                          star.x + size, star.y + size,
-                         fill="grey",
+                         fill=star.couleur,
                          tags=(tag, star.id, star.proprietaire))
 
     def generate_trou_de_vers(self, trou_de_vers : list[TrouDeVers]):
@@ -357,7 +357,7 @@ class GameCanvas(Canvas):
         """Créé une porte de trou de vers sur le canvas."""
         self.create_oval(porte.x - porte.pulse, porte.y - porte.pulse,
                          porte.x + porte.pulse, porte.y + porte.pulse,
-                         fill=porte.couleur,
+                         fill="purple",
                          tags=("TrouDeVers", porte.id, parent_id))
 
     def refresh(self, mod: Modele):
@@ -371,7 +371,7 @@ class GameCanvas(Canvas):
 
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i], "etoile_occupee")
+            self.generate_etoile(owned_stars[i], "etoile_occupee",)
 
         self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
 
@@ -616,10 +616,6 @@ class Minimap(Canvas):
 
         self.old_x_ratio = self.x_ratio
         self.old_y_ratio = self.y_ratio
-
-
-
-
 
 
 class ShipViewGenerator:

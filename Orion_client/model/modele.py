@@ -208,8 +208,11 @@ class Joueur:
         self.energie = AlwaysInt(10000)
         self.id: str = get_prochain_id()
         self.nom = nom
+
         self.etoile_mere = etoile_mere
+        self.etoile_mere.couleur = couleur
         self.etoile_mere.proprietaire = self.nom
+
         self.couleur = couleur
         self.log: list = []
         """Liste des actions du joueur."""
