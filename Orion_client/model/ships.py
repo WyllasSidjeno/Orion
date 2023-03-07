@@ -40,6 +40,8 @@ class Ship(ABC):
 
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
+        if self.vie == 0:
+            self.die()
         if self.position_cible is not None:
             self.move()
             if self.position == self.position_cible:
@@ -59,6 +61,11 @@ class Ship(ABC):
             self.position = \
                 (self.position[0] + self.vitesse * cos(self.direction_angle),
                  self.position[1] + self.vitesse * sin(self.direction_angle))
+
+    def die(self):
+        pass
+        #TODO : log.add(self.owner, "ship_destruct", self.id)
+
 
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
