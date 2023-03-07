@@ -1,11 +1,9 @@
 import random
 from random import randrange
 
-from Orion_client.helper import get_prochain_id
+from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model.building import Building, PowerPlant, ConcreteFactory
 from Orion_client.model.ressource import Ressource
-from Orion_client.model.modele import Population
-
 
 class TrouDeVers:
     """Classe representant un trou de vers.
@@ -103,3 +101,49 @@ class Etoile:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""
         pass
+
+class Population:
+    """ Population de la planète découverte
+    """
+
+    def __init__(self, pop, totalNourriture, pourcentBonus):
+        """
+        :param pop: Initialise la quantité d'habitants sur la planètes.
+        :param totalNourriture: Initialise la quantité de nourriture disponible.
+        :param pourcentBonus: taux de croissance de la population lorsqu'elle prospère
+                ou taux de perte de vie humaine si elle est attaquée
+
+
+        """
+        self.nb_humains = AlwaysInt(pop)
+        self.is_under_siege = False
+        self.totalNourriture = AlwaysInt(totalNourriture)
+        self.pourcentBonus = pourcentBonus
+        # pourcentBonus pourrait être un boni donné à la découverte de l'étoile
+        # ou selon un niveau de défense (à déterminer)
+
+    def increment_pop(self, isUnderSiege: bool):
+        """ Modifie la quantité de la population de la planète selon son état.
+            Appelée à des intervalles spécifiques ou dès que la planète est attaquée
+
+            :param isUnderSiege: Booléen qui détermine si la planète est présentement attaquée.
+            :return: quantité d'humains vivant sur la planète.
+        """
+
+        #   Version 1, incluant une condition sur la quantité d'humains
+        #   if not self.nb_humains:
+        #       return 0
+        #   else:
+
+        self.is_under_siege = isUnderSiege
+        # déterminer au moment de l'appel de la méthode si la population est sous-attaque.
+        if not self.is_under_siege:
+            self.nb_humains *= AlwaysInt((100 + self.pourcentBonus) + (
+                        self.totalNourriture / self.nb_humains))
+        else:  # si la population de la planete est attaquée
+            self.nb_humains = AlwaysInt(
+                self.nb_humains * ((100 - self.pourcentBonus) / 100))
+
+        # Si le retour est 0 ou moins
+        # d'un chiffre acceptable pour la subsistance de la planète (à déterminer),
+        # elle peut alors être conquise.
