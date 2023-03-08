@@ -39,8 +39,8 @@ class Modele:
         self.hauteur: int = 9000
 
         self.joueurs: dict = {}
-
         self.log: dict = {}
+
         self.etoiles: list = []
         self.trou_de_vers: list = []
 
@@ -48,12 +48,10 @@ class Modele:
         self.creer_joueurs(joueurs)
         self.creer_ias(1)
 
-        print(self.joueurs)
-
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
 
     def update_ship_target(self, ship_id, owner: str, updatee_id: str,
-                            updatee_owner: str):
+                           updatee_owner: str):
         # todo : Maybe add kwargs in target change ?
         ship = self.get_ship(ship_id, owner)
         ship_to_update = self.get_ship(updatee_id, updatee_owner)
@@ -61,11 +59,28 @@ class Modele:
         if ship and ship_to_update:
             ship_to_update.target_change(ship_to_update.position)
 
+    def update_etoiles_ownership(self, planet_id, new_owner: str):
+        etoile = self.get_etoile(planet_id)
+        if etoile:
+            etoile.proprietaire = new_owner
+            self.etoiles.remove(etoile)
+            self.joueurs[new_owner].etoiles_controlees.append(etoile)
+
+    def get_etoile(self, planet_id, owner:str | None = None):
+        if owner is None:
+            for i in self.etoiles:
+                if i.id == planet_id:
+                    return i
 
     def get_ship(self, ship_id, owner):
         for ship in self.joueurs[owner].flotte:
             if ship.id == ship_id:
                 return ship
+
+    def attack_request(self, owner, ship_id , target_id, target_owner):
+        print("attack request")
+        print(owner, ship_id, target_id, target_owner)
+
     def receive_server_action(self, funct: str, args: list):
         """Reçoit une action du serveur et l'ajoute dans la queue.
 
@@ -84,12 +99,13 @@ class Modele:
         # insertion de la prochaine action demandée par le joueur
         if cadre in self.log:
             for i in self.log[cadre]:
-                print("action recue", i)
+                # print("action recue", i)
                 # Ici, if i[0] == model j'envoie l'action au model
                 # Sinon, je l'envoie au joueur
                 if i:
+                    print("action recue", i)
                     if i[0] == "model":
-                        getattr(self, i[1])(i[2])
+                        self.receive_server_action(i[1], i[2])
                     else:
                         self.joueurs[i[0]].receive_server_action(i[1], i[2])
                 """
@@ -99,6 +115,7 @@ class Modele:
             del self.log[cadre]
         # FIN DE L'INTERDICTION #################################
 
+        temp = []
         for i in self.joueurs:
             self.joueurs[i].tick()
 
@@ -193,7 +210,8 @@ class Modele:
 
         for i, joueur in enumerate(joueurs):
             etoile = etoiles_occupee[i]
-            self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0), self.command_queue)
+            self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0),
+                                          self.command_queue)
             for e in range(5):
                 self.etoiles.append(
                     Etoile(self, randrange(etoile.x - 500, etoile.x + 500),
@@ -213,7 +231,9 @@ class Modele:
             self.etoiles.remove(p)
         for i in range(ias):
             self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
-                                         couleurs_ia.pop(0), self.command_queue)
+                                         couleurs_ia.pop(0),
+                                         self.command_queue)
+
 
 class Joueur:
     """Classe du joueur.
@@ -252,14 +272,23 @@ class Joueur:
         self.flotte: Flotte = Flotte()
         """Flotte du joueur."""
 
-        self.ressources_total = Ressource(metal=100, beton=100, energie=500, nourriture=100)
+        self.ressources_total = Ressource(metal=100, beton=100, energie=500,
+                                          nourriture=100)
 
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
+        logs = []
         for type_ship in self.flotte.keys():
             for ship in self.flotte[type_ship]:
                 self.flotte[type_ship][ship].tick()
+                if self.flotte[type_ship][ship].log:
+                    for i in self.flotte[type_ship][ship].log:
+                        logs.append(i)
+                    self.flotte[type_ship][ship].log = []
+
+        for log in logs:
+            self.command_queue.add("model", log[0], self.nom, log[1], log[2], log[3])
 
     def receive_server_action(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
@@ -274,7 +303,7 @@ class Joueur:
     def construct_ship_request(self, planet_id: str, type_ship: str):
         """Fonction que est reçu du serveur depuis la vue du jeu. Elle s'assure que la construction
         d'un vaisseau est possible et la déclenche si elle l'est."""
-        has_enough_ressources : bool = True # Pour debug
+        has_enough_ressources: bool = True  # Pour debug
         if type_ship == "militaire":
             pass
         elif type_ship == "transport":
@@ -308,6 +337,21 @@ class Joueur:
         """
         self.flotte[ship_type][ship_id].target_change(pos)
 
+    def ship_target_to_attack_request(self, ship_id: str, ship_type: str,
+                                      target_id: str, target_type: str,
+                                      position: tuple):
+        """Fonction qui est envoyé depuis la serveyr, via la vue, afin de
+        changer la cible du vaisseau si possible.
+
+        :param ship_id: l'id du vaisseau à déplacer
+        :param ship_type: le type du vaisseau à déplacer
+        :param target_id: l'id de la cible du vaisseau
+        """
+        print("ship_target_to_attack_request", ship_id, ship_type, target_id,
+              target_type, position)
+        self.flotte[ship_type][ship_id].target_to_attack(target_id,
+                                                         target_type, position)
+
     def deplete_energy(self):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
             Compile la quantité d'énergie consommée que requiert les différents bâtiments et vaisseaux à la disposition du joueur.
@@ -325,12 +369,13 @@ class Joueur:
         for key, value in self.flotte.items():
             if isinstance(value, Ship):
                 value = [value]
-           # for vaisseau in value:
-              #  if not vaisseau.docked:
-            #        conso_vaisseaux += vaisseau.consommation
+        # for vaisseau in value:
+        #  if not vaisseau.docked:
+        #        conso_vaisseaux += vaisseau.consommation
         # Todo: Ajouter les variables bool docked et int consommation dans le modele vaisseau (2e sprint)
 
-        self.ressources_total["Energie"] -= AlwaysInt((conso_vaisseaux + conso_structures + self.consommation_joueur))
+        self.ressources_total["Energie"] -= AlwaysInt(
+            (conso_vaisseaux + conso_structures + self.consommation_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.

@@ -131,6 +131,7 @@ class CommandQueue:
 
         self.commands['model'] = {
             "change_planet_owner": [],
+            "attack_request": [],
         }
 
     def add(self, target: str, command: str, *args: Any) -> None:

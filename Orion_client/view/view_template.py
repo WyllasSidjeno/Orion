@@ -297,12 +297,12 @@ class GameCanvas(Canvas):
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
         for i in range(len(mod.etoiles)):
-            self.generate_etoile(mod.etoiles[i], "unowned_star")
+            self.generate_etoile(mod.etoiles[i], "etoile")
 
         owned_stars = self.get_player_stars(mod)
         # todo : Colors
         for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i], "owned_star")
+            self.generate_etoile(owned_stars[i], "etoile_occupee")
         self.generate_trou_de_vers(mod.trou_de_vers)
 
     @staticmethod
@@ -517,7 +517,6 @@ class Minimap(Canvas):
 
         for key in mod.joueurs:
             for star in mod.joueurs[key].etoiles_controlees:
-                print(star.x, star.y, star.id)
                 self.create_oval(star.x * self.x_ratio - 2,
                                  star.y * self.y_ratio - 2,
                                  star.x * self.x_ratio + 2,
@@ -549,7 +548,6 @@ class Minimap(Canvas):
 
     def on_resize(self, _):
         """Gère le redimensionnement de la minimap"""
-        print("resize")
         width = self.winfo_width()
         height = self.winfo_height()
 

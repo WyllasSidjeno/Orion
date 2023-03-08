@@ -115,7 +115,7 @@ class GameView(Frame):
     def look_for_etoile_window_interactions(self, tags_list: list[str]):
         """Gère les interactions de la vue du jeu lors d'un clic gauche sur
         une etoile dans le canvas."""
-        print("etoile", tags_list)
+        print(tags_list)
         if self.canvas.planet_window.is_shown:
             self.canvas.planet_window.hide()
         elif self.is_owner_and_is_type(tags_list, "etoile_occupee"):
@@ -133,10 +133,12 @@ class GameView(Frame):
             self.command_queue.add(self.nom, "ship_target_change_request",
                                    self.previous_selection[1],
                                    self.previous_selection[3], pos)
+
             self.previous_selection = None
 
-    def on_game_right_click(self, _):
+    def on_game_right_click(self, event):
         """Gère les interactions de la vue du jeu lors d'un clic droit."""
+        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         if self.canvas.planet_window.is_shown:
             self.canvas.planet_window.hide()
         tags_list = []
@@ -144,10 +146,18 @@ class GameView(Frame):
             tags_list.append(tag)
 
         if self.previous_selection:
-            if self.is_type(self.previous_selection, "vaisseau"):
-                if self.is_type(tags_list, ["etoile_occupee", "etoile"]) \
+            if self.is_type(self.previous_selection, "reconnaissance"):
+                if self.is_type(tags_list, "etoile") \
                         and not self.is_owner(tags_list):
-                    print("ship movement request to star")
+                    print("recon to star request")
+            elif self.is_type(self.previous_selection, "militaire"):
+                if self.is_type(tags_list, "etoile") \
+                        and not self.is_owner(tags_list):
+                    self.command_queue.add(self.nom,
+                                           "ship_target_to_attack_request",
+                                           self.previous_selection[1],
+                                           self.previous_selection[3],
+                                           tags_list[1], tags_list[0], pos)
             self.previous_selection = None
 
     def is_owner_and_is_type(self, tags_list: list[str],
