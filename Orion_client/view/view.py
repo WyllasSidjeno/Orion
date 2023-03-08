@@ -127,14 +127,12 @@ class GameView(Frame):
         un vaisseau dans le canvas sur la selection actuelle et la selection
         précédente."""
         if self.is_owner_and_is_type(tags_list, "vaisseau"):
-            print("ship", tags_list[1])
             if self.previous_selection is None:
-                print("previous selection is none")
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
-            print("ship movement request")
             self.command_queue.add(self.nom, "ship_target_change_request",
-                                   self.previous_selection[1], pos)
+                                   self.previous_selection[1],
+                                   self.previous_selection[3], pos)
             self.previous_selection = None
 
     def on_game_right_click(self, _):

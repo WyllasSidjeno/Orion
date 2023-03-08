@@ -17,7 +17,8 @@ from ast import literal_eval
 from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model import ships
 from Orion_client.model.building import Building
-from Orion_client.model.ships import Ship, Transport, Militaire, Reconnaissance
+from Orion_client.model.ships import Ship, Transportation, Militaire, \
+    Reconnaissance, Flotte
 from Orion_client.model.space_object import TrouDeVers, Etoile
 from Orion_client.model.ressource import Ressource
 
@@ -233,7 +234,6 @@ class Joueur:
         """
         self.command_queue = command_queue
 
-
         self.consommation_joueur = AlwaysInt(10)
         self.energie = AlwaysInt(10000)
         self.id: str = get_prochain_id()
@@ -249,7 +249,7 @@ class Joueur:
         self.etoiles_controlees: list = [etoile_mere]
         """Liste des etoiles controlees par le joueur."""
 
-        self.flotte: dict[str, list[Ship] | Ship] = {}
+        self.flotte: Flotte = Flotte()
         """Flotte du joueur."""
 
         self.ressources_total = Ressource(metal=100, beton=100, energie=500, nourriture=100)
@@ -257,8 +257,9 @@ class Joueur:
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
-        for i in self.flotte:
-            self.flotte[i].tick()
+        for type_ship in self.flotte.keys():
+            for ship in self.flotte[type_ship]:
+                self.flotte[type_ship][ship].tick()
 
     def receive_server_action(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
@@ -271,7 +272,7 @@ class Joueur:
         getattr(self, funct)(*args)
 
     def construct_ship_request(self, planet_id: str, type_ship: str):
-        """Fonction que est reçu du serveur. Elle s'assure que la construction
+        """Fonction que est reçu du serveur depuis la vue du jeu. Elle s'assure que la construction
         d'un vaisseau est possible et la déclenche si elle l'est."""
         has_enough_ressources : bool = True # Pour debug
         if type_ship == "militaire":
@@ -295,15 +296,17 @@ class Joueur:
         ship = getattr(ships, type_ship.capitalize())(pos, self.nom)
 
         if ship:
-            self.flotte[ship.id] = ship
+            self.flotte[type_ship][ship.id] = ship
 
-    def ship_target_change_request(self, ship_id: str, pos: tuple):
-        """Fonction qui permet de déplacer un vaisseau spécifiquement.
+    def ship_target_change_request(self, ship_id: str, ship_type, pos: tuple):
+        """Fonction qui est envoyé depuis la serveyr, via la vue, afin de
+        changer la cible du vaisseau si possible.
 
         :param ship_id: l'id du vaisseau à déplacer
+        :param ship_type: le type du vaisseau à déplacer
         :param pos: la position cible du vaisseau
         """
-        self.flotte[ship_id].target_change(pos)
+        self.flotte[ship_type][ship_id].target_change(pos)
 
     def deplete_energy(self):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
@@ -340,15 +343,6 @@ class Joueur:
                 return i
         return None
 
-    def get_all_static_ships_positions(self):
-        """Renvoie la position de tous les vaisseaux statiques du joueur.
-        """
-        pos = []
-        for i in self.flotte:
-            if self.flotte[i].is_static():
-                pos.append(self.flotte[i].position)
-        return pos
-
 
 class AI(Joueur):
     """Classe de l'AI.
@@ -372,5 +366,3 @@ class AI(Joueur):
 
     def tick(self) -> None:
         pass
-
-

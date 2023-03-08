@@ -40,6 +40,7 @@ class Ship(ABC):
 
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
+        print("tick ship", self.id)
         if self.position_cible is not None:
             self.move()
             if self.position == self.position_cible:
@@ -47,7 +48,8 @@ class Ship(ABC):
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
-        #todo : Extend signature to ID.
+        # todo : Extend signature to ID.
+        print("moving ship", self.id, "to", self.position_cible)
         self.direction_angle = atan2(self.position_cible[1] - self.position[1],
                                      self.position_cible[0] - self.position[0])
 
@@ -60,6 +62,7 @@ class Ship(ABC):
                 (self.position[0] + self.vitesse * cos(self.direction_angle),
                  self.position[1] + self.vitesse * sin(self.direction_angle))
 
+
     def target_change(self, new_target: tuple[int, int]) -> None:
         """Change la position cible du vaisseau.
         :param new_target: La nouvelle position cible.
@@ -70,6 +73,7 @@ class Ship(ABC):
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
     """
+
     def __init__(self, pos: tuple, owner: str):
         """Initialise un vaisseau militaire.
         :param pos: Position du vaisseau
@@ -92,12 +96,12 @@ class Militaire(Ship):
         super().move()
         if self.position == self.position_cible:
             self.position_cible = None
-        # do colonize after
 
 
-class Transport(Ship):
+class Transportation(Ship):
     """Classe representant un vaisseau de transport.
     """
+
     def __init__(self, pos: tuple, owner: str):
         """Initialise un vaisseau de transport."""
         angle = 0
@@ -122,6 +126,7 @@ class Transport(Ship):
 class Reconnaissance(Ship):
     """Classe représentant un vaisseau de reconnaissance.
     """
+
     def __init__(self, pos: tuple, owner: str):
         """Initialise un vaisseau de reconnaissance."""
         angle = 0
@@ -141,3 +146,27 @@ class Reconnaissance(Ship):
 
     def __repr__(self):
         return "reconnaissance"
+
+
+class Flotte(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self["militaire"]: dict[str, Militaire] = {}
+        self["transportation"]: dict[str, Militaire] = {}
+        self["reconnaissance"]: dict[str, Militaire] = {}
+
+
+
+
+if __name__ == '__main__':
+    flotte = Flotte()
+    military = Militaire((0, 0), "player")
+    recon = Reconnaissance((0, 0), "player")
+    cargo = Transportation((0, 0), "player")
+
+    flotte["militaire"][military.id] = military
+
+    print(flotte["militaire"][military.id].id)
+
+
+

@@ -104,6 +104,7 @@ def call_wrapper(target: str,
     """
     return target, funct_name, args
 
+
 class CommandQueue:
     """Classe permettant de stocker les commandes a executer sous format
     (player, command, args) afin d'être traiter par le serveur.
