@@ -7,6 +7,7 @@ from typing import Any
 import functools
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from Orion_client.model.modele import Joueur, Modele
 
@@ -107,6 +108,7 @@ def call_wrapper(target: str,
 class LogHelper(list):
     """Helper pour les logs de view et de modele avant envoi au serveur ou local
     """
+
     def __init__(self):
         super().__init__()
 
@@ -133,6 +135,7 @@ class LogHelper(list):
         """
         log = self.copy()
         self.clear()
+        print(log)
         return log
 
     def change_main_players(self, username) -> None:
@@ -144,4 +147,54 @@ class LogHelper(list):
                 self[i] = (username, *log[1:])
 
 
+class Commande:
+    """Classe de base pour les commandes.
+    """
+
+    def __init__(self, players: list[str]):
+        # A command dictionnary that contains all of the allowed commands and accept arguments
+
+        self.commands: dict[str, dict[str, list[tuple[Any]]]] = {}
+        """Dictionnaire des commandes.
+        """
+        self.main_player: str = players[0]
+
+        for player in players:
+            self.commands[player] = {
+                "move_ship_request": [],
+                "move_ship_to_colonize_request": [],
+                "move_ship_to_attack_request": [],
+
+            }
+
+        self.commands['model'] = {
+            "change_planet_owner": [],
+        }
+
+    def add_command(self, player: str, command: str, *args: Any) -> None:
+        """Ajoute une commande a la liste des commandes. Les commandes sont
+        executées dans l'ordre d'ajout.
+        :param player: Le joueur.
+        :param command: La commande.
+        :param args: Les arguments de la commande.
+        """
+        if player == 'main_player':
+            player = self.main_player
+        self.commands[player][command].append(args)
+
+    def get_command(self, player: str,
+                    command_name: str) -> tuple[str, str, tuple[Any]]:
+        """Recupere une commande et ses arguments et la supprime de la liste.
+        :param player: Le joueur.
+        :param command_name: La commande.
+        :return: Les arguments de la commande.
+        """
+        return player, command_name, self.commands[player][command_name].pop(0)
+
+if __name__ == '__main__':
+    command = Commande(["player1", "player2"])
+
+    command.add_command("player1", "move_ship_request", 1, 2)
+
+    print(command.get_command("player1", "move_ship_request"))
 

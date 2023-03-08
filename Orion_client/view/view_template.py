@@ -756,3 +756,4 @@ class ConstructShipMenu(Menu):
         """Montre le menu a la position de la souris"""
         self.planet_id = planet_id
         self.post(event.x_root, event.y_root)
+
