@@ -118,10 +118,11 @@ class Modele:
                 print("action recue", i)
                 # Ici, if i[0] == model j'envoie l'action au model
                 # Sinon, je l'envoie au joueur
-                if i[0] == "model":
-                    getattr(self, i[1])(i[2])
-                else:
-                    self.joueurs[i[0]].action_from_server(i[1], i[2])
+                if i:
+                    if i[0] == "model":
+                        getattr(self, i[1])(i[2])
+                    else:
+                        self.joueurs[i[0]].action_from_server(i[1], i[2])
                 """
                 i a la forme suivante [nomjoueur, action, [arguments]
                 alors self.joueurs[i[0]] -> trouve l'objet représentant le joueur de ce nom
