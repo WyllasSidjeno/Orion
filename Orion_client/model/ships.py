@@ -65,6 +65,8 @@ class Ship(ABC):
         :param new_target: La nouvelle position cible.
         """
         self.position_cible = new_target
+
+
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
     """
@@ -130,12 +132,12 @@ class Reconnaissance(Ship):
         self.attack_strength = 0  # TODO : Make this part of the mother class
         self.defense_strength = 0
 
-    def __repr__(self):
-        return "reconnaissance"
-
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
         super().move()
         if self.position == self.position_cible:
             self.position_cible = None
             # do colonize on arrival
+
+    def __repr__(self):
+        return "reconnaissance"

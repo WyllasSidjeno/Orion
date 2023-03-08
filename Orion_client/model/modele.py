@@ -38,6 +38,7 @@ class Modele:
         self.hauteur: int = 9000
 
         self.joueurs: dict = {}
+
         self.log: dict = {}
         self.etoiles: list = []
         self.trou_de_vers: list = []
@@ -46,66 +47,31 @@ class Modele:
         self.creer_joueurs(joueurs)
         self.creer_ias(1)
 
+        print(self.joueurs)
+
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
 
-    def creer_trou_de_vers(self, num_wormholes: int):
-        """Crée n trous de vers.
+    def update_ship_target(self, ship_id, owner: str, updatee_id: str,
+                            updatee_owner: str):
+        # todo : Maybe add kwargs in target change ?
+        ship = self.get_ship(ship_id, owner)
+        ship_to_update = self.get_ship(updatee_id, updatee_owner)
 
-        :param num_wormholes: le nombre de trous de vers à créer"""
-        for _ in range(num_wormholes):
-            x1 = randrange(10, self.largeur - 10)
-            y1 = randrange(10, self.hauteur - 10)
-            x2 = randrange(10, self.largeur - 10)
-            y2 = randrange(10, self.hauteur - 10)
-            self.trou_de_vers.append(TrouDeVers(x1, y1, x2, y2))
+        if ship and ship_to_update:
+            ship_to_update.target_change(ship_to_update.position)
 
-    def creer_etoiles(self, nb_etoiles: int):
-        """Crée des étoiles, d'une certaine couleur dépendant du joueur.
 
-        :param nb_etoiles: le nombre d'étoiles à créer
+    def get_ship(self, ship_id, owner):
+        for ship in self.joueurs[owner].flotte:
+            if ship.id == ship_id:
+                return ship
+    def receive_server_action(self, funct: str, args: list):
+        """Reçoit une action du serveur et l'ajoute dans la queue.
+
+        :param funct: la fonction à appeler
+        :param args: les arguments de la fonction
         """
-        bordure = 10
-        self.etoiles = [
-            Etoile(self, randrange(self.largeur - (2 * bordure)) + bordure,
-                   randrange(self.hauteur - (2 * bordure)) + bordure)
-            for _ in range(nb_etoiles)]
-
-    def creer_joueurs(self, joueurs: list):
-        """Créé les joueurs et leur attribue une etoile mère.
-
-        :param joueurs: la liste des joueurs à créer
-        """
-        couleurs = ["red", "blue", "lightgreen", "yellow", "lightblue", "pink",
-                    "gold", "purple"]
-        etoiles_occupee = []
-        for i in range(len(joueurs)):
-            p = choice(self.etoiles)
-            etoiles_occupee.append(p)
-            self.etoiles.remove(p)
-
-        for i, joueur in enumerate(joueurs):
-            etoile = etoiles_occupee[i]
-            self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0), self.command_queue)
-            for e in range(5):
-                self.etoiles.append(
-                    Etoile(self, randrange(etoile.x - 500, etoile.x + 500),
-                           randrange(etoile.y - 500, etoile.y + 500)))
-
-    def creer_ias(self, ias: int = 0):
-        """Créer les IAs et leur attribue une etoile mère.
-
-        :param ias: le nombre d'IA à créer
-        """
-        couleurs_ia = ["orange", "green", "cyan", "SeaGreen1", "turquoise1",
-                       "firebrick1"]
-        etoiles_occupee = []
-        for i in range(ias):
-            p = choice(self.etoiles)
-            etoiles_occupee.append(p)
-            self.etoiles.remove(p)
-        for i in range(ias):
-            self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
-                                         couleurs_ia.pop(0), self.command_queue)
+        getattr(self, funct)(*args)
 
     def tick(self, cadre):
         """Joue le prochain coup pour chaque objet.
@@ -124,7 +90,7 @@ class Modele:
                     if i[0] == "model":
                         getattr(self, i[1])(i[2])
                     else:
-                        self.joueurs[i[0]].action_from_server(i[1], i[2])
+                        self.joueurs[i[0]].receive_server_action(i[1], i[2])
                 """
                 i a la forme suivante [nomjoueur, action, [arguments]
                 alors self.joueurs[i[0]] -> trouve l'objet représentant le joueur de ce nom
@@ -189,6 +155,64 @@ class Modele:
                 return joueur.id
         return None
 
+    def creer_trou_de_vers(self, num_wormholes: int):
+        """Crée n trous de vers.
+
+        :param num_wormholes: le nombre de trous de vers à créer"""
+        for _ in range(num_wormholes):
+            x1 = randrange(10, self.largeur - 10)
+            y1 = randrange(10, self.hauteur - 10)
+            x2 = randrange(10, self.largeur - 10)
+            y2 = randrange(10, self.hauteur - 10)
+            self.trou_de_vers.append(TrouDeVers(x1, y1, x2, y2))
+
+    def creer_etoiles(self, nb_etoiles: int):
+        """Crée des étoiles, d'une certaine couleur dépendant du joueur.
+
+        :param nb_etoiles: le nombre d'étoiles à créer
+        """
+        bordure = 10
+        self.etoiles = [
+            Etoile(self, randrange(self.largeur - (2 * bordure)) + bordure,
+                   randrange(self.hauteur - (2 * bordure)) + bordure)
+            for _ in range(nb_etoiles)]
+
+    def creer_joueurs(self, joueurs: list):
+        """Créé les joueurs et leur attribue une etoile mère.
+
+        :param joueurs: la liste des joueurs à créer
+        """
+        couleurs = ["red", "blue", "lightgreen", "yellow", "lightblue", "pink",
+                    "gold", "purple"]
+        etoiles_occupee = []
+        for i in range(len(joueurs)):
+            p = choice(self.etoiles)
+            etoiles_occupee.append(p)
+            self.etoiles.remove(p)
+
+        for i, joueur in enumerate(joueurs):
+            etoile = etoiles_occupee[i]
+            self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0), self.command_queue)
+            for e in range(5):
+                self.etoiles.append(
+                    Etoile(self, randrange(etoile.x - 500, etoile.x + 500),
+                           randrange(etoile.y - 500, etoile.y + 500)))
+
+    def creer_ias(self, ias: int = 0):
+        """Créer les IAs et leur attribue une etoile mère.
+
+        :param ias: le nombre d'IA à créer
+        """
+        couleurs_ia = ["orange", "green", "cyan", "SeaGreen1", "turquoise1",
+                       "firebrick1"]
+        etoiles_occupee = []
+        for i in range(ias):
+            p = choice(self.etoiles)
+            etoiles_occupee.append(p)
+            self.etoiles.remove(p)
+        for i in range(ias):
+            self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
+                                         couleurs_ia.pop(0), self.command_queue)
 
 class Joueur:
     """Classe du joueur.
@@ -236,7 +260,7 @@ class Joueur:
         for i in self.flotte:
             self.flotte[i].tick()
 
-    def action_from_server(self, funct: str, args: list):
+    def receive_server_action(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
         fonction de la fonction et des arguments envoyés.
 
