@@ -1,19 +1,17 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.helper import LogHelper
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    SideBar, ShipViewGenerator
+    SideBar
 
 
 class GameView(Frame):
     nom: str
     id: str
 
-    def __init__(self):
+    def __init__(self, command):
         super().__init__()
-
-        self.log = LogHelper()
-        """Module assistant pour les logs."""
+        self.command_queue = command
+        """Représente la queue de commandes du jeu."""
 
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
@@ -21,7 +19,7 @@ class GameView(Frame):
         self.top_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
         """Représente la barre du haut de la vue du jeu."""
 
-        self.side_bar = SideBar(self)
+        self.side_bar = SideBar(self, self.command_queue)
         """Représente la barre de droite de la vue du jeu."""
 
         self.scrollX = Scrollbar(self, orient="horizontal")
@@ -29,7 +27,8 @@ class GameView(Frame):
         self.scrollY = Scrollbar(self, orient="vertical")
         """""Représente la scrollbar verticale de la vue du jeu."""
 
-        self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
+        self.canvas = GameCanvas(self, self.scrollX, self.scrollY,
+                                 self.command_queue)
         """Représente le canvas de la vue du jeu."""
 
         self.previous_selection: list[str] | None = None
@@ -37,7 +36,7 @@ class GameView(Frame):
 
         self.pack(fill="both", expand=True)
 
-        """Générateur de vue de vaisseau semi-statique pour le canvas."""
+        self.bind_game_requests()
 
     def configure_grid(self):
         """Configures la grid de la vue principale du jeu."""
@@ -87,13 +86,6 @@ class GameView(Frame):
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
 
-    def get_all_view_logs(self):
-        """Retourne tous les logs de la vue et des sous-vues."""
-        for i in self.canvas.get_all_view_logs():
-            self.log.add_log(i)
-
-        return self.log.get_and_clear()
-
     def on_minimap_left_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
         pctx = event.x / self.side_bar.minimap.winfo_width()
@@ -141,8 +133,8 @@ class GameView(Frame):
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
             print("ship movement request")
-            self.log.add(self.nom, "move_ship", self.previous_selection[1]
-                         , pos)
+            self.command_queue.add(self.nom, "ship_target_change_request",
+                                   self.previous_selection[1], pos)
             self.previous_selection = None
 
     def on_game_right_click(self, _):

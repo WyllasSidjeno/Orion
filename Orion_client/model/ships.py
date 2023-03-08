@@ -60,6 +60,11 @@ class Ship(ABC):
                 (self.position[0] + self.vitesse * cos(self.direction_angle),
                  self.position[1] + self.vitesse * sin(self.direction_angle))
 
+    def target_change(self, new_target: tuple[int, int]) -> None:
+        """Change la position cible du vaisseau.
+        :param new_target: La nouvelle position cible.
+        """
+        self.position_cible = new_target
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
     """

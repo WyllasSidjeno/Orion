@@ -8,8 +8,6 @@ if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
     from Orion_client.model.space_object import TrouDeVers, PorteDeVers
 
-from Orion_client.helper import LogHelper
-
 hexDarkGrey: str = "#36393f"
 """Couleur de fond des frames"""
 hexDark: str = "#2f3136"
@@ -20,12 +18,12 @@ hexSpaceBlack: str = "#23272a"
 
 class EtoileWindow(Frame):
     planet_id: int
-    def __init__(self, parent: GameCanvas):
+    def __init__(self, parent: GameCanvas, command_queue):
         """Initialise la fenetre"""
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
                          width=500, height=500)
 
-        self.log: LogHelper = LogHelper()
+        self.command_queue = command_queue
 
         self.is_shown: bool = False
         """Si la fenetre est affichee"""
@@ -99,7 +97,8 @@ class EtoileWindow(Frame):
                                             text="Construire un vaisseau",
                                             bg=hexDarkGrey, fg="white",
                                             font=("Arial", 10))
-        self.construct_ship_menu = ConstructShipMenu(self.side_frame)
+        self.construct_ship_menu = ConstructShipMenu(self.side_frame,
+                                                     self.command_queue)
         x, y = self.construct_ship_button.winfo_rootx(), \
             self.construct_ship_button.winfo_rooty()
 
@@ -116,18 +115,11 @@ class EtoileWindow(Frame):
         """Affiche le menu de construction de vaisseau"""
         self.construct_ship_menu.show(event, self.planet_id)
 
-
     def hide(self) -> None:
         """Cache la fenetre"""
         self.construct_ship_menu.current_planet_id = None
         self.place_forget()
         self.is_shown = False
-
-    def get_all_view_logs(self) -> list[str]:
-        """Retourne tous les logs de la fenetre"""
-        for i in self.construct_ship_menu.log.get_and_clear():
-            self.log.add_log(i)
-        return self.log.get_and_clear()
 
     def show(self, planet_id: int) -> None:
         """Affiche la fenetre"""
@@ -263,16 +255,15 @@ class GameCanvas(Canvas):
 
     # todo : Make the tags more streamlined and documented.
     username: str
-
     def __init__(self, master: Frame, scroll_x: Scrollbar,
-                 scroll_y: Scrollbar):
+                 scroll_y: Scrollbar, command_queue):
         """Initialise le canvas de jeu
         :param master: Le Frame parent
         :param scroll_x: La scrollbar horizontale
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
-        self.log = LogHelper()
+        self.command_queue = command_queue
         self.configure(bg=hexSpaceBlack, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scroll_x.set,
@@ -284,7 +275,7 @@ class GameCanvas(Canvas):
         self.configure(scrollregion=(0, 0, 9000, 9000))
         self.ship_view = ShipViewGenerator()
 
-        self.planet_window = EtoileWindow(self)
+        self.planet_window = EtoileWindow(self, self.command_queue)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.planet_window.hide()
 
@@ -401,13 +392,6 @@ class GameCanvas(Canvas):
 
         self.tag_raise("vaisseau")
 
-    def get_all_view_logs(self) -> list[str]:
-        """Récupère tous les logs du canvas de jeu."""
-        for i in self.planet_window.get_all_view_logs():
-            self.log.add_log(i)
-
-        return self.log.get_and_clear()
-
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
         self.xview_scroll(-1 * int(event.delta / 120), "units")
@@ -419,11 +403,10 @@ class GameCanvas(Canvas):
 
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
-
-    def __init__(self, master: Frame):
+    def __init__(self, master: Frame, command_queue):
         """Initialise la sidebar"""
         super().__init__(master)
-        self.log = LogHelper()
+        self.command_queue = command_queue
         self.configure(bg=hexDark, bd=1,
                        relief="solid")
 
@@ -700,7 +683,8 @@ class ShipViewGenerator:
                           pos[0] + self.settings["Reconnaissance"]["size"],
                           pos[1] + self.settings["Reconnaissance"]["size"],
                           start=0, extent=180, fill=couleur,
-                          tags=("vaisseau", ship_id, username, ship_type))
+                          tags=("vaisseau", ship_id, username, ship_type),
+                          outline=hexSpaceBlack)
 
     def create_transportation(self, master: Canvas, pos: tuple, couleur: str,
                      ship_id: str, username: str, ship_type: str):
@@ -711,7 +695,8 @@ class ShipViewGenerator:
                                 pos[0] + self.settings["Transport"]["size"],
                                 pos[1] + self.settings["Transport"]["size"],
                                 fill=couleur,
-                                tags=("vaisseau", ship_id, username, ship_type))
+                                tags=("vaisseau", ship_id, username, ship_type),
+                                outline=hexSpaceBlack)
 
     def create_militaire(self, master: Canvas, pos: tuple, couleur: str,
                        ship_id: str, username: str, ship_type: str):
@@ -725,7 +710,8 @@ class ShipViewGenerator:
                               pos[0] + self.settings["Militaire"]["size"],
                               pos[1] + self.settings["Militaire"]["size"],
                               fill=couleur,
-                              tags=("vaisseau", ship_id, username, ship_type))
+                              tags=("vaisseau", ship_id, username, ship_type),
+                              outline=hexSpaceBlack)
 
 
 class ConstructShipMenu(Menu):
@@ -733,20 +719,21 @@ class ConstructShipMenu(Menu):
     """
     planet_id: str
 
-    def __init__(self, master: Frame):
+    def __init__(self, master: Frame, command_queue):
         """Initialise le menu deroulant"""
         super().__init__(master, tearoff=0, bg=hexDarkGrey)
-        self.log = LogHelper()
+        self.command_queue = command_queue
         self.ship_types = ["Reconnaissance", "Militaire", "Transport"]
 
         for i in range(len(self.ship_types)):
             self.add_command(label=self.ship_types[i],
-                             command=partial(self.add_event_to_log, i))
+                             command=partial(self.add_event_to_command_queue,
+                                             i))
 
-    def add_event_to_log(self, i):
-        """Ajoute un evenement de construction de vaisseau au log"""
-        self.log.add("main_player", "construct_ship", self.planet_id,
-                     self.ship_types[i].lower())
+    def add_event_to_command_queue(self, i):
+        """Ajoute un evenement de construction de vaisseau au command_queue"""
+        self.command_queue.add("main_player", "construct_ship_request",
+                               self.planet_id, self.ship_types[i].lower())
 
     def hide(self, _):
         """Cache le menu"""

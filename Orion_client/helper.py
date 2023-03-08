@@ -104,66 +104,27 @@ def call_wrapper(target: str,
     """
     return target, funct_name, args
 
-
-class LogHelper(list):
-    """Helper pour les logs de view et de modele avant envoi au serveur ou local
+class CommandQueue:
+    """Classe permettant de stocker les commandes a executer sous format
+    (player, command, args) afin d'être traiter par le serveur.
+    et ensuite par le modele.
     """
-
-    def __init__(self):
-        super().__init__()
-
-    def add(self, target: str, funct_name: str, *args: Any) -> None:
-        """Ajoute une action.
-        :param target: Le joueur ou le model.
-        :type target: str ('nom' ou 'model')
-        :param funct_name: Le nom de la fonction.
-        :param add_func_name: Les noms des fonctions à ajouter.
-        :param args: Les arguments de la fonction.
-        """
-        self.append((target, funct_name, args))
-
-    def add_log(self, log) -> None:
-        """Ajoute un log.
-        :param log: Le log.
-        """
-        self.append(log)
-
-    def get_and_clear(self):
-        """Recupere les logs et supprime ses propres logs.
-        :return: Les logs.
-        :rtype: dict[str, list[list[str | list[Any] | tuple[Any]]]]
-        """
-        log = self.copy()
-        self.clear()
-        print(log)
-        return log
-
-    def change_main_players(self, username) -> None:
-        """Change les mentions de "main_player" par "nom".
-        :param username: Le nouveau nom.
-        """
-        for i, log in enumerate(self):
-            if log[0] == 'main_player':
-                self[i] = (username, *log[1:])
-
-
-class Commande:
-    """Classe de base pour les commandes.
-    """
-
-    def __init__(self, players: list[str]):
-        # A command dictionnary that contains all of the allowed commands and accept arguments
+    def __init__(self, players: list[str], user: str):
+        """Constructeur."""
 
         self.commands: dict[str, dict[str, list[tuple[Any]]]] = {}
         """Dictionnaire des commandes.
         """
-        self.main_player: str = players[0]
+        self.main_player: str = user
+        """Le joueur principal de ce client."""
 
         for player in players:
             self.commands[player] = {
-                "move_ship_request": [],
-                "move_ship_to_colonize_request": [],
-                "move_ship_to_attack_request": [],
+                "ship_target_change_request": [],
+                "ship_target_to_colonize_request": [],
+                "ship_target_to_attack_request": [],
+
+                "construct_ship_request": [],
 
             }
 
@@ -171,30 +132,48 @@ class Commande:
             "change_planet_owner": [],
         }
 
-    def add_command(self, player: str, command: str, *args: Any) -> None:
-        """Ajoute une commande a la liste des commandes. Les commandes sont
+    def add(self, target: str, command: str, *args: Any) -> None:
+        """Ajoute une commande_queue a la liste des commandes. Les commandes sont
         executées dans l'ordre d'ajout.
-        :param player: Le joueur.
-        :param command: La commande.
-        :param args: Les arguments de la commande.
+        :param target: La cible. Soit un joueur, soit le model.
+        :param command: Le nom de la methode a executer.
+        :param args: Les arguments de methode.
         """
-        if player == 'main_player':
-            player = self.main_player
-        self.commands[player][command].append(args)
+        if target == 'main_player':
+            target = self.main_player
+        self.commands[target][command].append(args)
 
-    def get_command(self, player: str,
-                    command_name: str) -> tuple[str, str, tuple[Any]]:
-        """Recupere une commande et ses arguments et la supprime de la liste.
-        :param player: Le joueur.
-        :param command_name: La commande.
-        :return: Les arguments de la commande.
+    def get_all(self) -> list[tuple[str, str, tuple[Any]]]:
+        """Recupere toutes les commandes et les supprime de la liste.
+        :return: Les commandes.
         """
-        return player, command_name, self.commands[player][command_name].pop(0)
+        commands = []
+        for player in self.commands:
+            for command in self.commands[player]:
+                for args in self.commands[player][command]:
+                    commands.append((player, command, args))
+                self.commands[player][command].clear()
+        return commands
+    def clear(self):
+        """Supprime toutes les commandes.
+        """
+        for player in self.commands:
+            for command in self.commands[player]:
+                self.commands[player][command].clear()
 
-if __name__ == '__main__':
-    command = Commande(["player1", "player2"])
+    def __iter__(self):
+        """Fonction magique permettant d'iterer sur les commandes.
 
-    command.add_command("player1", "move_ship_request", 1, 2)
+        Exemple :
+        for command in self.command_queue:
+            print(command)
+        """
+        return iter(self.commands)
 
-    print(command.get_command("player1", "move_ship_request"))
+    def __getitem__(self, item):
+        """Fonction magique permettant d'acceder aux commandes.
 
+        Exemple :
+        self.command_queue[target][ship_target_change_request]
+        """
+        return self.commands[item]

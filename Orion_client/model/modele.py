@@ -26,11 +26,12 @@ class Modele:
     Le modèle contient les données du jeu.
     """
 
-    def __init__(self, joueurs):
+    def __init__(self, joueurs, command_queue):
         """Initialise le modèle.
 
         :param joueurs: les joueurs du jeu
         """
+        self.command_queue = command_queue
         self.largeur: int = 9000
         self.hauteur: int = 9000
 
@@ -82,7 +83,7 @@ class Modele:
 
         for i, joueur in enumerate(joueurs):
             etoile = etoiles_occupee[i]
-            self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0))
+            self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0), self.command_queue)
             for e in range(5):
                 self.etoiles.append(
                     Etoile(self, randrange(etoile.x - 500, etoile.x + 500),
@@ -102,7 +103,7 @@ class Modele:
             self.etoiles.remove(p)
         for i in range(ias):
             self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
-                                         couleurs_ia.pop(0))
+                                         couleurs_ia.pop(0), self.command_queue)
 
     def tick(self, cadre):
         """Joue le prochain coup pour chaque objet.
@@ -111,8 +112,6 @@ class Modele:
         """
 
         #  NE PAS TOUCHER LES LIGNES SUIVANTES  #################
-        self.cadre_courant = cadre
-
         # insertion de la prochaine action demandée par le joueur
         if cadre in self.log:
             for i in self.log[cadre]:
@@ -196,7 +195,8 @@ class Joueur:
     liste d'actions.
     """
 
-    def __init__(self, nom: str, etoile_mere: Etoile, couleur: str):
+    def __init__(self, nom: str, etoile_mere: Etoile, couleur: str,
+                 command_queue):
         """Initialise le joueur.
 
         :param parent: le jeu auquel le joueur appartient
@@ -204,6 +204,8 @@ class Joueur:
         :param etoile_mere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
         """
+        self.command_queue = command_queue
+
         self.consommation_joueur = AlwaysInt(10)
         self.energie = AlwaysInt(10000)
         self.id: str = get_prochain_id()
@@ -238,32 +240,40 @@ class Joueur:
         """
         getattr(self, funct)(*args)
 
+    def construct_ship_request(self, planet_id: str, type_ship: str):
+        """Fonction que est reçu du serveur. Elle s'assure que la construction
+        d'un vaisseau est possible et la déclenche si elle l'est."""
+        has_enough_ressources : bool = True # Pour debug
+        if type_ship == "militaire":
+            pass
+        elif type_ship == "transport":
+            pass
+        elif type_ship == "reconnaissance":
+            pass
+
+        if has_enough_ressources:
+            self.construct_ship(planet_id, type_ship)
+
     def construct_ship(self, planet_id, type_ship):
-        """Déclence la construction d'un vaisseau sur une planète dépendant
+        """Déclenche la construction d'un vaisseau sur une planète dépendant
         du type de vaisseau demandé.
 
         :param planet_id: l'id de la planète sur laquelle construire le vaisseau
         :param type_ship: le type de vaisseau à construire
         """
         pos = self.get_etoile_by_id(planet_id).position
-        ship = None
-        if type_ship == "militaire":
-            ship = Militaire(pos, self.id)
-        elif type_ship == "transport":
-            ship = Transport(pos, self.id)
-        elif type_ship == "reconnaissance":
-            ship = Reconnaissance(pos, self.id)
+        ship = getattr(ships, type_ship.capitalize())(pos, self.nom)
 
         if ship:
             self.flotte[ship.id] = ship
 
-    def move_ship(self, ship_id: str, pos: tuple):
+    def ship_target_change_request(self, ship_id: str, pos: tuple):
         """Fonction qui permet de déplacer un vaisseau spécifiquement.
 
         :param ship_id: l'id du vaisseau à déplacer
         :param pos: la position cible du vaisseau
         """
-        self.flotte[ship_id].position_cible = pos
+        self.flotte[ship_id].target_change(pos)
 
     def deplete_energy(self, list_vaisseau: list, list_structure: list):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
@@ -316,14 +326,14 @@ class AI(Joueur):
     """
 
     def __init__(self, nom: str,
-                 etoile_mere: Etoile, couleur: str) -> None:
+                 etoile_mere: Etoile, couleur: str, command_queue) -> None:
         """Initialise l'AI.
 
         :param nom: le nom de l'AI
         :param etoile_mere: l'etoile mere de l'AI
         :param couleur: la couleur de l'AI
         """
-        Joueur.__init__(self, nom, etoile_mere, couleur)
+        Joueur.__init__(self, nom, etoile_mere, couleur, command_queue)
         self.cooldownmax: int = 1000
         """Cooldown max de l'AI avant son prochain vaisseau."""
         self.cooldown: int = 20
