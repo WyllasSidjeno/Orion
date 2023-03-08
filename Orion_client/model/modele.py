@@ -16,8 +16,10 @@ from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model import ships
+from Orion_client.model.building import Building
 from Orion_client.model.ships import Ship, Transport, Militaire, Reconnaissance
 from Orion_client.model.space_object import TrouDeVers, Etoile
+from Orion_client.model.ressource import Ressource
 
 
 class Modele:
@@ -207,6 +209,7 @@ class Joueur:
         """
         self.command_queue = command_queue
 
+
         self.consommation_joueur = AlwaysInt(10)
         self.energie = AlwaysInt(10000)
         self.id: str = get_prochain_id()
@@ -224,6 +227,8 @@ class Joueur:
 
         self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
+
+        self.ressources_total = Ressource(metal=100, beton=100, energie=500, nourriture=100)
 
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
@@ -276,28 +281,29 @@ class Joueur:
         """
         self.flotte[ship_id].target_change(pos)
 
-    def deplete_energy(self, list_vaisseau: list, list_structure: list):
+    def deplete_energy(self):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
-        :param list_vaisseau: Liste des vaisseaux du joueur
-        :param list_structure: Liste des structure du joueur à sa disposition
+            Compile la quantité d'énergie consommée que requiert les différents bâtiments et vaisseaux à la disposition du joueur.
+            puis réaffecte la quantité d'énergie disponible au joueur.
+        """
+        conso_structures: int = 0
+        conso_vaisseaux: int = 0
+        # Consommation d'énergie des structures du joueur
+        for e in self.etoiles_controlees:
+            for b in e.buildinglist:
+                if isinstance(b, Building):
+                    conso_structures += b.consumption
 
-        :return: quantité total d'énergie consommée.
-            """
-        self.consoVaisseau = 0
-        self.consoStructure = 0
+        # Consommation des vaisseaux de la flotte du joueur.
+        for key, value in self.flotte.items():
+            if isinstance(value, Ship):
+                value = [value]
+           # for vaisseau in value:
+              #  if not vaisseau.docked:
+            #        conso_vaisseaux += vaisseau.consommation
+        # Todo: Ajouter les variables bool docked et int consommation dans le modele vaisseau (2e sprint)
 
-        for vaisseau in list_vaisseau:
-            if vaisseau.docked:
-                self.consoVaisseau += vaisseau.consommation / 2
-            else:
-                self.consoVaisseau += vaisseau.consommation
-
-        for structure in list_structure:
-            self.consoStructure += structure.consommation
-        # TODO Ajuster la méthode si on doit s'en servir
-        # TODO comme getter (return) ou affectation directe à la classe Joueur
-        self.energie -= AlwaysInt((self.consoVaisseau + self.consoStructure
-                                   + self.consommation_joueur))
+        self.ressources_total["Energie"] -= AlwaysInt((conso_vaisseaux + conso_structures + self.consommation_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.
@@ -344,48 +350,3 @@ class AI(Joueur):
         pass
 
 
-class Population:
-    """ Population de la planète découverte
-    """
-
-    def __init__(self, pop, totalNourriture, pourcentBonus):
-        """
-        :param pop: Initialise la quantité d'habitants sur la planètes.
-        :param totalNourriture: Initialise la quantité de nourriture disponible.
-        :param pourcentBonus: taux de croissance de la population lorsqu'elle prospère
-                ou taux de perte de vie humaine si elle est attaquée
-
-
-        """
-        self.nb_humains = AlwaysInt(pop)
-        self.is_under_siege = False
-        self.totalNourriture = AlwaysInt(totalNourriture)
-        self.pourcentBonus = pourcentBonus
-        # pourcentBonus pourrait être un boni donné à la découverte de l'étoile
-        # ou selon un niveau de défense (à déterminer)
-
-    def increment_pop(self, isUnderSiege: bool):
-        """ Modifie la quantité de la population de la planète selon son état.
-            Appelée à des intervalles spécifiques ou dès que la planète est attaquée
-
-            :param isUnderSiege: Booléen qui détermine si la planète est présentement attaquée.
-            :return: quantité d'humains vivant sur la planète.
-        """
-
-        #   Version 1, incluant une condition sur la quantité d'humains
-        #   if not self.nb_humains:
-        #       return 0
-        #   else:
-
-        self.is_under_siege = isUnderSiege
-        # déterminer au moment de l'appel de la méthode si la population est sous-attaque.
-        if not self.is_under_siege:
-            self.nb_humains *= AlwaysInt((100 + self.pourcentBonus) + (
-                        self.totalNourriture / self.nb_humains))
-        else:  # si la population de la planete est attaquée
-            self.nb_humains = AlwaysInt(
-                self.nb_humains * ((100 - self.pourcentBonus) / 100))
-
-        # Si le retour est 0 ou moins
-        # d'un chiffre acceptable pour la subsistance de la planète (à déterminer),
-        # elle peut alors être conquise.
