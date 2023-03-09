@@ -100,8 +100,6 @@ class EtoileWindow(Frame):
                                             font=("Arial", 10))
         self.construct_ship_menu = ConstructShipMenu(self.side_frame,
                                                      self.command_queue)
-        x, y = self.construct_ship_button.winfo_rootx(), \
-            self.construct_ship_button.winfo_rooty()
 
         self.construct_ship_button.bind("<Button-1>",
                                         self.show_construct_menu)
@@ -253,8 +251,6 @@ class GameCanvas(Canvas):
     planetes, vaisseaux spaciaux et autres objets du jeu qui ne sont
     pas des menus ou des fenetres ou de l'information
     """
-
-    # todo : Make the tags more streamlined and documented.
     username: str
 
     def __init__(self, master: Frame, scroll_x: Scrollbar,
@@ -329,7 +325,7 @@ class GameCanvas(Canvas):
             self.create_oval(x - size, y - size, x + size, y + size,
                              fill=col, tags="background")
 
-    def generate_etoile(self, star, tag: str, *args):
+    def generate_etoile(self, star, tag: str):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
@@ -435,7 +431,6 @@ class SideBar(Frame):
             self.grid_rowconfigure(i, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_propagate(False)
-        # Make sure they all stay the same size 1/3
 
     def initialize(self, mod):
         """Initialise la sidebar avec les données du model
@@ -512,8 +507,8 @@ class Minimap(Canvas):
                              star.y * self.y_ratio - 2,
                              star.x * self.x_ratio + 2,
                              star.y * self.y_ratio + 2,
-                             fill="grey", tags="etoile"
-                             , outline=hexSpaceBlack)
+                             fill="grey", tags="etoile",
+                             outline=hexSpaceBlack)
 
         for key in mod.joueurs:
             for star in mod.joueurs[key].etoiles_controlees:
@@ -530,8 +525,9 @@ class Minimap(Canvas):
                              wormhole.porte_a.y * self.y_ratio - 2,
                              wormhole.porte_a.x * self.x_ratio + 2,
                              wormhole.porte_a.y * self.y_ratio + 2,
-                             fill="purple", tags="TrouDeVers"
-                             , outline=hexSpaceBlack)
+                             fill="purple", tags="TrouDeVers",
+                             outline=hexSpaceBlack)
+
             self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                              wormhole.porte_b.y * self.y_ratio - 2,
                              wormhole.porte_b.x * self.x_ratio + 2,
@@ -557,42 +553,39 @@ class Minimap(Canvas):
         self.x_ratio = width / 9000
         self.y_ratio = height / 9000
 
-        for star in self.find_withtag("etoile"):
-            x1, y1, x2, y2 = self.coords(star)
-            new_x1 = x1 * self.x_ratio / self.old_x_ratio
-            new_y1 = y1 * self.y_ratio / self.old_y_ratio
-            new_x2 = x2 * self.x_ratio / self.old_x_ratio
-            new_y2 = y2 * self.y_ratio / self.old_y_ratio
-            self.delete(star)
-            self.create_oval(new_x1, new_y1, new_x2, new_y2,
-                             fill="grey", tags="etoile",
-                             outline=hexSpaceBlack)
+        items = [
+            ("etoile", "grey"),
+            ("TrouDeVers", "purple")
+        ]
+
+        for tag, color in items:
+            for star in self.find_withtag(tag):
+                new_x1, new_y1,\
+                    new_x2,\
+                    new_y2 = self.get_new_star_position(*self.coords(star))
+                self.delete(star)
+                self.create_oval(new_x1, new_y1, new_x2, new_y2,
+                                 fill=color, tags=tag, outline=hexSpaceBlack)
 
         for star in self.find_withtag("etoile_controlee"):
-            x1, y1, x2, y2 = self.coords(star)
+            new_x1, new_y1, \
+                new_x2, new_y2 = self.get_new_star_position(*self.coords(star))
             color = self.itemcget(star, "fill")
-            new_x1 = x1 * self.x_ratio / self.old_x_ratio
-            new_y1 = y1 * self.y_ratio / self.old_y_ratio
-            new_x2 = x2 * self.x_ratio / self.old_x_ratio
-            new_y2 = y2 * self.y_ratio / self.old_y_ratio
             self.delete(star)
             self.create_oval(new_x1, new_y1, new_x2, new_y2,
                              fill=color, tags="etoile_controlee",
                              outline=hexSpaceBlack)
 
-        for wormhole in self.find_withtag("TrouDeVers"):
-            x1, y1, x2, y2 = self.coords(wormhole)
-            new_x1 = x1 * self.x_ratio / self.old_x_ratio
-            new_y1 = y1 * self.y_ratio / self.old_y_ratio
-            new_x2 = x2 * self.x_ratio / self.old_x_ratio
-            new_y2 = y2 * self.y_ratio / self.old_y_ratio
-            self.delete(wormhole)
-            self.create_oval(new_x1, new_y1, new_x2, new_y2,
-                             fill="purple", tags="TrouDeVers",
-                             outline=hexSpaceBlack)
-
         self.old_x_ratio = self.x_ratio
         self.old_y_ratio = self.y_ratio
+        self.old_x_ratio = self.x_ratio
+        self.old_y_ratio = self.y_ratio
+
+    def get_new_star_position(self, x1, y1, x2, y2):
+        return x1 * self.x_ratio / self.old_x_ratio, \
+               y1 * self.y_ratio / self.old_y_ratio, \
+               x2 * self.x_ratio / self.old_x_ratio, \
+               y2 * self.y_ratio / self.old_y_ratio
 
 
 class ShipViewGenerator:
