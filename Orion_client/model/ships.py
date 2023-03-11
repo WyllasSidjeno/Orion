@@ -12,7 +12,7 @@ class Ship(ABC):
     attributs et les méthodes communes à tout les vaisseaux.
     """
     id_cible: str | None
-    type_cible: str| None
+    type_cible: str | None
 
     def __init__(self, pos: tuple, angle: int, vitesse: int,
                  position_cible: tuple[int, int] | None,
@@ -35,6 +35,7 @@ class Ship(ABC):
         self.vie: AlwaysInt = AlwaysInt(vie)
         self.vie_max: AlwaysInt = AlwaysInt(vie)
         self.nouveau: bool = True
+        self.cible_owner: str | None = None
 
         self.log = []
 
@@ -62,17 +63,24 @@ class Ship(ABC):
                 (self.position[0] + self.vitesse * cos(self.direction_angle),
                  self.position[1] + self.vitesse * sin(self.direction_angle))
 
+        if self.position == self.position_cible:
+            self.target_change(None)
+
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       new_target_id: str | None = None,
-                      new_target_type:str | None = None) -> None:
+                      new_target_type:str | None = None,
+                      new_target_owner:str| None = None) -> None:
         """Change la position cible du vaisseau.
         :param new_target_type: Le type de la nouvelle cible.
         :param new_target_id: L'id de la nouvelle cible.
         :param new_target_pos: La nouvelle position cible.
+        :param new_target_owner: Le proprietaire de la nouvelle cible.
         """
         self.position_cible = new_target_pos
         self.type_cible = new_target_type
         self.id_cible = new_target_id
+        self.cible_owner = new_target_owner
+
 
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
@@ -81,55 +89,54 @@ class Militaire(Ship):
         """Initialise un vaisseau militaire.
         :param pos: Position du vaisseau
         :param owner: Proprietaire du vaisseau"""
-        angle = 0
-        vitesse = 2
-        position_cible = None
-        vie = 100
-        super().__init__(pos, angle, vitesse, position_cible, vie, owner)
+        super().__init__(pos=pos, angle=0, vitesse=40,
+                         position_cible=None, vie=100, owner=owner)
         self.attack_strength = 10
         self.defense_strength = 10
-        self.has_arrived: bool = True
-
-    # Return a string representation of only the name of the class
-    def __repr__(self):
-        """"""
-        return "militaire"
+        self.attack_range = 20
+        self.is_currently_attacking = False
+        self.is_set_to_attack = False
 
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
+        self.is_currently_attacking = False
         if self.position_cible is not None:
-            self.move()
-            if self.position == self.position_cible:
-                self.has_arrived = True
-                self.log.append(("attack_request", self.id, self.type_cible, self.id_cible))
+            if self.is_close_enough(self.position_cible) \
+                    and self.is_set_to_attack:
+                self.attack()
+            else:
+                self.move()
 
-    def move(self) -> None:
-        """Fait avancer le vaisseau d'une unite de temps."""
-        if not self.has_arrived:
-            super().move()
+    def attack(self) -> None:
+        """Fait attaquer le vaisseau."""
+        self.is_currently_attacking = True
+        attack_param = self.attack_strength
+        self.log.append(
+            ("attack_request", self.id, self.type_cible, self.id_cible,
+             self.cible_owner, attack_param))
 
-    def target_to_attack(self, target_id, target_type: str,
-                         new_target_pos: tuple[int, int]) -> None:
-        """Change la position cible du vaisseau.
-        :param type_target: Le type de la nouvelle position cible.
-        :param new_target: La nouvelle position cible.
-        """
-        if target_type == "vaisseau":
-            self.target_change(new_target_pos, target_id, target_type)
-            # Plus callback for pos
-        elif target_type == "etoile":
-            self.target_change(new_target_pos, target_id, target_type)
+    def is_close_enough(self, target_pos: tuple[int, int]) -> bool:
+        """Retourne True si le vaisseau est assez proche de sa cible."""
+        return math.hypot(
+            target_pos[0] - self.position[0],
+            target_pos[1] - self.position[1]) < self.attack_range
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       new_target_id: str | None = None,
-                      new_target_type:str | None = None) -> None:
+                      new_target_type: str | None = None,
+                      new_target_owner: str | None = None) -> None:
         """Change la position cible du vaisseau.
         :param new_target_type: Le type de la nouvelle cible.
         :param new_target_id: L'id de la nouvelle cible.
         :param new_target_pos: La nouvelle position cible.
+        :param new_target_owner: Le proprietaire de la nouvelle cible.
         """
-        super().target_change(new_target_pos, new_target_id, new_target_type)
-        self.has_arrived = False
+        super().target_change(new_target_pos, new_target_id, new_target_type,
+                              new_target_owner)
+        if new_target_type == "vaisseau" or new_target_type == "etoile_occupee":
+            self.is_set_to_attack = True
+        else:
+            self.is_set_to_attack = False
 
 
 class Transportation(Ship):
@@ -145,9 +152,6 @@ class Transportation(Ship):
         super().__init__(pos, angle, vitesse, position_cible, vie, owner)
         self.attack_strength = 0
         self.defense_strength = 0
-
-    def __repr__(self):
-        return "transportation"
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
@@ -177,9 +181,6 @@ class Reconnaissance(Ship):
         if self.position == self.position_cible:
             self.target_change(None)
             # do colonize on arrival
-
-    def __repr__(self):
-        return "reconnaissance"
 
 
 class Flotte(dict):

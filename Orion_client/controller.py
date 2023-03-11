@@ -23,7 +23,9 @@ class Controller:
     server_controller: ServerController
     model: Modele
     command_queue: CommandQueue
-    view : GameView
+    view: GameView
+    id: str
+    previous_selection: list[str] | None
 
     def __init__(self):
         from helper import get_random_username
@@ -49,12 +51,16 @@ class Controller:
         :param joueurs: la liste des joueurs"""
         seed(12471)
 
+        self.previous_selection = None
+
         listejoueurs = []
         for i in joueurs:
             listejoueurs.append(i[0])
 
         self.command_queue = CommandQueue(listejoueurs, self.username)
         self.model = Modele(listejoueurs, self.command_queue)
+
+        self.id = self.model.joueurs[self.username].id
 
         self.lobby_controller.view.destroy()
         self.lobby_controller = None
@@ -73,6 +79,13 @@ class Controller:
         """Loop de l'application"""
         start_time = time.perf_counter()
 
+        controller_commands = self.command_queue.get_all_for_controller()
+        for command in controller_commands:
+            if command[1] == "handle_right_click":
+                self.handle_right_click(command[2][0], command[2][1])
+            elif command[1] == "handle_left_click":
+                self.handle_left_click(command[2][0], command[2][1])
+
         self.server_controller.update_actions(self.frame,
                                               self.command_queue,
                                               self.model)
@@ -83,8 +96,77 @@ class Controller:
             self.frame += 1
 
         elapsed_time = time.perf_counter() - start_time
-        delay_time = max(0, int(60 - elapsed_time * 1000))
-        self.view.after(delay_time, self.tick)
+        self.view.after(int(1000 / 15 - elapsed_time * 1000), self.tick)
+        # This represents 15 fps because : 1000ms / 15 = 66.66666666666667 ms
+        # per frame which is the time we want to wait between each frame
+        # and mathematically : 1000ms / 66.66666666666667 = 15 fps
+
+    def handle_right_click(self, pos, new_tags_list):
+        if self.previous_selection:
+            if self.is_type(self.previous_selection, "reconnaissance"):
+                if self.is_type(new_tags_list, "etoile") \
+                        and not self.is_owner(new_tags_list):
+                    print("recon to star request")
+            elif self.is_type(self.previous_selection, "militaire"):
+                if self.is_type(new_tags_list, "etoile_occupee") \
+                        and not self.is_owner(new_tags_list):
+                    self.command_queue.add(self.username,
+                                           "ship_target_change_request",
+                                           self.previous_selection[1],
+                                           self.previous_selection[3],
+                                           pos, new_tags_list[1],
+                                           new_tags_list[0], new_tags_list[2])
+            self.previous_selection = None
+
+    def handle_left_click(self, pos, new_tags_list):
+        self.look_for_etoile_window_interactions(new_tags_list)
+
+        self.look_for_ship_interactions(new_tags_list, pos)
+
+    def is_owner_and_is_type(self, tags_list: list[str],
+                             object_type: str | list[str]) -> bool:
+        """Retourne True si l'objet est de type object_type
+        et que l'utilisateur"""
+        return self.is_type(tags_list, object_type) \
+            and self.is_owner(tags_list)
+
+    @staticmethod
+    def is_type(tags_list: list, object_type: str | list[str]) -> bool:
+        """Retourne True si l'objet est de type object_type"""
+        if isinstance(object_type, list):
+            return any(tag in object_type for tag in tags_list)
+        return object_type in tags_list
+
+    def is_owner(self, tags_list) -> bool:
+        """Retourne True si l'objet appartient au joueur de cette vue."""
+        return self.username in tags_list or self.username in tags_list
+
+    def cancel_previous_selection(self):
+        """Annule la selection précédente."""
+        self.previous_selection = None
+
+    def look_for_etoile_window_interactions(self, tags_list: list[str]):
+        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
+        une etoile dans le canvas."""
+        print(tags_list)
+        if self.is_owner_and_is_type(tags_list, "etoile_occupee"):
+            self.view.canvas.planet_window.show(tags_list[1])
+
+    def look_for_ship_interactions(self, tags_list: list[str],
+                                   pos: tuple[int, int]):
+        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
+        un vaisseau dans le canvas sur la selection actuelle et la selection
+        précédente."""
+        if self.is_owner_and_is_type(tags_list, "vaisseau"):
+            if self.previous_selection is None:
+                self.previous_selection = tags_list
+        elif self.previous_selection is not None:
+            self.command_queue.add(self.username,
+                                   "ship_target_change_request",
+                                   self.previous_selection[1],
+                                   self.previous_selection[3], pos)
+
+            self.previous_selection = None
 
     def pause_game(self) -> None:
         """Pause the game"""
@@ -94,6 +176,7 @@ class Controller:
         """Unpause the game"""
         self.pause = False
 
+
 class ServerController:
     """Controller du serveur"""
     def __init__(self, username: str, url_serveur: str,
@@ -102,7 +185,6 @@ class ServerController:
 
         :param username: le nom de l'utilisateur
         :param url_serveur: l'URL du serveur
-        :param model: le modèle de la partie
         :param pause_game: la fonction à appeler pour mettre le jeu en pause
         :param unpause_game: la fonction à appeler pour mettre le jeu en pause
         """
@@ -122,7 +204,7 @@ class ServerController:
         """Met à jour les actions du modèle
         :param frame: la frame actuelle
         :param actions: les actions à envoyer au serveur
-        :param empty_player_actions: la fonction à appeler pour vider les
+        :param model: le modèle de la partie
         actions du joueur
         :return: les actions à faire
         """
@@ -182,7 +264,6 @@ class LobbyController:
                                       self.start_game_signal,
                                       self.update_username,
                                       self.update_url)
-
 
     def on_first_connection(self):
         """Fonction à appeler lors de la première connexion"""

@@ -71,22 +71,22 @@ class GameView(Frame):
     def bind_game_requests(self):
         """Binds les fonctions de la vue du jeu aux evenements du canvas."""
         self.side_bar.minimap.bind("<Button-1>",
-                                   self.on_minimap_left_click)
+                                   self.on_minimap_click)
 
         self.canvas.bind("<MouseWheel>",
                          self.canvas.vertical_scroll)
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>", self.on_game_left_click)
-        self.canvas.bind("<Button-3>", self.on_game_right_click)
+        self.canvas.bind("<Button-1>", self.on_game_click)
+        self.canvas.bind("<Button-3>", self.on_game_click)
 
     def refresh(self, mod):
         """Refresh la vue du jeu."""
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
 
-    def on_minimap_left_click(self, event) -> None:
+    def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
         pctx = event.x / self.side_bar.minimap.winfo_width()
         """Percentage of the x coordinate on the minimap."""
@@ -100,87 +100,27 @@ class GameView(Frame):
 
         self.canvas.move_to((pctx - x), (pcty - y))
 
-    def on_game_left_click(self, event) -> None:
-        """ Gère les interactions de la vue du jeu lors d'un clic gauche."""
+    def on_game_click(self, event) -> None:
+        """Gère les clics sur le canvas.
+
+        Elle s'occupe de gérer les clics sur le canvas et d'afficher
+        les fenetres demandés au clic. De plus,
+        elle envoie les commandes au controller pour traiter les clics.
+        """
+        if self.canvas.planet_window.is_shown:
+            self.canvas.planet_window.hide()
 
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         tags_list = []
         for tag in self.canvas.gettags("current"):
             tags_list.append(tag)
 
-        self.look_for_etoile_window_interactions(tags_list)
-
-        self.look_for_ship_interactions(tags_list, pos)
-
-    def look_for_etoile_window_interactions(self, tags_list: list[str]):
-        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
-        une etoile dans le canvas."""
-        print(tags_list)
-        if self.canvas.planet_window.is_shown:
-            self.canvas.planet_window.hide()
-        elif self.is_owner_and_is_type(tags_list, "etoile_occupee"):
-            self.canvas.planet_window.show(tags_list[1])
-
-    def look_for_ship_interactions(self, tags_list: list[str],
-                                   pos: tuple[int, int]):
-        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
-        un vaisseau dans le canvas sur la selection actuelle et la selection
-        précédente."""
-        if self.is_owner_and_is_type(tags_list, "vaisseau"):
-            if self.previous_selection is None:
-                self.previous_selection = tags_list
-        elif self.previous_selection is not None:
-            self.command_queue.add(self.nom, "ship_target_change_request",
-                                   self.previous_selection[1],
-                                   self.previous_selection[3], pos)
-
-            self.previous_selection = None
-
-    def on_game_right_click(self, event):
-        """Gère les interactions de la vue du jeu lors d'un clic droit."""
-        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
-        if self.canvas.planet_window.is_shown:
-            self.canvas.planet_window.hide()
-        tags_list = []
-        for tag in self.canvas.gettags("current"):
-            tags_list.append(tag)
-
-        if self.previous_selection:
-            if self.is_type(self.previous_selection, "reconnaissance"):
-                if self.is_type(tags_list, "etoile") \
-                        and not self.is_owner(tags_list):
-                    print("recon to star request")
-            elif self.is_type(self.previous_selection, "militaire"):
-                if self.is_type(tags_list, "etoile") \
-                        and not self.is_owner(tags_list):
-                    self.command_queue.add(self.nom,
-                                           "ship_target_to_attack_request",
-                                           self.previous_selection[1],
-                                           self.previous_selection[3],
-                                           tags_list[1], tags_list[0], pos)
-            self.previous_selection = None
-
-    def is_owner_and_is_type(self, tags_list: list[str],
-                             object_type: str | list[str]) -> bool:
-        """Retourne True si l'objet est de type object_type
-        et que l'utilisateur"""
-        return self.is_type(tags_list, object_type) \
-            and self.is_owner(tags_list)
-
-    @staticmethod
-    def is_type(tags_list: list, object_type: str | list[str]) -> bool:
-        """Retourne True si l'objet est de type object_type"""
-        if isinstance(object_type, list):
-            return any(tag in object_type for tag in tags_list)
-        return object_type in tags_list
-
-    def is_owner(self, tags_list) -> bool:
-        """Retourne True si l'objet appartient au joueur de cette vue."""
-        return self.id in tags_list or self.nom in tags_list
-
-    def cancel_previous_selection(self):
-        """Annule la selection précédente."""
-        self.previous_selection = None
+        if event.num == 3:
+            self.command_queue.add("controller", "handle_right_click",
+                                   pos, tags_list)
+        elif event.num == 1:
+            self.command_queue.add("controller", "handle_left_click",
+                                   pos, tags_list)
 
 
 class LobbyView(Frame):

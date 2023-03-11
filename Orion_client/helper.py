@@ -134,6 +134,11 @@ class CommandQueue:
             "attack_request": [],
         }
 
+        self.commands['controller'] = {
+            "handle_right_click": [],
+            "handle_left_click": [],
+        }
+
     def add(self, target: str, command: str, *args: Any) -> None:
         """Ajoute une commande_queue a la liste des commandes. Les commandes sont
         executées dans l'ordre d'ajout.
@@ -155,6 +160,37 @@ class CommandQueue:
                 for args in self.commands[player][command]:
                     commands.append((player, command, args))
                 self.commands[player][command].clear()
+        return commands
+
+    def get_all_for_controller(self) -> list[tuple[str, str, tuple[Any]]]:
+        """Recupere toutes les commandes et les supprime de la liste.
+        :return: Les commandes.
+        """
+        commands = []
+        for command in self.commands['controller']:
+            for args in self.commands['controller'][command]:
+                commands.append(('controller', command, args))
+            self.commands['controller'][command].clear()
+        return commands
+
+
+    def get_all_for_model(self) -> list[tuple[str, str, tuple[Any]]]:
+        """Recupere toutes les commandes et les supprime de la liste.
+        :return: Les commandes.
+        """
+        commands = []
+        for player in self.commands:
+            if player != 'model':
+                for command in self.commands[player]:
+                    for args in self.commands[player][command]:
+                        commands.append((player, command, args))
+                    self.commands[player][command].clear()
+
+        for command in self.commands['model']:
+            for args in self.commands['model'][command]:
+                commands.append(('model', command, args))
+            self.commands['model'][command].clear()
+
         return commands
     def clear(self):
         """Supprime toutes les commandes.

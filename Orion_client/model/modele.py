@@ -66,20 +66,60 @@ class Modele:
             self.etoiles.remove(etoile)
             self.joueurs[new_owner].etoiles_controlees.append(etoile)
 
-    def get_etoile(self, planet_id, owner:str | None = None):
-        if owner is None:
-            for i in self.etoiles:
-                if i.id == planet_id:
-                    return i
+    def get_etoile(self, planet_id, planet_type=None,
+                   owner: str | None = None):
+        if planet_type == "etoile":
+            for etoile in self.etoiles:
+                if etoile.id == planet_id:
+                    return etoile
 
-    def get_ship(self, ship_id, owner):
-        for ship in self.joueurs[owner].flotte:
-            if ship.id == ship_id:
-                return ship
+        elif planet_type == "etoile_occupee":
+            if owner:
+                for etoile in self.joueurs[owner].etoiles_controlees:
+                    if etoile.id == planet_id:
+                        return etoile
+            else:
+                for joueur in self.joueurs.values():
+                    for etoile in joueur.etoiles_controlees:
+                        if etoile.id == planet_id:
+                            return etoile
 
-    def attack_request(self, owner, ship_id , target_id, target_owner):
-        print("attack request")
-        print(owner, ship_id, target_id, target_owner)
+        elif planet_type is None:
+            return self.get_etoile(planet_id, "etoile") or \
+                      self.get_etoile(planet_id, "etoile_occupee", owner)
+
+    def get_ship(self, ship_id, ship_type=None, owner=None):
+        if owner:
+            return self.joueurs[owner].get_ship(ship_id, ship_type)
+        else:
+            for joueur in self.joueurs.values():
+                ship = joueur.get_ship(ship_id, ship_type)
+                if ship:
+                    return ship
+
+    def attack_request(self, attack_owner, attack_ship_id,
+                       target_type, target_id, target_owner,
+                       attack_params):
+        attacked_entity = self.get_object(target_id,
+                                          target_type,
+                                          target_owner)
+        if attacked_entity:
+            attacked_entity.receive_attack(attack_params)
+        else:
+            attacker_ship = self.get_ship(attack_ship_id, None,
+                                          attack_owner)
+            if attacker_ship:
+                attacker_ship.target_change(None)
+
+    def get_object(self, object_id, object_type=None, owner=None):
+        if object_type == "etoile" or object_type == "etoile_occupee":
+            return self.get_etoile(object_id, owner)
+        elif object_type == "vaisseau":
+            return self.get_ship(object_id, object_type, owner)
+        elif object_type == "PorteDeVers":
+            return self.get_trou_de_vers(object_id)
+        else:
+            return None
 
     def receive_server_action(self, funct: str, args: list):
         """Reçoit une action du serveur et l'ajoute dans la queue.
@@ -288,7 +328,7 @@ class Joueur:
                     self.flotte[type_ship][ship].log = []
 
         for log in logs:
-            self.command_queue.add("model", log[0], self.nom, log[1], log[2], log[3])
+            self.command_queue.add("model", log[0], self.nom, *log[1:])
 
     def receive_server_action(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
@@ -327,7 +367,8 @@ class Joueur:
         if ship:
             self.flotte[type_ship][ship.id] = ship
 
-    def ship_target_change_request(self, ship_id: str, ship_type, pos: tuple):
+    def ship_target_change_request(self, ship_id: str, ship_type, pos,
+                                   *args):
         """Fonction qui est envoyé depuis la serveyr, via la vue, afin de
         changer la cible du vaisseau si possible.
 
@@ -335,22 +376,7 @@ class Joueur:
         :param ship_type: le type du vaisseau à déplacer
         :param pos: la position cible du vaisseau
         """
-        self.flotte[ship_type][ship_id].target_change(pos)
-
-    def ship_target_to_attack_request(self, ship_id: str, ship_type: str,
-                                      target_id: str, target_type: str,
-                                      position: tuple):
-        """Fonction qui est envoyé depuis la serveyr, via la vue, afin de
-        changer la cible du vaisseau si possible.
-
-        :param ship_id: l'id du vaisseau à déplacer
-        :param ship_type: le type du vaisseau à déplacer
-        :param target_id: l'id de la cible du vaisseau
-        """
-        print("ship_target_to_attack_request", ship_id, ship_type, target_id,
-              target_type, position)
-        self.flotte[ship_type][ship_id].target_to_attack(target_id,
-                                                         target_type, position)
+        self.flotte[ship_type][ship_id].target_change(pos, *args)
 
     def deplete_energy(self):
         """Consommation des ressources de la flotte de vaisseaux et des structures du joueur
@@ -387,6 +413,22 @@ class Joueur:
             if i.id == etoile_id:
                 return i
         return None
+
+    def get_ship(self, ship_id: str, ship_type) -> Ship | None:
+        """Renvoie le vaisseau correspondant à l'id donné.
+
+        :param ship_id: l'id du vaisseau
+        :return: le vaisseau correspondant à l'id
+        """
+        if ship_type:
+            for i in self.flotte[ship_type].values():
+                if i.id == ship_id:
+                    return i
+        else:
+            for key in self.flotte.keys():
+                for i in self.flotte[key].values():
+                    if i.id == ship_id:
+                        return i
 
 
 class AI(Joueur):

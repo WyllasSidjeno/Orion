@@ -100,6 +100,11 @@ class Etoile:
         a l'etoile."""
         pass
 
+    def receive_attack(self, *args, **kwargs):
+        print("Etoile attaquée")
+        print(args)
+        print(kwargs)
+
 class Population:
     """ Population de la planète découverte
     """
