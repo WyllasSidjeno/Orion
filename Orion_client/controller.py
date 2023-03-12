@@ -78,7 +78,6 @@ class Controller:
     def tick(self) -> None:
         """Loop de l'application"""
         start_time = time.perf_counter()
-
         controller_commands = self.command_queue.get_all_for_controller()
         for command in controller_commands:
             if command[1] == "handle_right_click":
@@ -89,7 +88,6 @@ class Controller:
         self.server_controller.update_actions(self.frame,
                                               self.command_queue,
                                               self.model)
-
         if not self.pause:
             self.model.tick(self.frame)
             self.view.refresh(self.model)

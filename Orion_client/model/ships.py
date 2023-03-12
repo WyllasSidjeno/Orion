@@ -68,8 +68,8 @@ class Ship(ABC):
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       new_target_id: str | None = None,
-                      new_target_type:str | None = None,
-                      new_target_owner:str| None = None) -> None:
+                      new_target_type: str | None = None,
+                      new_target_owner: str | None = None) -> None:
         """Change la position cible du vaisseau.
         :param new_target_type: Le type de la nouvelle cible.
         :param new_target_id: L'id de la nouvelle cible.
@@ -85,11 +85,12 @@ class Ship(ABC):
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
     """
+
     def __init__(self, pos: tuple, owner: str):
         """Initialise un vaisseau militaire.
         :param pos: Position du vaisseau
         :param owner: Proprietaire du vaisseau"""
-        super().__init__(pos=pos, angle=0, vitesse=40,
+        super().__init__(pos=pos, angle=0, vitesse=150,
                          position_cible=None, vie=100, owner=owner)
         self.attack_strength = 10
         self.defense_strength = 10
@@ -101,7 +102,7 @@ class Militaire(Ship):
         """Fait avancer le vaisseau d'une unite de temps."""
         self.is_currently_attacking = False
         if self.position_cible is not None:
-            if self.is_close_enough(self.position_cible) \
+            if self.is_close_enough_to_attack(self.position_cible) \
                     and self.is_set_to_attack:
                 self.attack()
             else:
@@ -112,14 +113,27 @@ class Militaire(Ship):
         self.is_currently_attacking = True
         attack_param = self.attack_strength
         self.log.append(
-            ("attack_request", self.id, self.type_cible, self.id_cible,
+            ("model", "attack_request", self.id, self.type_cible, self.id_cible,
              self.cible_owner, attack_param))
 
-    def is_close_enough(self, target_pos: tuple[int, int]) -> bool:
+    def is_close_enough_to_attack(self, target_pos: tuple[int, int]) -> bool:
         """Retourne True si le vaisseau est assez proche de sa cible."""
-        return math.hypot(
-            target_pos[0] - self.position[0],
-            target_pos[1] - self.position[1]) < self.attack_range
+        # If the target is close enough to attack or to move to attack
+        if math.hypot(
+                target_pos[0] - self.position[0],
+                target_pos[1] - self.position[1]) \
+                <= self.attack_range + self.vitesse:
+            # if the target is not close enough to attack
+            if math.hypot(
+                    target_pos[0] - self.position[0],
+                    target_pos[1] - self.position[1]) > self.attack_range:
+                self.position_cible = \
+                    (target_pos[0] - self.attack_range * cos(
+                        self.direction_angle),
+                     target_pos[1] - self.attack_range * sin(
+                         self.direction_angle))
+            return True
+        return False
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       new_target_id: str | None = None,
@@ -131,6 +145,7 @@ class Militaire(Ship):
         :param new_target_pos: La nouvelle position cible.
         :param new_target_owner: Le proprietaire de la nouvelle cible.
         """
+        print("target_change", new_target_pos, new_target_id, new_target_type,)
         super().target_change(new_target_pos, new_target_id, new_target_type,
                               new_target_owner)
         if new_target_type == "vaisseau" or new_target_type == "etoile_occupee":
@@ -189,6 +204,3 @@ class Flotte(dict):
         self["militaire"]: dict[str, Militaire] = {}
         self["transportation"]: dict[str, Militaire] = {}
         self["reconnaissance"]: dict[str, Militaire] = {}
-
-
-

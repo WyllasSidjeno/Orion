@@ -17,8 +17,7 @@ from ast import literal_eval
 from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model import ships
 from Orion_client.model.building import Building
-from Orion_client.model.ships import Ship, Transportation, Militaire, \
-    Reconnaissance, Flotte
+from Orion_client.model.ships import Ship, Flotte
 from Orion_client.model.space_object import TrouDeVers, Etoile
 from Orion_client.model.ressource import Ressource
 
@@ -35,6 +34,7 @@ class Modele:
         :param joueurs: les joueurs du jeu
         """
         self.command_queue = command_queue
+        self.local_action = []
         self.largeur: int = 9000
         self.hauteur: int = 9000
 
@@ -86,7 +86,7 @@ class Modele:
 
         elif planet_type is None:
             return self.get_etoile(planet_id, "etoile") or \
-                      self.get_etoile(planet_id, "etoile_occupee", owner)
+                self.get_etoile(planet_id, "etoile_occupee", owner)
 
     def get_ship(self, ship_id, ship_type=None, owner=None):
         if owner:
@@ -100,16 +100,42 @@ class Modele:
     def attack_request(self, attack_owner, attack_ship_id,
                        target_type, target_id, target_owner,
                        attack_params):
-        attacked_entity = self.get_object(target_id,
-                                          target_type,
+        """Demande d'attaque d'un vaisseau.
+        """
+
+        print("attack request")
+        print("attack_owner", attack_owner)
+        print("attack_ship_id", attack_ship_id)
+        print("target_type", target_type)
+        print("target_id", target_id)
+        print("target_owner", target_owner)
+        print("attack_params", attack_params)
+        attacked_entity = self.get_object(target_id, target_type,
                                           target_owner)
+        #
+        #model
+#attack request
+#attack_owner i
+#attack_ship_id d
+#target_type _
+#target_id 2
+#target_owner 1
+#attack_params 8
         if attacked_entity:
-            attacked_entity.receive_attack(attack_params)
+            if target_type == "vaisseau":
+                print("attaque d'un vaisseau")
+                # todo : add attack params
+            elif target_type == "etoile_occupee":
+                print("attaque d'une planete")
+                self.command_queue.add("model", "receive_attack_request",
+                                       [attack_owner, attack_ship_id,
+                                        target_type, target_id, target_owner,
+                                        attack_params])
         else:
-            attacker_ship = self.get_ship(attack_ship_id, None,
-                                          attack_owner)
-            if attacker_ship:
-                attacker_ship.target_change(None)
+            attacker_object = self.get_object(attack_ship_id, "militaire",
+                                              attack_owner)
+            if attacker_object:
+                attacker_object.target_change(None)
 
     def get_object(self, object_id, object_type=None, owner=None):
         if object_type == "etoile" or object_type == "etoile_occupee":
@@ -127,6 +153,9 @@ class Modele:
         :param funct: la fonction à appeler
         :param args: les arguments de la fonction
         """
+        print("model")
+        print(funct)
+        print(args)
         getattr(self, funct)(*args)
 
     def tick(self, cadre):
@@ -139,11 +168,7 @@ class Modele:
         # insertion de la prochaine action demandée par le joueur
         if cadre in self.log:
             for i in self.log[cadre]:
-                # print("action recue", i)
-                # Ici, if i[0] == model j'envoie l'action au model
-                # Sinon, je l'envoie au joueur
                 if i:
-                    print("action recue", i)
                     if i[0] == "model":
                         self.receive_server_action(i[1], i[2])
                     else:
@@ -155,9 +180,15 @@ class Modele:
             del self.log[cadre]
         # FIN DE L'INTERDICTION #################################
 
-        temp = []
         for i in self.joueurs:
             self.joueurs[i].tick()
+
+        if self.local_action:
+            print("local action")
+            print(self.local_action)
+            for i in self.local_action:
+                if i[0] == "model":
+                    self.receive_server_action(i[1], i[2:])
 
         for i in self.trou_de_vers:
             i.tick()
@@ -251,7 +282,8 @@ class Modele:
         for i, joueur in enumerate(joueurs):
             etoile = etoiles_occupee[i]
             self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0),
-                                          self.command_queue)
+                                          self.command_queue,
+                                          self.local_action)
             for e in range(5):
                 self.etoiles.append(
                     Etoile(self, randrange(etoile.x - 500, etoile.x + 500),
@@ -272,7 +304,7 @@ class Modele:
         for i in range(ias):
             self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
                                          couleurs_ia.pop(0),
-                                         self.command_queue)
+                                         self.command_queue, self.local_action)
 
 
 class Joueur:
@@ -284,7 +316,7 @@ class Joueur:
     """
 
     def __init__(self, nom: str, etoile_mere: Etoile, couleur: str,
-                 command_queue):
+                 command_queue, local_action: list):
         """Initialise le joueur.
 
         :param parent: le jeu auquel le joueur appartient
@@ -293,6 +325,7 @@ class Joueur:
         :param couleur: la couleur du joueur
         """
         self.command_queue = command_queue
+        self.local_action = local_action
 
         self.consommation_joueur = AlwaysInt(10)
         self.energie = AlwaysInt(10000)
@@ -304,8 +337,6 @@ class Joueur:
         self.etoile_mere.proprietaire = self.nom
 
         self.couleur = couleur
-        self.log: list = []
-        """Liste des actions du joueur."""
         self.etoiles_controlees: list = [etoile_mere]
         """Liste des etoiles controlees par le joueur."""
 
@@ -328,7 +359,14 @@ class Joueur:
                     self.flotte[type_ship][ship].log = []
 
         for log in logs:
-            self.command_queue.add("model", log[0], self.nom, *log[1:])
+            # Make a diff param for the current action to fit all the logs
+            # attacker_tuple or dict with the attacker id and the attacker name
+            # and the same for the defender
+            # plus attack lock
+            log = list(log)
+            log.insert(2, self.nom)
+            log = tuple(log)
+            self.local_action.append(log)
 
     def receive_server_action(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
@@ -438,14 +476,16 @@ class AI(Joueur):
     """
 
     def __init__(self, nom: str,
-                 etoile_mere: Etoile, couleur: str, command_queue) -> None:
+                 etoile_mere: Etoile, couleur: str, command_queue,
+                 local_action) -> None:
         """Initialise l'AI.
 
         :param nom: le nom de l'AI
         :param etoile_mere: l'etoile mere de l'AI
         :param couleur: la couleur de l'AI
         """
-        Joueur.__init__(self, nom, etoile_mere, couleur, command_queue)
+        Joueur.__init__(self, nom, etoile_mere, couleur, command_queue,
+                        local_action)
         self.cooldownmax: int = 1000
         """Cooldown max de l'AI avant son prochain vaisseau."""
         self.cooldown: int = 20
