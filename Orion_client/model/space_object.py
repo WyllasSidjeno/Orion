@@ -77,6 +77,7 @@ class Etoile:
         :param x: coordonnee x de l'etoile
         :param y: coordonnee y de l'etoile
         """
+        self.log = []
         self.transit: bool = False
         self.id: str = get_prochain_id()
         self.parent = parent
@@ -96,17 +97,21 @@ class Etoile:
                            "existentielle": 100}
         self.couleur = "grey"
         self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
+
+        self.needs_refresh: bool = True
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""
         pass
 
-    def receive_attack(self, attack_owner: str, attack_ship_id:str,
-                       target_type: str, target_id:str, target_owner: str,
-                       attack_param: int):
-        """Recoit une attaque de la part d'un vaisseau."""
-        print("Etoile {} recoit une attaque de {}.".format(self.id, attack_owner))
+    def attacked(self, attackee, attacker_info):
 
+        damage = attacker_info[1]
+        self.resistance -= damage
+
+        if self.resistance <= 0:
+            planet_infos = self.id, self.proprietaire
+            self.log.append(("change_planet_ownership", planet_infos, None))
 
 class Population:
     """ Population de la planète découverte

@@ -3,7 +3,7 @@
 Ce module contient des methodes statiques pour calculer des points
 et des angles a partir de coordonnees cartesiennes.
 """
-from typing import Any
+from typing import Any, List
 import functools
 
 from typing import TYPE_CHECKING
@@ -93,9 +93,8 @@ class AlwaysInt(int, metaclass=Inherited):
 
 
 class CommandQueue:
-    def __init__(self, command_obj) -> None:
+    def __init__(self) -> None:
         self.queue = []
-        self.command_obj = command_obj
 
     def add(self, funct_name: str, *args: Any) -> None:
         """Ajoute une commande dans la queue.
@@ -107,13 +106,13 @@ class CommandQueue:
         """
         self.queue.append((funct_name, args))
 
-    def execute(self) -> None:
+    def execute(self, command_obj) -> None:
         """Execute la queue."""
         for funct_name, args in self.queue:
-            getattr(self.command_obj, funct_name)(*args)
+            getattr(command_obj, funct_name)(*args)
         self.queue = []
 
-    def get_all(self) -> tuple[str, str, tuple[Any]]:
+    def get_all(self) -> List[tuple[Any, Any]]:
         """Retourne la queue.
         :return: La queue.
         :rtype: list[tuple[str, str, tuple[Any]]]

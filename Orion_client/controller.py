@@ -24,9 +24,11 @@ class Controller:
     model: Modele
     view_controller_queue: CommandQueue
     controller_server_queue: CommandQueue
+    model_controller_queue: CommandQueue
     view: GameView
     id: str
     previous_selection: list[str] | None
+
 
     def __init__(self):
         from helper import get_random_username
@@ -58,8 +60,9 @@ class Controller:
         for i in joueurs:
             listejoueurs.append(i[0])
 
-        self.command_queue = CommandQueue(self)
-        self.model = Modele(listejoueurs)
+        self.view_controller_queue = CommandQueue()
+        self.model_controller_queue = CommandQueue()
+        self.model = Modele(listejoueurs, self.model_controller_queue)
 
         self.id = self.model.joueurs[self.username].id
 
@@ -67,7 +70,7 @@ class Controller:
         self.lobby_controller = None
 
         self.view = GameView()
-        self.view.register_command_queue(self.command_queue)
+        self.view.register_command_queue(self.view_controller_queue)
 
         self.view.initialize(self.model, self.username,
                              self.model.joueurs[self.username].id)
@@ -76,13 +79,15 @@ class Controller:
                                                   self.urlserveur,
                                                   self.pause_game,
                                                   self.unpause_game)
-        self.controller_server_queue = CommandQueue(self.server_controller)
+
+        self.controller_server_queue = CommandQueue()
         self.tick()
 
     def tick(self) -> None:
         """Loop de l'application"""
         start_time = time.perf_counter()
-        self.command_queue.execute()
+        self.view_controller_queue.execute(self)
+        self.model_controller_queue.execute(self)
 
         self.server_controller.update_actions(self.frame,
                                              self.controller_server_queue,
@@ -117,10 +122,15 @@ class Controller:
 
         self.look_for_ship_interactions(new_tags_list, pos)
 
-    def handle_ship_construct_request(self, planet_id:str, ship_type: str):
+    def handle_model_to_server_queue(self, command: str, user:str, *args):
+
+        self.controller_server_queue.add(user, command, *args)
+
+    def handle_ship_construct_request(self, *args):
+
         self.controller_server_queue.add(self.username,
                                             "construct_ship_request",
-                                            planet_id, ship_type)
+                                            *args)
 
     def is_owner_and_is_type(self, tags_list: list[str],
                              object_type: str | list[str]) -> bool:

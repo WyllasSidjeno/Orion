@@ -81,7 +81,9 @@ class Ship(ABC):
         self.id_cible = new_target_id
         self.cible_owner = new_target_owner
 
-
+    def type(self) -> str:
+        """Retourne le type du vaisseau (le nom de sa classe)."""
+        return self.__class__.__name__.lower()
 class Militaire(Ship):
     """Classe representant un vaisseau militaire.
     """
@@ -104,17 +106,19 @@ class Militaire(Ship):
         if self.position_cible is not None:
             if self.is_close_enough_to_attack(self.position_cible) \
                     and self.is_set_to_attack:
-                self.attack()
+                self.attack_request()
             else:
                 self.move()
 
-    def attack(self) -> None:
+    def attack_request(self) -> None:
         """Fait attaquer le vaisseau."""
-        self.is_currently_attacking = True
-        attack_param = self.attack_strength
-        self.log.append(
-            ("model", "attack_request", self.id, self.type_cible, self.id_cible,
-             self.cible_owner, attack_param))
+        attacker_info = (self.id, self.type(), self.owner,
+                         self.attack_strength)
+
+        enemy_info = (self.id_cible, self.type_cible, self.cible_owner)
+
+        self.log.append(("attack_request", attacker_info, enemy_info))
+
 
     def is_close_enough_to_attack(self, target_pos: tuple[int, int]) -> bool:
         """Retourne True si le vaisseau est assez proche de sa cible."""

@@ -359,7 +359,13 @@ class GameCanvas(Canvas):
 
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i], "etoile_occupee", )
+            self.generate_etoile(owned_stars[i], "etoile_occupee")
+
+        for i in range(len(mod.etoiles)):
+            if mod.etoiles[i].needs_refresh:
+                self.delete(mod.etoiles[i].id)
+                self.generate_etoile(mod.etoiles[i], "etoile")
+
 
         self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
 
@@ -722,7 +728,7 @@ class ConstructShipMenu(Menu):
         self.command_queue = command_queue
 
     def add_event_to_command_queue(self, i):
-        """Ajoute un evenement de construction de vaisseau au command_queue"""
+        """Ajoute un evenement de construction de vaisseau au view_controller_queue"""
         self.command_queue.add("handle_ship_construct_request",
                                self.planet_id, self.ship_types[i].lower())
 
