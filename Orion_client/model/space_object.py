@@ -89,6 +89,7 @@ class Etoile:
                                 energie=1,
                                 beton=random.randint(0, 1000),
                                 nourriture=random.randint(0, 1000))
+        self.resistance = 100
         self.buildinglist: list[Building] = [PowerPlant(), ConcreteFactory()]
         self.ressources = {"metal": 1000,
                            "energie": 10000,
@@ -100,10 +101,12 @@ class Etoile:
         a l'etoile."""
         pass
 
-    def receive_attack(self, *args, **kwargs):
-        print("Etoile attaquée")
-        print(args)
-        print(kwargs)
+    def receive_attack(self, attack_owner: str, attack_ship_id:str,
+                       target_type: str, target_id:str, target_owner: str,
+                       attack_param: int):
+        """Recoit une attaque de la part d'un vaisseau."""
+        print("Etoile {} recoit une attaque de {}.".format(self.id, attack_owner))
+
 
 class Population:
     """ Population de la planète découverte

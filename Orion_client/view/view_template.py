@@ -4,6 +4,8 @@ from functools import partial
 from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu
 from typing import TYPE_CHECKING
 
+from Orion_client.helper import CommandQueue
+
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
     from Orion_client.model.space_object import TrouDeVers, PorteDeVers
@@ -19,12 +21,10 @@ hexSpaceBlack: str = "#23272a"
 class EtoileWindow(Frame):
     planet_id: int
 
-    def __init__(self, parent: GameCanvas, command_queue):
+    def __init__(self, parent: GameCanvas):
         """Initialise la fenetre"""
         super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
                          width=500, height=500)
-
-        self.command_queue = command_queue
 
         self.is_shown: bool = False
         """Si la fenetre est affichee"""
@@ -98,8 +98,7 @@ class EtoileWindow(Frame):
                                             text="Construire un vaisseau",
                                             bg=hexDarkGrey, fg="white",
                                             font=("Arial", 10))
-        self.construct_ship_menu = ConstructShipMenu(self.side_frame,
-                                                     self.command_queue)
+        self.construct_ship_menu = ConstructShipMenu(self.side_frame)
 
         self.construct_ship_button.bind("<Button-1>",
                                         self.show_construct_menu)
@@ -252,16 +251,16 @@ class GameCanvas(Canvas):
     pas des menus ou des fenetres ou de l'information
     """
     username: str
+    command_queue: CommandQueue
 
     def __init__(self, master: Frame, scroll_x: Scrollbar,
-                 scroll_y: Scrollbar, command_queue):
+                 scroll_y: Scrollbar):
         """Initialise le canvas de jeu
         :param master: Le Frame parent
         :param scroll_x: La scrollbar horizontale
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
-        self.command_queue = command_queue
         self.configure(bg=hexSpaceBlack, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scroll_x.set,
@@ -273,7 +272,7 @@ class GameCanvas(Canvas):
         self.configure(scrollregion=(0, 0, 9000, 9000))
         self.ship_view = ShipViewGenerator()
 
-        self.planet_window = EtoileWindow(self, self.command_queue)
+        self.planet_window = EtoileWindow(self)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.planet_window.hide()
 
@@ -395,10 +394,9 @@ class GameCanvas(Canvas):
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
 
-    def __init__(self, master: Frame, command_queue):
+    def __init__(self, master: Frame):
         """Initialise la sidebar"""
         super().__init__(master)
-        self.command_queue = command_queue
         self.configure(bg=hexDark, bd=1,
                        relief="solid")
 
@@ -707,11 +705,11 @@ class ConstructShipMenu(Menu):
     """Menu deroulant qui affiche la possibilite des constructions de vaisseaux
     """
     planet_id: str
+    command_queue: CommandQueue
 
-    def __init__(self, master: Frame, command_queue):
+    def __init__(self, master: Frame):
         """Initialise le menu deroulant"""
         super().__init__(master, tearoff=0, bg=hexDarkGrey)
-        self.command_queue = command_queue
         self.ship_types = ["Reconnaissance", "Militaire", "Transportation"]
 
         for i in range(len(self.ship_types)):
@@ -719,9 +717,13 @@ class ConstructShipMenu(Menu):
                              command=partial(self.add_event_to_command_queue,
                                              i))
 
+    def register_command_queue(self, command_queue: CommandQueue):
+        """Enregistre la file de commandes"""
+        self.command_queue = command_queue
+
     def add_event_to_command_queue(self, i):
         """Ajoute un evenement de construction de vaisseau au command_queue"""
-        self.command_queue.add("main_player", "construct_ship_request",
+        self.command_queue.add("handle_ship_construct_request",
                                self.planet_id, self.ship_types[i].lower())
 
     def hide(self, _):

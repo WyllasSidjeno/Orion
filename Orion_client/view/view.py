@@ -1,5 +1,6 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
+from Orion_client.helper import CommandQueue
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
     SideBar
 
@@ -7,10 +8,10 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
 class GameView(Frame):
     nom: str
     id: str
+    command_queue: CommandQueue
 
-    def __init__(self, command):
+    def __init__(self):
         super().__init__()
-        self.command_queue = command
         """Représente la queue de commandes du jeu."""
 
         self.config(bg=hexDark, bd=2, relief="solid",
@@ -19,7 +20,7 @@ class GameView(Frame):
         self.top_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
         """Représente la barre du haut de la vue du jeu."""
 
-        self.side_bar = SideBar(self, self.command_queue)
+        self.side_bar = SideBar(self)
         """Représente la barre de droite de la vue du jeu."""
 
         self.scrollX = Scrollbar(self, orient="horizontal")
@@ -27,8 +28,7 @@ class GameView(Frame):
         self.scrollY = Scrollbar(self, orient="vertical")
         """""Représente la scrollbar verticale de la vue du jeu."""
 
-        self.canvas = GameCanvas(self, self.scrollX, self.scrollY,
-                                 self.command_queue)
+        self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
         """Représente le canvas de la vue du jeu."""
 
         self.previous_selection: list[str] | None = None
@@ -37,6 +37,12 @@ class GameView(Frame):
         self.pack(fill="both", expand=True)
 
         self.bind_game_requests()
+
+    def register_command_queue(self, command_queue: CommandQueue):
+        """Enregistre la queue de commandes du jeu."""
+        self.command_queue = command_queue
+        self.canvas.planet_window.construct_ship_menu.register_command_queue(
+            command_queue)
 
     def configure_grid(self):
         """Configures la grid de la vue principale du jeu."""
@@ -116,10 +122,10 @@ class GameView(Frame):
             tags_list.append(tag)
 
         if event.num == 3:
-            self.command_queue.add("controller", "handle_right_click",
+            self.command_queue.add("handle_right_click",
                                    pos, tags_list)
         elif event.num == 1:
-            self.command_queue.add("controller", "handle_left_click",
+            self.command_queue.add("handle_left_click",
                                    pos, tags_list)
 
 

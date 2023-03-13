@@ -92,126 +92,35 @@ class AlwaysInt(int, metaclass=Inherited):
                 _implements[int].append(method)
 
 
-def call_wrapper(target: str,
-                 funct_name: str,
-                 *args: Any) -> tuple[str, str, tuple[Any]]:
-    """Wrapper pour les fonctions de Joueur et Modele.
-    :param target: Le joueur ou le model.
-    :type target: str ('nom' ou 'model')
-    :param funct_name: Le nom de la fonction.
-    :param add_func_name: Les noms des fonctions à ajouter.
-    :param args: Les arguments de la fonction.
-    """
-    return target, funct_name, args
-
-
 class CommandQueue:
-    """Classe permettant de stocker les commandes a executer sous format
-    (player, command, args) afin d'être traiter par le serveur.
-    et ensuite par le modele.
-    """
-    def __init__(self, players: list[str], user: str):
-        """Constructeur."""
+    def __init__(self, command_obj) -> None:
+        self.queue = []
+        self.command_obj = command_obj
 
-        self.commands: dict[str, dict[str, list[tuple[Any]]]] = {}
-        """Dictionnaire des commandes.
+    def add(self, funct_name: str, *args: Any) -> None:
+        """Ajoute une commande dans la queue.
+        :param target: Le joueur ou le model.
+        :type target: str ('nom' ou 'model')
+        :param funct_name: Le nom de la fonction.
+        :param add_func_name: Les noms des fonctions à ajouter.
+        :param args: Les arguments de la fonction.
         """
-        self.main_player: str = user
-        """Le joueur principal de ce client."""
+        self.queue.append((funct_name, args))
 
-        for player in players:
-            self.commands[player] = {
-                "ship_target_change_request": [],
-                "ship_target_to_colonize_request": [],
-                "ship_target_to_attack_request": [],
+    def execute(self) -> None:
+        """Execute la queue."""
+        for funct_name, args in self.queue:
+            getattr(self.command_obj, funct_name)(*args)
+        self.queue = []
 
-                "construct_ship_request": [],
-
-            }
-
-        self.commands['model'] = {
-            "change_planet_owner": [],
-            "attack_request": [],
-        }
-
-        self.commands['controller'] = {
-            "handle_right_click": [],
-            "handle_left_click": [],
-        }
-
-    def add(self, target: str, command: str, *args: Any) -> None:
-        """Ajoute une commande_queue a la liste des commandes. Les commandes sont
-        executées dans l'ordre d'ajout.
-        :param target: La cible. Soit un joueur, soit le model.
-        :param command: Le nom de la methode a executer.
-        :param args: Les arguments de methode.
+    def get_all(self) -> tuple[str, str, tuple[Any]]:
+        """Retourne la queue.
+        :return: La queue.
+        :rtype: list[tuple[str, str, tuple[Any]]]
         """
-        if target == 'main_player':
-            target = self.main_player
-        self.commands[target][command].append(args)
+        command_list = []
+        for funct_name, args in self.queue:
+            command_list.append((funct_name, args))
+        self.queue = []
+        return command_list
 
-    def get_all(self) -> list[tuple[str, str, tuple[Any]]]:
-        """Recupere toutes les commandes et les supprime de la liste.
-        :return: Les commandes.
-        """
-        commands = []
-        for player in self.commands:
-            for command in self.commands[player]:
-                for args in self.commands[player][command]:
-                    commands.append((player, command, args))
-                self.commands[player][command].clear()
-        return commands
-
-    def get_all_for_controller(self) -> list[tuple[str, str, tuple[Any]]]:
-        """Recupere toutes les commandes et les supprime de la liste.
-        :return: Les commandes.
-        """
-        commands = []
-        for command in self.commands['controller']:
-            for args in self.commands['controller'][command]:
-                commands.append(('controller', command, args))
-            self.commands['controller'][command].clear()
-        return commands
-
-
-    def get_all_for_model(self) -> list[tuple[str, str, tuple[Any]]]:
-        """Recupere toutes les commandes et les supprime de la liste.
-        :return: Les commandes.
-        """
-        commands = []
-        for player in self.commands:
-            if player != 'model':
-                for command in self.commands[player]:
-                    for args in self.commands[player][command]:
-                        commands.append((player, command, args))
-                    self.commands[player][command].clear()
-
-        for command in self.commands['model']:
-            for args in self.commands['model'][command]:
-                commands.append(('model', command, args))
-            self.commands['model'][command].clear()
-
-        return commands
-    def clear(self):
-        """Supprime toutes les commandes.
-        """
-        for player in self.commands:
-            for command in self.commands[player]:
-                self.commands[player][command].clear()
-
-    def __iter__(self):
-        """Fonction magique permettant d'iterer sur les commandes.
-
-        Exemple :
-        for command in self.command_queue:
-            print(command)
-        """
-        return iter(self.commands)
-
-    def __getitem__(self, item):
-        """Fonction magique permettant d'acceder aux commandes.
-
-        Exemple :
-        self.command_queue[target][ship_target_change_request]
-        """
-        return self.commands[item]

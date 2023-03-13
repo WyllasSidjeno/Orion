@@ -22,7 +22,8 @@ class Controller:
     """Controller de l'application, incluant la connection au serveur"""
     server_controller: ServerController
     model: Modele
-    command_queue: CommandQueue
+    view_controller_queue: CommandQueue
+    controller_server_queue: CommandQueue
     view: GameView
     id: str
     previous_selection: list[str] | None
@@ -57,15 +58,17 @@ class Controller:
         for i in joueurs:
             listejoueurs.append(i[0])
 
-        self.command_queue = CommandQueue(listejoueurs, self.username)
-        self.model = Modele(listejoueurs, self.command_queue)
+        self.command_queue = CommandQueue(self)
+        self.model = Modele(listejoueurs)
 
         self.id = self.model.joueurs[self.username].id
 
         self.lobby_controller.view.destroy()
         self.lobby_controller = None
 
-        self.view = GameView(self.command_queue)
+        self.view = GameView()
+        self.view.register_command_queue(self.command_queue)
+
         self.view.initialize(self.model, self.username,
                              self.model.joueurs[self.username].id)
 
@@ -73,21 +76,17 @@ class Controller:
                                                   self.urlserveur,
                                                   self.pause_game,
                                                   self.unpause_game)
+        self.controller_server_queue = CommandQueue(self.server_controller)
         self.tick()
 
     def tick(self) -> None:
         """Loop de l'application"""
         start_time = time.perf_counter()
-        controller_commands = self.command_queue.get_all_for_controller()
-        for command in controller_commands:
-            if command[1] == "handle_right_click":
-                self.handle_right_click(command[2][0], command[2][1])
-            elif command[1] == "handle_left_click":
-                self.handle_left_click(command[2][0], command[2][1])
+        self.command_queue.execute()
 
         self.server_controller.update_actions(self.frame,
-                                              self.command_queue,
-                                              self.model)
+                                             self.controller_server_queue,
+                                            self.model)
         if not self.pause:
             self.model.tick(self.frame)
             self.view.refresh(self.model)
@@ -95,9 +94,6 @@ class Controller:
 
         elapsed_time = time.perf_counter() - start_time
         self.view.after(int(1000 / 15 - elapsed_time * 1000), self.tick)
-        # This represents 15 fps because : 1000ms / 15 = 66.66666666666667 ms
-        # per frame which is the time we want to wait between each frame
-        # and mathematically : 1000ms / 66.66666666666667 = 15 fps
 
     def handle_right_click(self, pos, new_tags_list):
         if self.previous_selection:
@@ -108,7 +104,7 @@ class Controller:
             elif self.is_type(self.previous_selection, "militaire"):
                 if self.is_type(new_tags_list, "etoile_occupee") \
                         and not self.is_owner(new_tags_list):
-                    self.command_queue.add(self.username,
+                    self.controller_server_queue.add(self.username,
                                            "ship_target_change_request",
                                            self.previous_selection[1],
                                            self.previous_selection[3],
@@ -120,6 +116,11 @@ class Controller:
         self.look_for_etoile_window_interactions(new_tags_list)
 
         self.look_for_ship_interactions(new_tags_list, pos)
+
+    def handle_ship_construct_request(self, planet_id:str, ship_type: str):
+        self.controller_server_queue.add(self.username,
+                                            "construct_ship_request",
+                                            planet_id, ship_type)
 
     def is_owner_and_is_type(self, tags_list: list[str],
                              object_type: str | list[str]) -> bool:
@@ -159,7 +160,7 @@ class Controller:
             if self.previous_selection is None:
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
-            self.command_queue.add(self.username,
+            self.controller_server_queue.add(self.username,
                                    "ship_target_change_request",
                                    self.previous_selection[1],
                                    self.previous_selection[3], pos)
@@ -211,7 +212,6 @@ class ServerController:
                 actions_temp = actions.get_all()
             else:
                 actions_temp = None
-            actions.clear()
             url = self.url_serveur + "/boucler_sur_jeu"
             params = {"nom": self.username,
                       "cadrejeu": frame,
