@@ -50,6 +50,7 @@ class Modele:
         modèle et le contrôleur
         """
         self.controller_username = username
+        self.cadre: int = 0
 
         self.largeur: int = 9000
         self.hauteur: int = 9000
@@ -102,7 +103,6 @@ class Modele:
         # todo : Better type hinting @NOW
         attacker = self.get_object(*attacker_info[:2])
         defender = self.get_object(*defender_info)
-        print(f"attack_request : {attacker_info}, {defender_info}")
         if attacker:
             if defender:
                 self.modele_controller_queue.add(
@@ -112,7 +112,14 @@ class Modele:
                     defender_info,
                     attacker_info[2:]
                 )
-                # Todo : Update pos if needed (For ships)
+                if defender_info[1] == StringTypes.VAISSEAU:
+                    if self.cadre % 6 == 0:
+                        self.modele_controller_queue.add(
+                            "handle_model_to_server_queue",
+                            "update_ship_target_position",
+                            attacker_info[2], attacker_info,
+                            defender_info
+                        )
             else:
                 attacker.target_change(None)
 
@@ -201,6 +208,7 @@ class Modele:
 
         :param cadre: le cadre a joué (frame)
         """
+        self.cadre = cadre
         if cadre in self.log:
             for i in self.log[cadre]:
                 if i:
@@ -409,6 +417,15 @@ class Joueur:
         etoile.resistance = 50
         etoile.need_refresh = False
         self.etoiles_controlees.append(etoile)
+
+    def update_ship_target_position(self, *args):
+        """Met à jour la position d'un vaisseau.
+
+        :param ship_id: l'id du vaisseau à mettre à jour
+        :param ship_type: le type du vaisseau à mettre à jour
+        :param pos: la nouvelle position du vaisseau
+        """
+        print("update ship position", args)
 
     def construct_ship(self, planet_id: str, type_ship: str):
         """Déclenche la construction d'un vaisseau sur une planète dépendant
