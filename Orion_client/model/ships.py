@@ -149,7 +149,6 @@ class Militaire(Ship):
         :param new_target_pos: La nouvelle position cible.
         :param new_target_owner: Le proprietaire de la nouvelle cible.
         """
-        print("target_change", new_target_pos, new_target_id, new_target_type,)
         super().target_change(new_target_pos, new_target_id, new_target_type,
                               new_target_owner)
         if new_target_type == "vaisseau" or new_target_type == "etoile_occupee":

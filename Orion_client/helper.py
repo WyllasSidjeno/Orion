@@ -112,14 +112,13 @@ class CommandQueue:
             getattr(command_obj, funct_name)(*args)
         self.queue = []
 
-    def get_all(self) -> List[tuple[Any, Any]]:
+    def get_all(self) :
         """Retourne la queue.
         :return: La queue.
         :rtype: list[tuple[str, str, tuple[Any]]]
         """
-        command_list = []
-        for funct_name, args in self.queue:
-            command_list.append((funct_name, args))
+        tempcopy = self.queue.copy()
         self.queue = []
-        return command_list
+        return tempcopy
+
 

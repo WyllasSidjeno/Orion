@@ -123,6 +123,7 @@ class Controller:
         self.look_for_ship_interactions(new_tags_list, pos)
 
     def handle_model_to_server_queue(self, command: str, user:str, *args):
+        print("model to server queue", command, user, args)
 
         self.controller_server_queue.add(user, command, *args)
 

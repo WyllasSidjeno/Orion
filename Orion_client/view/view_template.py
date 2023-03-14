@@ -357,6 +357,9 @@ class GameCanvas(Canvas):
         self.delete("TrouDeVers")
         self.delete("etoile_occupee")
 
+        change_list =[]
+        """For the owbner of the star"""
+
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
             self.generate_etoile(owned_stars[i], "etoile_occupee")
@@ -365,6 +368,8 @@ class GameCanvas(Canvas):
             if mod.etoiles[i].needs_refresh:
                 self.delete(mod.etoiles[i].id)
                 self.generate_etoile(mod.etoiles[i], "etoile")
+                mod.etoiles[i].needs_refresh = False
+
 
 
         self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix

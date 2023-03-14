@@ -128,7 +128,7 @@ class Modele:
         else:
             print("get_object", object_id, object_type, owner)
 
-    def receive_server_action(self, funct: str, args: list):
+    def receive_action(self, funct: str, args: list):
         """Reçoit une action du serveur et l'ajoute dans la queue.
 
         :param funct: la fonction à appeler
@@ -147,14 +147,20 @@ class Modele:
         if cadre in self.log:
             for i in self.log[cadre]:
                 if i:
-                    if i[0] == "model":
-                        self.receive_server_action(i[1][0], i[1][1:])
+                    if type(i) == list:
+                        username = i[0][0]
+                        action = i[0][1][0]
+                        args = i[0][1][1:]
                     else:
-                        player_name = i[0]
-                        funct_name = i[1][0]
-                        funct_args = i[1][1:]
-                        getattr(self.joueurs[player_name],
-                                funct_name)(*funct_args)
+                        username = i[0]
+                        action = i[1][0]
+                        args = i[1][1:]
+
+                    if username == "model":
+                        self.receive_action(action, args)
+                    else:
+                        self.joueurs[username].receive_action(action, args)
+
                 """
                 i a la forme suivante [nomjoueur, action, [arguments]
                 alors self.joueurs[i[0]] -> trouve l'objet représentant le joueur de ce nom
@@ -185,8 +191,10 @@ class Modele:
                 action = literal_eval(i[1])
 
                 if cadrecle not in self.log.keys():
+                    print("1", cadrecle, action)
                     self.log[cadrecle] = action
                 else:
+                    print("2", cadrecle, action)
                     self.log[cadrecle].append(action)
 
     def change_planet_ownership(self, planet_info, new_owner):
@@ -195,9 +203,6 @@ class Modele:
         """
         planet = self.get_object(planet_info[0],
                                  "etoile_occupee", planet_info[1])
-        print("planet", planet
-              , planet_info[0], planet_info[1]
-              , new_owner)
         if planet:
             if new_owner == None:
                 self.joueurs[planet_info[1]].etoiles_controlees.remove(planet)
@@ -205,7 +210,6 @@ class Modele:
                 planet.proprietaire = None
                 planet.couleur = "grey"
             else:
-                print("planet_info", planet_info)
                 self.etoiles.remove(planet)
                 self.joueurs[new_owner].conquer_planet(planet)
 
@@ -368,7 +372,6 @@ class Joueur:
 
         :param etoile: l'etoile à conquérir
         """
-        print(f"{self.nom} a conquit l'etoile {etoile.id}")
         etoile.proprietaire = self.nom
         etoile.couleur = self.couleur
         etoile.resistance = 50
@@ -385,7 +388,7 @@ class Joueur:
         elif "ship" in attack_info:
             self.flotte[defender_infos[1]][defender_infos[0]].attacked()
 
-    def receive_server_action(self, funct: str, args: list):
+    def receive_action(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
         fonction de la fonction et des arguments envoyés.
 
