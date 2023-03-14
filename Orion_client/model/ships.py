@@ -12,7 +12,7 @@ class Ship(ABC):
     attributs et les méthodes communes à tout les vaisseaux.
 
     :ivar id: L'id du vaisseau.
-    :ivar owner: Le proprietaire du vaisseau.
+    :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
     :ivar vie: La vie du vaisseau.
     :ivar vie_max: La vie maximale du vaisseau.
@@ -47,7 +47,7 @@ class Ship(ABC):
         :param owner: Proprietaire du vaisseau
         """
         self.id: str = get_prochain_id()
-        self.owner: str = owner
+        self.proprietaire: str = owner
         self.vitesse = vitesse
         self.vie: AlwaysInt = AlwaysInt(vie)
         self.vie_max: AlwaysInt = AlwaysInt(vie)
@@ -81,6 +81,18 @@ class Ship(ABC):
 
         if self.position == self.position_cible:
             self.target_change(None)
+
+    def attacked(self, attackee, attacker_info) -> None:
+        """Fait subir des degats au vaisseau.
+        :param damage: Les degats a subir.
+        """
+        damage = attacker_info[1]
+        damage -= self.defense_strength
+        self.vie -= damage
+
+        if self.vie <= 0:
+            self.log.append(("lose_ship_request", self.id, self.proprietaire,
+                             self.type()))
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       new_target_id: str | None = None,
@@ -121,7 +133,7 @@ class Militaire(Ship):
     :ivar is_set_to_attack: Si le vaisseau est en train d'attaquer.
 
     :ivar id: L'id du vaisseau.
-    :ivar owner: Le proprietaire du vaisseau.
+    :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
     :ivar vie: La vie du vaisseau.
     :ivar vie_max: La vie maximale du vaisseau.
@@ -148,14 +160,16 @@ class Militaire(Ship):
         :param pos: Position du vaisseau
         :param owner: Proprietaire du vaisseau"""
         super().__init__(pos=pos, vitesse=150, vie=100, owner=owner,
-                         attack_strength=10, defense_strength=10,
+                         attack_strength=30, defense_strength=10,
                          attack_range=20)
         self.is_currently_attacking = False
         self.is_set_to_attack = False
+        self.cadence = 36
+        self.current_recharge = 36
 
     def attack_request(self) -> None:
         """Fait attaquer le vaisseau."""
-        attacker_info = (self.id, self.type(), self.owner,
+        attacker_info = (self.id, self.type(), self.proprietaire,
                          self.attack_strength)
 
         enemy_info = (self.id_cible, self.type_cible, self.cible_owner)
@@ -204,19 +218,25 @@ class Militaire(Ship):
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
         self.is_currently_attacking = False
+        if self.current_recharge < self.cadence:
+            self.current_recharge += 1
+
         if self.position_cible is not None:
             if self.is_close_enough_to_attack(self.position_cible) \
                     and self.is_set_to_attack:
-                self.attack_request()
+                if self.cadence == self.current_recharge:
+                    self.attack_request()
+                    self.current_recharge = 0
             else:
                 self.move()
+
 
 
 class Transportation(Ship):
     """Classe representant un vaisseau de transport.
 
     :ivar id: L'id du vaisseau.
-    :ivar owner: Le proprietaire du vaisseau.
+    :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
     :ivar vie: La vie du vaisseau.
     :ivar vie_max: La vie maximale du vaisseau.
@@ -250,7 +270,7 @@ class Reconnaissance(Ship):
     """Classe représentant un vaisseau de reconnaissance.
 
     :ivar id: L'id du vaisseau.
-    :ivar owner: Le proprietaire du vaisseau.
+    :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
     :ivar vie: La vie du vaisseau.
     :ivar vie_max: La vie maximale du vaisseau.

@@ -107,6 +107,7 @@ class Etoile:
     def attacked(self, attackee, attacker_info):
         damage = attacker_info[1]
         self.resistance -= damage
+        print("attacked", self.resistance)
 
         if self.resistance <= 0:
             planet_infos = self.id, self.proprietaire

@@ -119,11 +119,42 @@ class CommandQueue:
 
 class StringTypes(Enum):
     """Classe énumérative pour retrouver les strings des types de planètes."""
+    # Les éléments de maps
     ETOILE_OCCUPEE = "etoile_occupee"
     ETOILE = "etoile"
-    VAISSEAU = "vaisseau"
     TROUDEVERS = "TrouDeVers"
 
+    # Les éléments de joueurs
+    VAISSEAU = "vaisseau"
+    MILITAIRE = "militaire"
+    TRANSPORTATION = "transportation"
+    RECONNAISSANCE = "reconnaissance"
+
+    def __str__(self):
+        return self.value
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.value == other
+        return super().__eq__(other)
+
+    @classmethod
+    def ship_types(cls) -> list[str]:
+        """Retourne la liste des types de vaisseaux.
+        :return: La liste des types de vaisseaux.
+        :rtype: list[str]
+        """
+        return [cls.VAISSEAU.value, cls.MILITAIRE.value,
+                cls.TRANSPORTATION.value, cls.RECONNAISSANCE.value]
+
+    @classmethod
+    def planet_types(cls) -> list[str]:
+        """Retourne la liste des types de planètes.
+        :return: La liste des types de planètes.
+        :rtype: list[str]
+        """
+        return [cls.ETOILE_OCCUPEE.value, cls.ETOILE.value,
+                cls.TROUDEVERS.value]
 
 
 

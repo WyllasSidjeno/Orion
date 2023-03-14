@@ -110,7 +110,8 @@ class Controller:
                     print("recon to star request")
             elif self.model.is_type(self.previous_selection, "militaire"):
                 if self.model.is_type(new_tags_list,
-                                      StringTypes.ETOILE_OCCUPEE.value) \
+                                      [StringTypes.ETOILE_OCCUPEE.value,
+                                       StringTypes.VAISSEAU.value]) \
                         and not self.model.is_owner(new_tags_list):
                     self.controller_server_queue.add(self.username,
                                                      "ship_target_"
@@ -118,8 +119,8 @@ class Controller:
                                                      self.previous_selection[
                                                          1],
                                                      self.previous_selection[
-                                                         3],
-                                                     pos, new_tags_list[1],
+                                                         3], pos,
+                                                     new_tags_list[1],
                                                      new_tags_list[0],
                                                      new_tags_list[2])
             self.previous_selection = None
