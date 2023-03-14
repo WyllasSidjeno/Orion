@@ -287,6 +287,7 @@ class Modele:
             etoile = etoiles_occupee[i]
             self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0),
                                           self.modele_local_queue,
+                                          self.modele_controller_queue,
                                           self.controller_username)
             for e in range(5):
                 self.etoiles.append(
@@ -309,6 +310,7 @@ class Modele:
             self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
                                          couleurs_ia.pop(0),
                                          self.modele_local_queue,
+                                         self.modele_controller_queue,
                                          self.controller_username)
 
     def is_owner_and_is_type(self, tags_list: list[str],
@@ -356,7 +358,8 @@ class Joueur:
     """
 
     def __init__(self, nom: str, etoile_mere: Etoile, couleur: str,
-                 model_queue: CommandQueue, controller_owner: str):
+                 model_queue: CommandQueue, model_controller_queue,
+                 controller_owner: str):
         """Initialise le joueur.
 
         :param nom: le nom du joueur
@@ -386,12 +389,14 @@ class Joueur:
         """Ressources totales du joueur."""
 
         self.model_queue = model_queue
-        """Queue de commandes du modèle aux joueurs"""
+        """Queue de commandes des joueurs au modèle."""
 
         self.etoile_mere = etoile_mere
         """L'etoile mere du joueur."""
         self.etoile_mere.couleur = couleur
         self.etoile_mere.proprietaire = self.nom
+
+        self.recently_lost_ships_id = []
 
     def conquer_planet(self, etoile: Etoile):
         """Conquiert une etoile et lui établie les charactérisques
@@ -425,7 +430,9 @@ class Joueur:
         :param ship_id: l'id du vaisseau à supprimer
         :param ship_type: le type du vaisseau à supprimer
         """
-        pass
+        if ship_id in self.flotte[ship_type]:
+            self.recently_lost_ships_id.append(ship_id)
+            del self.flotte[ship_type][ship_id]
 
     def attacked(self, defender_infos: tuple, attack_info: tuple):
         """Fonction qui est appelée lorsque le joueur est attaqué et
@@ -434,7 +441,6 @@ class Joueur:
         :param defender_infos: les informations du défenseur
         :param attack_info: les informations de l'attaquant
         """
-        print(f'Joueur {self.nom} attaqué')
         if defender_infos[1] == StringTypes.ETOILE_OCCUPEE:
             etoile = self.get_etoile_by_id(defender_infos[0])
             if etoile:
@@ -446,7 +452,10 @@ class Joueur:
                 print("Etoile non trouvée")
         elif defender_infos[1] == StringTypes.VAISSEAU:
             ship = self.get_ship(defender_infos[0])
-            ship.attacked(defender_infos, attack_info)
+            if ship:
+                ship.attacked(defender_infos, attack_info)
+                if ship.vie <= 0:
+                    self.remove_ship(ship.id, ship.type())
 
     def construct_ship_request(self, planet_id: str, type_ship: str):
         """Fonction que est reçu du serveur depuis la vue du jeu.
@@ -600,7 +609,7 @@ class AI(Joueur):
 
     def __init__(self, nom: str,
                  etoile_mere: Etoile, couleur: str,
-                 model_queue, owner) -> None:
+                 model_queue,model_controller_queue, owner) -> None:
         """Initialise l'AI.
 
         :param nom: le nom de l'AI
@@ -608,7 +617,7 @@ class AI(Joueur):
         :param couleur: la couleur de l'AI
         """
         Joueur.__init__(self, nom, etoile_mere, couleur,
-                        model_queue, owner)
+                        model_queue, model_controller_queue, owner)
         self.cooldownmax: int = 1000
         """Cooldown max de l'AI avant son prochain vaisseau."""
         self.cooldown: int = 20

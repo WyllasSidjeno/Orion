@@ -318,6 +318,11 @@ class GameCanvas(Canvas):
         self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
 
         for joueur in mod.joueurs.values():
+            if joueur.recently_lost_ships_id:
+                for ship_id in joueur.recently_lost_ships_id:
+                    self.delete(ship_id)
+                joueur.recently_lost_ships_id = []
+
             couleur = joueur.couleur
             for ship_type in joueur.flotte.keys():
                 for ship_id in joueur.flotte[ship_type]:
