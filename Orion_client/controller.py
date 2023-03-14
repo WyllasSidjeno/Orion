@@ -157,6 +157,7 @@ class Controller:
 
     def handle_model_to_server_queue(self, command: str, user: str, *args):
         """Gère les commandes du modèle vers le serveur."""
+        print("model to server queue", command, user, *args)
         self.controller_server_queue.add(user, command, *args)
 
     def handle_ship_construct_request(self, *args):

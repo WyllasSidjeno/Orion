@@ -95,6 +95,7 @@ class Modele:
         defender = self.get_object(*defender_info)
         if attacker:
             if defender:
+                print("went here")
                 self.modele_controller_queue.add(
                     "handle_model_to_server_queue",
                     "attacked",
@@ -202,14 +203,18 @@ class Modele:
         if cadre in self.log:
             for i in self.log[cadre]:
                 if i:
-                    if type(i) == list:
-                        username = i[0][0]
-                        action = i[0][1][0]
-                        args = i[0][1][1:]
-                    else:
-                        username = i[0]
-                        action = i[1][0]
-                        args = i[1][1:]
+                    #Old debug , leave in case of.
+                    #if type(i) == list:
+                     #   username = i[0][0]
+                     #   action = i[0][1][0]
+                     #   args = i[0][1][1:]
+
+                    print("received", i)
+
+                    username = i[0]
+                    action = i[1][0]
+                    args = i[1][1:]
+                    print("Done", username, action, args)
 
                     if username == "model":
                         self.receive_action(action, args)
@@ -241,11 +246,11 @@ class Modele:
                 action = literal_eval(i[1])
 
                 if cadrecle not in self.log.keys():
-                    print("1", cadrecle, action)
+                    # If the key is not in the dict, create it
                     self.log[cadrecle] = action
                 else:
-                    print("2", cadrecle, action)
-                    self.log[cadrecle].append(action)
+                    # Else add the action to the list of actions for this key
+                    self.log[cadrecle] = self.log[cadrecle] + action
 
     def creer_trou_de_vers(self, num_wormholes: int):
         """Crée n trous de vers.
