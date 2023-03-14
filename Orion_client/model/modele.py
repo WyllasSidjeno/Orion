@@ -74,6 +74,7 @@ class Modele:
         """
         planet = self.get_object(planet_info[0],
                                  StringTypes.ETOILE_OCCUPEE, planet_info[1])
+        print(f"change_planet_ownership : {planet_info}, {new_owner}")
         if planet:
             if new_owner is None:
                 self.joueurs[planet_info[1]].etoiles_controlees.remove(planet)
@@ -101,6 +102,7 @@ class Modele:
         # todo : Better type hinting @NOW
         attacker = self.get_object(*attacker_info[:2])
         defender = self.get_object(*defender_info)
+        print(f"attack_request : {attacker_info}, {defender_info}")
         if attacker:
             if defender:
                 self.modele_controller_queue.add(
@@ -164,7 +166,7 @@ class Modele:
                     return planet
 
         for joueur in self.joueurs.values():
-            planet = joueur.get_planet(planet_id, planet_type)
+            planet = joueur.get_etoile_by_id(planet_id)
             if planet:
                 return planet
 
@@ -437,6 +439,9 @@ class Joueur:
             etoile = self.get_etoile_by_id(defender_infos[0])
             if etoile:
                 etoile.attacked(defender_infos, attack_info)
+                if etoile.resistance <= 0:
+                    self.model_queue.add("change_planet_ownership",
+                                         (etoile.id, self.nom))
             else:
                 print("Etoile non trouvée")
         elif defender_infos[1] == StringTypes.VAISSEAU:

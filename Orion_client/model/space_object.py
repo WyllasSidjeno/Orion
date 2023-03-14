@@ -109,10 +109,6 @@ class Etoile:
         self.resistance -= damage
         print("attacked", self.resistance)
 
-        if self.resistance <= 0:
-            planet_infos = self.id, self.proprietaire
-            self.log.append(("change_planet_ownership", planet_infos, None))
-
 class Population:
     """ Population de la planète découverte
     """
