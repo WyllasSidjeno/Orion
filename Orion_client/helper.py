@@ -3,6 +3,7 @@
 Ce module contient des methodes statiques pour calculer des points
 et des angles a partir de coordonnees cartesiennes.
 """
+from enum import Enum
 from typing import Any, List
 import functools
 
@@ -114,5 +115,15 @@ class CommandQueue:
         temp_copy = self.queue.copy()
         self.queue.clear()
         return temp_copy
+
+
+class StringTypes(Enum):
+    """Classe énumérative pour retrouver les strings des types de planètes."""
+    ETOILE_OCCUPEE = "etoile_occupee"
+    ETOILE = "etoile"
+    VAISSEAU = "vaisseau"
+    TROUDEVERS = "TrouDeVers"
+
+
 
 

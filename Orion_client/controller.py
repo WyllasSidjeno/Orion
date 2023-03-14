@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.helper import CommandQueue
+from Orion_client.helper import CommandQueue, StringTypes
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.modele import Modele
 
@@ -105,11 +105,12 @@ class Controller:
         le canvas."""
         if self.previous_selection:
             if self.model.is_type(self.previous_selection, "reconnaissance"):
-                if self.model.is_type(new_tags_list, "etoile") \
+                if self.model.is_type(new_tags_list, StringTypes.ETOILE.value) \
                         and not self.model.is_owner(new_tags_list):
                     print("recon to star request")
             elif self.model.is_type(self.previous_selection, "militaire"):
-                if self.model.is_type(new_tags_list, "etoile_occupee") \
+                if self.model.is_type(new_tags_list,
+                                      StringTypes.ETOILE_OCCUPEE.value) \
                         and not self.model.is_owner(new_tags_list):
                     self.controller_server_queue.add(self.username,
                                                      "ship_target_"
@@ -130,6 +131,30 @@ class Controller:
 
         self.look_for_ship_interactions(new_tags_list, pos)
 
+    def look_for_etoile_window_interactions(self, tags_list: list[str]):
+        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
+        une etoile dans le canvas."""
+        if self.model.is_owner_and_is_type(tags_list,
+                                           StringTypes.ETOILE_OCCUPEE.value):
+            self.view.canvas.planet_window.show(tags_list[1])
+
+    def look_for_ship_interactions(self, tags_list: list[str],
+                                   pos: tuple[int, int]):
+        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
+        un vaisseau dans le canvas sur la selection actuelle et la selection
+        précédente."""
+        if self.model.is_owner_and_is_type(tags_list,
+                                           StringTypes.VAISSEAU.value):
+            if self.previous_selection is None:
+                self.previous_selection = tags_list
+        elif self.previous_selection is not None:
+            self.controller_server_queue.add(self.username,
+                                             "ship_target_change_request",
+                                             self.previous_selection[1],
+                                             self.previous_selection[3], pos)
+
+            self.previous_selection = None
+
     def handle_model_to_server_queue(self, command: str, user: str, *args):
         """Gère les commandes du modèle vers le serveur."""
         self.controller_server_queue.add(user, command, *args)
@@ -143,29 +168,6 @@ class Controller:
     def cancel_previous_selection(self):
         """Annule la selection précédente."""
         self.previous_selection = None
-
-    def look_for_etoile_window_interactions(self, tags_list: list[str]):
-        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
-        une etoile dans le canvas."""
-        print(tags_list)
-        if self.model.is_owner_and_is_type(tags_list, "etoile_occupee"):
-            self.view.canvas.planet_window.show(tags_list[1])
-
-    def look_for_ship_interactions(self, tags_list: list[str],
-                                   pos: tuple[int, int]):
-        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
-        un vaisseau dans le canvas sur la selection actuelle et la selection
-        précédente."""
-        if self.model.is_owner_and_is_type(tags_list, "vaisseau"):
-            if self.previous_selection is None:
-                self.previous_selection = tags_list
-        elif self.previous_selection is not None:
-            self.controller_server_queue.add(self.username,
-                                             "ship_target_change_request",
-                                             self.previous_selection[1],
-                                             self.previous_selection[3], pos)
-
-            self.previous_selection = None
 
     def pause_game(self) -> None:
         """Pause the game"""

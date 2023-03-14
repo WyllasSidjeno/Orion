@@ -4,7 +4,7 @@ from functools import partial
 from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu
 from typing import TYPE_CHECKING
 
-from Orion_client.helper import CommandQueue
+from Orion_client.helper import CommandQueue, StringTypes
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
@@ -286,12 +286,13 @@ class GameCanvas(Canvas):
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
         for i in range(len(mod.etoiles)):
-            self.generate_etoile(mod.etoiles[i], "etoile")
+            self.generate_etoile(mod.etoiles[i], StringTypes.ETOILE.value)
 
         owned_stars = self.get_player_stars(mod)
         # todo : Colors
         for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i], "etoile_occupee")
+            self.generate_etoile(owned_stars[i],
+                                 StringTypes.ETOILE_OCCUPEE.value)
         self.generate_trou_de_vers(mod.trou_de_vers)
 
     def refresh(self, mod: Modele):
@@ -300,17 +301,18 @@ class GameCanvas(Canvas):
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with a move or coords function
 
-        self.delete("TrouDeVers")
-        self.delete("etoile_occupee")
+        self.delete(StringTypes.TROUDEVERS.value)
+        self.delete(StringTypes.ETOILE_OCCUPEE.value)
 
         owned_stars = self.get_player_stars(mod)
         for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i], "etoile_occupee")
+            self.generate_etoile(owned_stars[i],
+                                 StringTypes.ETOILE_OCCUPEE.value)
 
         for i in range(len(mod.etoiles)):
             if mod.etoiles[i].needs_refresh:
                 self.delete(mod.etoiles[i].id)
-                self.generate_etoile(mod.etoiles[i], "etoile")
+                self.generate_etoile(mod.etoiles[i], StringTypes.ETOILE.value)
                 mod.etoiles[i].needs_refresh = False
 
         self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
@@ -385,7 +387,8 @@ class GameCanvas(Canvas):
         self.create_oval(porte.x - porte.pulse, porte.y - porte.pulse,
                          porte.x + porte.pulse, porte.y + porte.pulse,
                          fill="purple",
-                         tags=("TrouDeVers", porte.id, parent_id))
+                         tags=(StringTypes.TROUDEVERS.value
+                               , porte.id, parent_id))
 
     @staticmethod
     def get_player_stars(mod: Modele):
@@ -513,7 +516,7 @@ class Minimap(Canvas):
                              star.y * self.y_ratio - 2,
                              star.x * self.x_ratio + 2,
                              star.y * self.y_ratio + 2,
-                             fill="grey", tags="etoile",
+                             fill="grey", tags=StringTypes.ETOILE.value,
                              outline=hexSpaceBlack)
 
         for key in mod.joueurs:
@@ -531,14 +534,14 @@ class Minimap(Canvas):
                              wormhole.porte_a.y * self.y_ratio - 2,
                              wormhole.porte_a.x * self.x_ratio + 2,
                              wormhole.porte_a.y * self.y_ratio + 2,
-                             fill="purple", tags="TrouDeVers",
+                             fill="purple", tags=StringTypes.TROUDEVERS.value,
                              outline=hexSpaceBlack)
 
             self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                              wormhole.porte_b.y * self.y_ratio - 2,
                              wormhole.porte_b.x * self.x_ratio + 2,
                              wormhole.porte_b.y * self.y_ratio + 2,
-                             fill="purple", tags="TrouDeVers",
+                             fill="purple", tags=StringTypes.TROUDEVERS.value,
                              outline=hexSpaceBlack)
 
             self.bind("<Configure>", self.on_resize)
@@ -560,8 +563,8 @@ class Minimap(Canvas):
         self.y_ratio = height / 9000
 
         items = [
-            ("etoile", "grey"),
-            ("TrouDeVers", "purple")
+            (StringTypes.ETOILE.value, "grey"),
+            (StringTypes.TROUDEVERS.value, "purple")
         ]
 
         for tag, color in items:
