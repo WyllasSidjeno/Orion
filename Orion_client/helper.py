@@ -8,12 +8,9 @@ import functools
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from Orion_client.model.modele import Joueur, Modele
 
 prochainid: int = 0
 """Prochain identifiant a utiliser."""
-
 
 def get_prochain_id() -> str:
     """Recupere le prochain id a utiliser.
@@ -98,27 +95,24 @@ class CommandQueue:
 
     def add(self, funct_name: str, *args: Any) -> None:
         """Ajoute une commande dans la queue.
-        :param target: Le joueur ou le model.
-        :type target: str ('nom' ou 'model')
         :param funct_name: Le nom de la fonction.
-        :param add_func_name: Les noms des fonctions à ajouter.
         :param args: Les arguments de la fonction.
         """
         self.queue.append((funct_name, args))
 
     def execute(self, command_obj) -> None:
-        """Execute la queue."""
+        """Execute la queue grace a l'objet en parametre."""
         for funct_name, args in self.queue:
             getattr(command_obj, funct_name)(*args)
         self.queue = []
 
-    def get_all(self) :
+    def get_all(self) -> List[tuple[str, tuple[Any]]]:
         """Retourne la queue.
         :return: La queue.
         :rtype: list[tuple[str, str, tuple[Any]]]
         """
-        tempcopy = self.queue.copy()
-        self.queue = []
-        return tempcopy
+        temp_copy = self.queue.copy()
+        self.queue.clear()
+        return temp_copy
 
 

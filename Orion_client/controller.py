@@ -29,7 +29,6 @@ class Controller:
     id: str
     previous_selection: list[str] | None
 
-
     def __init__(self):
         from helper import get_random_username
         """Initialisation du controller"""
@@ -62,7 +61,8 @@ class Controller:
 
         self.view_controller_queue = CommandQueue()
         self.model_controller_queue = CommandQueue()
-        self.model = Modele(listejoueurs, self.model_controller_queue)
+        self.model = Modele(listejoueurs, self.model_controller_queue,
+                            self.username)
 
         self.id = self.model.joueurs[self.username].id
 
@@ -90,8 +90,8 @@ class Controller:
         self.model_controller_queue.execute(self)
 
         self.server_controller.update_actions(self.frame,
-                                             self.controller_server_queue,
-                                            self.model)
+                                              self.controller_server_queue,
+                                              self.model)
         if not self.pause:
             self.model.tick(self.frame)
             self.view.refresh(self.model)
@@ -101,55 +101,44 @@ class Controller:
         self.view.after(int(1000 / 15 - elapsed_time * 1000), self.tick)
 
     def handle_right_click(self, pos, new_tags_list):
+        """Gère les interactions de la vue du jeu lors d'un clic droit sur
+        le canvas."""
         if self.previous_selection:
-            if self.is_type(self.previous_selection, "reconnaissance"):
-                if self.is_type(new_tags_list, "etoile") \
-                        and not self.is_owner(new_tags_list):
+            if self.model.is_type(self.previous_selection, "reconnaissance"):
+                if self.model.is_type(new_tags_list, "etoile") \
+                        and not self.model.is_owner(new_tags_list):
                     print("recon to star request")
-            elif self.is_type(self.previous_selection, "militaire"):
-                if self.is_type(new_tags_list, "etoile_occupee") \
-                        and not self.is_owner(new_tags_list):
+            elif self.model.is_type(self.previous_selection, "militaire"):
+                if self.model.is_type(new_tags_list, "etoile_occupee") \
+                        and not self.model.is_owner(new_tags_list):
                     self.controller_server_queue.add(self.username,
-                                           "ship_target_change_request",
-                                           self.previous_selection[1],
-                                           self.previous_selection[3],
-                                           pos, new_tags_list[1],
-                                           new_tags_list[0], new_tags_list[2])
+                                                     "ship_target_"
+                                                     "change_request",
+                                                     self.previous_selection[
+                                                         1],
+                                                     self.previous_selection[
+                                                         3],
+                                                     pos, new_tags_list[1],
+                                                     new_tags_list[0],
+                                                     new_tags_list[2])
             self.previous_selection = None
 
     def handle_left_click(self, pos, new_tags_list):
+        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
+        le canvas."""
         self.look_for_etoile_window_interactions(new_tags_list)
 
         self.look_for_ship_interactions(new_tags_list, pos)
 
-    def handle_model_to_server_queue(self, command: str, user:str, *args):
-        print("model to server queue", command, user, args)
-
+    def handle_model_to_server_queue(self, command: str, user: str, *args):
+        """Gère les commandes du modèle vers le serveur."""
         self.controller_server_queue.add(user, command, *args)
 
     def handle_ship_construct_request(self, *args):
-
+        """Gère la demande de construction d'un vaisseau."""
         self.controller_server_queue.add(self.username,
-                                            "construct_ship_request",
-                                            *args)
-
-    def is_owner_and_is_type(self, tags_list: list[str],
-                             object_type: str | list[str]) -> bool:
-        """Retourne True si l'objet est de type object_type
-        et que l'utilisateur"""
-        return self.is_type(tags_list, object_type) \
-            and self.is_owner(tags_list)
-
-    @staticmethod
-    def is_type(tags_list: list, object_type: str | list[str]) -> bool:
-        """Retourne True si l'objet est de type object_type"""
-        if isinstance(object_type, list):
-            return any(tag in object_type for tag in tags_list)
-        return object_type in tags_list
-
-    def is_owner(self, tags_list) -> bool:
-        """Retourne True si l'objet appartient au joueur de cette vue."""
-        return self.username in tags_list or self.username in tags_list
+                                         "construct_ship_request",
+                                         *args)
 
     def cancel_previous_selection(self):
         """Annule la selection précédente."""
@@ -159,7 +148,7 @@ class Controller:
         """Gère les interactions de la vue du jeu lors d'un clic gauche sur
         une etoile dans le canvas."""
         print(tags_list)
-        if self.is_owner_and_is_type(tags_list, "etoile_occupee"):
+        if self.model.is_owner_and_is_type(tags_list, "etoile_occupee"):
             self.view.canvas.planet_window.show(tags_list[1])
 
     def look_for_ship_interactions(self, tags_list: list[str],
@@ -167,14 +156,14 @@ class Controller:
         """Gère les interactions de la vue du jeu lors d'un clic gauche sur
         un vaisseau dans le canvas sur la selection actuelle et la selection
         précédente."""
-        if self.is_owner_and_is_type(tags_list, "vaisseau"):
+        if self.model.is_owner_and_is_type(tags_list, "vaisseau"):
             if self.previous_selection is None:
                 self.previous_selection = tags_list
         elif self.previous_selection is not None:
             self.controller_server_queue.add(self.username,
-                                   "ship_target_change_request",
-                                   self.previous_selection[1],
-                                   self.previous_selection[3], pos)
+                                             "ship_target_change_request",
+                                             self.previous_selection[1],
+                                             self.previous_selection[3], pos)
 
             self.previous_selection = None
 
@@ -189,6 +178,7 @@ class Controller:
 
 class ServerController:
     """Controller du serveur"""
+
     def __init__(self, username: str, url_serveur: str,
                  pause_game: Callable, unpause_game: Callable):
         """Initialisation du controller
@@ -274,6 +264,17 @@ class LobbyController:
                                       self.update_username,
                                       self.update_url)
 
+    def start_game_signal(self):
+        """Reçoit le signal de démarrage de la partie et
+        annule l'appel à la fonction update_lobby avant de
+        démarrer la partie"""
+        self.view.after_cancel(self.event_id)
+        self.view.destroy()
+
+        call_server(self.urlserveur + "/lancer_partie",
+                    {"nom": self.username})
+        self.start_game(self.joueurs)
+
     def on_first_connection(self):
         """Fonction à appeler lors de la première connexion"""
         temp = self.get_server_state()
@@ -353,17 +354,6 @@ class LobbyController:
             self.joueurs = temp
             self.view.update_player_list(self.joueurs)
             self.event_id = self.view.after(1000, self.update_lobby)
-
-    def start_game_signal(self):
-        """Reçoit le signal de démarrage de la partie et
-        annule l'appel à la fonction update_lobby avant de
-        démarrer la partie"""
-        self.view.after_cancel(self.event_id)
-        self.view.destroy()
-
-        call_server(self.urlserveur + "/lancer_partie",
-                    {"nom": self.username})
-        self.start_game(self.joueurs)
 
     def update_username(self, event):
         """Met à jour le nom d'utilisateur"""

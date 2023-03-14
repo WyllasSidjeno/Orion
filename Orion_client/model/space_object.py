@@ -105,7 +105,6 @@ class Etoile:
         pass
 
     def attacked(self, attackee, attacker_info):
-
         damage = attacker_info[1]
         self.resistance -= damage
 

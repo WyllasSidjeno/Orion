@@ -109,10 +109,6 @@ class EtoileWindow(Frame):
         for i in range(8):
             self.building_list.append(BuildingWindow(self.batiment_grid))
 
-    def show_construct_menu(self, event) -> None:
-        """Affiche le menu de construction de vaisseau"""
-        self.construct_ship_menu.show(event, self.planet_id)
-
     def hide(self) -> None:
         """Cache la fenetre"""
         self.construct_ship_menu.current_planet_id = None
@@ -125,6 +121,16 @@ class EtoileWindow(Frame):
         self.construct_ship_menu.current_planet_id = planet_id
         self.place(relx=0.5, rely=0.5, anchor="center")
         self.is_shown = True
+
+    def show_construct_menu(self, event) -> None:
+        """Affiche le menu de construction de vaisseau"""
+        self.construct_ship_menu.show(event, self.planet_id)
+
+    def show_buildings(self, max_building: int) -> None:
+        """Affiche les bâtiments de la planete"""
+        for i in range(max_building):
+            self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
+                                       pady=5)
 
     def initialize(self) -> None:
         """Place les widgets dans la fenetre"""
@@ -191,11 +197,7 @@ class EtoileWindow(Frame):
         self.construct_ship_button.place(anchor="center", relx=0.5,
                                          rely=0.85)
 
-    def show_buildings(self, max_building: int) -> None:
-        """Affiche les bâtiments de la planete"""
-        for i in range(max_building):
-            self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
-                                       pady=5)
+
 
 
 class BuildingWindow(Frame):
@@ -276,14 +278,6 @@ class GameCanvas(Canvas):
         """Représente la fenêtre de planète de la vue du jeu."""
         self.planet_window.hide()
 
-    def move_to(self, x: float, y: float) -> None:
-        """Déplace le canvas de jeu à une position donnée
-        :param x: La position x en 0.0 - 1.0
-        :param y: La position y en 0.0 - 1.0
-        """
-        self.xview_moveto(x)
-        self.yview_moveto(y)
-
     def initialize(self, mod: Modele):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
@@ -300,16 +294,61 @@ class GameCanvas(Canvas):
             self.generate_etoile(owned_stars[i], "etoile_occupee")
         self.generate_trou_de_vers(mod.trou_de_vers)
 
-    @staticmethod
-    def get_player_stars(mod: Modele):
-        """Récupère les étoiles contrôlées par le joueur
-        :param mod: Le model
-        :return: Une liste d'étoiles"""
-        stars = []
-        for star in mod.joueurs.keys():
-            for j in mod.joueurs[star].etoiles_controlees:
-                stars.append(j)
-        return stars
+    def refresh(self, mod: Modele):
+        """Rafrachit le canvas de jeu avec les données du model
+        :param mod: Le model"""
+        # todo : Optimize the movement so we do not have to
+        #  delete but only move it with a move or coords function
+
+        self.delete("TrouDeVers")
+        self.delete("etoile_occupee")
+
+        owned_stars = self.get_player_stars(mod)
+        for i in range(len(owned_stars)):
+            self.generate_etoile(owned_stars[i], "etoile_occupee")
+
+        for i in range(len(mod.etoiles)):
+            if mod.etoiles[i].needs_refresh:
+                self.delete(mod.etoiles[i].id)
+                self.generate_etoile(mod.etoiles[i], "etoile")
+                mod.etoiles[i].needs_refresh = False
+
+        self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
+
+        for joueur in mod.joueurs.values():
+            couleur = joueur.couleur
+            for ship_type in joueur.flotte.keys():
+                for ship_id in joueur.flotte[ship_type]:
+                    ship = joueur.flotte[ship_type][ship_id]
+                    if ship.nouveau:
+                        self.ship_view.generate_ship_view(self, ship.position,
+                                                          couleur,
+                                                          ship.id,
+                                                          joueur.nom,
+                                                          ship_type)
+                        ship.nouveau = False
+
+                    else:
+                        self.ship_view.move(self, ship.position, ship.id,
+                                            ship_type)
+
+        self.tag_raise("vaisseau")
+
+    def move_to(self, x: float, y: float) -> None:
+        """Déplace le canvas de jeu à une position donnée
+        :param x: La position x en 0.0 - 1.0
+        :param y: La position y en 0.0 - 1.0
+        """
+        self.xview_moveto(x)
+        self.yview_moveto(y)
+
+    def horizontal_scroll(self, event):
+        """Effectue un scroll horizontal sur le canvas."""
+        self.xview_scroll(-1 * int(event.delta / 120), "units")
+
+    def vertical_scroll(self, event):
+        """Effectue un scroll vertical sur le canvas."""
+        self.yview_scroll(-1 * int(event.delta / 120), "units")
 
     def generate_background(self, width: int, height: int, n: int):
         """ Genère un background de n étoiles de tailles aléatoires
@@ -348,58 +387,16 @@ class GameCanvas(Canvas):
                          fill="purple",
                          tags=("TrouDeVers", porte.id, parent_id))
 
-    def refresh(self, mod: Modele):
-        """Rafrachit le canvas de jeu avec les données du model
-        :param mod: Le model"""
-        # todo : Optimize the movement so we do not have to
-        #  delete but only move it with a move or coords function
-
-        self.delete("TrouDeVers")
-        self.delete("etoile_occupee")
-
-        change_list =[]
-        """For the owbner of the star"""
-
-        owned_stars = self.get_player_stars(mod)
-        for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i], "etoile_occupee")
-
-        for i in range(len(mod.etoiles)):
-            if mod.etoiles[i].needs_refresh:
-                self.delete(mod.etoiles[i].id)
-                self.generate_etoile(mod.etoiles[i], "etoile")
-                mod.etoiles[i].needs_refresh = False
-
-
-
-        self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
-
-        for joueur in mod.joueurs.values():
-            couleur = joueur.couleur
-            for ship_type in joueur.flotte.keys():
-                for ship_id in joueur.flotte[ship_type]:
-                    ship = joueur.flotte[ship_type][ship_id]
-                    if ship.nouveau:
-                        self.ship_view.generate_ship_view(self, ship.position,
-                                                          couleur,
-                                                          ship.id,
-                                                          joueur.nom,
-                                                          ship_type)
-                        ship.nouveau = False
-
-                    else:
-                        self.ship_view.move(self, ship.position, ship.id,
-                                            ship_type)
-
-        self.tag_raise("vaisseau")
-
-    def horizontal_scroll(self, event):
-        """Effectue un scroll horizontal sur le canvas."""
-        self.xview_scroll(-1 * int(event.delta / 120), "units")
-
-    def vertical_scroll(self, event):
-        """Effectue un scroll vertical sur le canvas."""
-        self.yview_scroll(-1 * int(event.delta / 120), "units")
+    @staticmethod
+    def get_player_stars(mod: Modele):
+        """Récupère les étoiles contrôlées par le joueur
+        :param mod: Le model
+        :return: Une liste d'étoiles"""
+        stars = []
+        for star in mod.joueurs.keys():
+            for j in mod.joueurs[star].etoiles_controlees:
+                stars.append(j)
+        return stars
 
 
 class SideBar(Frame):
@@ -733,7 +730,8 @@ class ConstructShipMenu(Menu):
         self.command_queue = command_queue
 
     def add_event_to_command_queue(self, i):
-        """Ajoute un evenement de construction de vaisseau au view_controller_queue"""
+        """Ajoute un evenement de construction de vaisseau au
+        view_controller_queue"""
         self.command_queue.add("handle_ship_construct_request",
                                self.planet_id, self.ship_types[i].lower())
 
