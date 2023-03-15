@@ -99,11 +99,18 @@ class CommandQueue:
         :param funct_name: Le nom de la fonction.
         :param args: Les arguments de la fonction.
         """
-        self.queue.append((funct_name, args))
+        # Check for doubles
+        for i, (name, args) in enumerate(self.queue):
+            if name == funct_name:
+                self.queue[i] = (name, args)
+                break
+        else:
+            self.queue.append((funct_name, args))
 
     def execute(self, command_obj) -> None:
         """Execute la queue grace a l'objet en parametre."""
         for funct_name, args in self.queue:
+            print(funct_name, args)
             getattr(command_obj, funct_name)(*args)
         self.queue = []
 

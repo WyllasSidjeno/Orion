@@ -29,7 +29,7 @@ class Modele:
     :ivar etoiles: La liste des étoiles
     :ivar joueurs: le dictionnaire des joueurs
 
-    :ivar modele_local_queue: La queue de communication entre le modèle et
+    : La queue de communication entre le modèle et
      le modèle local
     :ivar modele_controller_queue: La queue de communication entre le modèle
     et le contrôleur
@@ -59,14 +59,13 @@ class Modele:
         self.etoiles: list = []
         self.joueurs: dict = {}
 
-        self.modele_local_queue = CommandQueue()
         self.modele_controller_queue = model_controller_queue
         self.log: dict = {}
 
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
         self.creer_etoiles(int((self.hauteur * self.largeur) / 500000))
         self.creer_joueurs(joueurs)
-        self.creer_ias(1)
+        self.creer_ias(0)
 
     def change_planet_ownership(self, planet_info: tuple[str],
                                 new_owner: None | str = None):
@@ -86,12 +85,11 @@ class Modele:
                 self.etoiles.remove(planet)
                 self.joueurs[new_owner].conquer_planet(planet)
 
-    def lose_ship_request(self, *args):
+    def lose_ship_request(self, args):
         """Demande de perte d'un vaisseau.
-
-        :param ship_info: Les informations du vaisseau
         """
         print(f'lose_ship_request : {args}')
+
 
     def attack_request(self, attacker_info: tuple, defender_info: tuple):
         """Demande d'attaque d'un vaisseau.
@@ -112,14 +110,6 @@ class Modele:
                     defender_info,
                     attacker_info[2:]
                 )
-                if defender_info[1] == StringTypes.VAISSEAU:
-                    if self.cadre % 6 == 0:
-                        self.modele_controller_queue.add(
-                            "handle_model_to_server_queue",
-                            "update_ship_target_position",
-                            attacker_info[2], attacker_info,
-                            defender_info
-                        )
             else:
                 attacker.target_change(None)
 
@@ -139,8 +129,7 @@ class Modele:
                 temp_object = self.__get_ship(object_id, owner=owner)
 
             elif object_type in StringTypes.planet_types():
-                temp_object = self.__get_etoile(object_id,
-                                                object_type, owner)
+                temp_object = self.__get_etoile(object_id, owner)
 
             elif object_type == StringTypes.TROUDEVERS:
                 temp_object = self.__get_trou_de_vers(object_id)  # TODO
@@ -157,12 +146,11 @@ class Modele:
 
         return temp_object
 
-    def __get_etoile(self, planet_id, planet_type=None,
+    def __get_etoile(self, planet_id,
                      owner: str | None = None):
         """Retourne une étoile.
 
         :param planet_id: L'id de l'étoile
-        :param planet_type: Le type de l'étoile
         :param owner: Le propriétaire de l'étoile
         """
         if owner:
@@ -200,7 +188,6 @@ class Modele:
         """
         getattr(self, funct)(*args)
 
-
     def tick(self, cadre: int):
         """Joue le prochain coup pour chaque objet.
 
@@ -208,15 +195,22 @@ class Modele:
 
         :param cadre: le cadre a joué (frame)
         """
+        # Clean self.log doubles first
+        if cadre in self.log:
+            for i in self.log[cadre]:
+                temp = i
+                for j in self.log[cadre]:
+                    if i == j:
+                        if temp != j:
+                            self.log[cadre].remove(j)
+                            print("Removed duplicate action")
+                        else:
+                            temp = j
         self.cadre = cadre
+        print(self.log)
         if cadre in self.log:
             for i in self.log[cadre]:
                 if i:
-                    #Old debug , leave in case of.
-                    #if type(i) == list:
-                     #   username = i[0][0]
-                     #   action = i[0][1][0]
-                     #   args = i[0][1][1:]
                     username = i[0]
                     action = i[1][0]
                     args = i[1][1:]
@@ -229,8 +223,6 @@ class Modele:
 
         for i in self.joueurs:
             self.joueurs[i].tick()
-
-        self.modele_local_queue.execute(self)
 
         for i in self.trou_de_vers:
             i.tick()
@@ -294,7 +286,6 @@ class Modele:
         for i, joueur in enumerate(joueurs):
             etoile = etoiles_occupee[i]
             self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0),
-                                          self.modele_local_queue,
                                           self.modele_controller_queue,
                                           self.controller_username)
             for e in range(5):
@@ -317,7 +308,7 @@ class Modele:
         for i in range(ias):
             self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
                                          couleurs_ia.pop(0),
-                                         self.modele_local_queue,
+
                                          self.modele_controller_queue,
                                          self.controller_username)
 
@@ -354,26 +345,23 @@ class Joueur:
     :ivar etoile_mere: l'etoile mere du joueur
     :ivar etoiles_controlees: la liste des etoiles controlees par le joueur
     :ivar consommation_energie_joueur: la consommation d'energie du joueur
-    :ivar model_queue: la queue de commandes du modele
 
     :param nom: le nom du joueur
     :param etoile_mere: l'etoile mere du joueur
     :param couleur: la couleur du joueur
-    :param model_queue: la queue de commandes du modele
 
 
 
     """
 
-    def __init__(self, nom: str, etoile_mere: Etoile, couleur: str,
-                 model_queue: CommandQueue, model_controller_queue,
+    def __init__(self, nom: str, etoile_mere: Etoile, couleur: str
+                 , model_controller_queue,
                  controller_owner: str):
         """Initialise le joueur.
 
         :param nom: le nom du joueur
         :param etoile_mere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
-        :param model_queue: la queue de commandes du modele
         """
         self.id: str = get_prochain_id()
         """L'id du joueur."""
@@ -396,8 +384,8 @@ class Joueur:
                                           nourriture=100)
         """Ressources totales du joueur."""
 
-        self.model_queue = model_queue
-        """Queue de commandes des joueurs au modèle."""
+        self.model_to_controller_queue = model_controller_queue
+        """Queue de commandes du modèle au controller."""
 
         self.etoile_mere = etoile_mere
         """L'etoile mere du joueur."""
@@ -418,15 +406,6 @@ class Joueur:
         etoile.need_refresh = False
         self.etoiles_controlees.append(etoile)
 
-    def update_ship_target_position(self, *args):
-        """Met à jour la position d'un vaisseau.
-
-        :param ship_id: l'id du vaisseau à mettre à jour
-        :param ship_type: le type du vaisseau à mettre à jour
-        :param pos: la nouvelle position du vaisseau
-        """
-        print("update ship position", args)
-
     def construct_ship(self, planet_id: str, type_ship: str):
         """Déclenche la construction d'un vaisseau sur une planète dépendant
         du type de vaisseau demandé.
@@ -436,7 +415,10 @@ class Joueur:
         :param type_ship: le type de vaisseau à construire
         """
         pos = self.get_etoile_by_id(planet_id).position
-        ship = getattr(ships, type_ship.capitalize())(pos, self.nom)
+        ship = getattr(ships, type_ship.capitalize())(
+            pos, self.nom,
+            self.model_to_controller_queue
+        )
 
         if ship:
             self.flotte[type_ship][ship.id] = ship
@@ -463,8 +445,10 @@ class Joueur:
             if etoile:
                 etoile.attacked(defender_infos, attack_info)
                 if etoile.resistance <= 0:
-                    self.model_queue.add("change_planet_ownership",
-                                         (etoile.id, self.nom))
+                    self.model_to_controller_queue.add(
+                        "handle_model_to_server_queue",
+                        "change_planet_ownership", "model",
+                        (etoile.id, self.nom))
             else:
                 print("Etoile non trouvée")
         elif defender_infos[1] == StringTypes.VAISSEAU:
@@ -548,7 +532,8 @@ class Joueur:
                 return i
         return None
 
-    def get_ship(self, ship_id: str, ship_type: str| None = None) -> Ship | None:
+    def get_ship(self, ship_id: str,
+                 ship_type: str | None = None) -> Ship | None:
         """Renvoie le vaisseau correspondant à l'id donné.
 
         :param ship_id: L'id du vaisseau
@@ -578,30 +563,12 @@ class Joueur:
         """
         getattr(self, funct)(*args)
 
-
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
-        logs = []
         for type_ship in self.flotte.keys():
             for ship in self.flotte[type_ship]:
                 self.flotte[type_ship][ship].tick()
-
-        if self.is_controller_owner:
-            for type_ship in self.flotte.keys():
-                for ship in self.flotte[type_ship]:
-                    if self.flotte[type_ship][ship].log:
-                        for i in self.flotte[type_ship][ship].log:
-                            logs.append(i)
-                            self.flotte[type_ship][ship].log = []
-
-            for etoile in self.etoiles_controlees:
-                if etoile.log:
-                    for i in etoile.log:
-                        logs.append(i)
-                    etoile.log = []
-            for log in logs:
-                self.model_queue.add(log[0], *log[1:])
 
 
 class AI(Joueur):
@@ -616,17 +583,15 @@ class AI(Joueur):
     :ivar etoile_mere: l'etoile mere du joueur
     :ivar etoiles_controlees: la liste des etoiles controlees par le joueur
     :ivar consommation_energie_joueur: la consommation d'energie du joueur
-    :ivar model_queue: la queue de commandes du modele
 
     :param nom: le nom du joueur
     :param etoile_mere: l'etoile mere du joueur
     :param couleur: la couleur du joueur
-    :param model_queue: la queue de commandes du modele
     """
 
     def __init__(self, nom: str,
                  etoile_mere: Etoile, couleur: str,
-                 model_queue,model_controller_queue, owner) -> None:
+                 model_controller_queue, owner) -> None:
         """Initialise l'AI.
 
         :param nom: le nom de l'AI
@@ -634,7 +599,7 @@ class AI(Joueur):
         :param couleur: la couleur de l'AI
         """
         Joueur.__init__(self, nom, etoile_mere, couleur,
-                        model_queue, model_controller_queue, owner)
+                        model_controller_queue, owner)
         self.cooldownmax: int = 1000
         """Cooldown max de l'AI avant son prochain vaisseau."""
         self.cooldown: int = 20

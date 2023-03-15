@@ -158,7 +158,6 @@ class Controller:
 
     def handle_model_to_server_queue(self, command: str, user: str, *args):
         """Gère les commandes du modèle vers le serveur."""
-        print("model to server queue", command, user, *args)
         self.controller_server_queue.add(user, command, *args)
 
     def handle_ship_construct_request(self, *args):
@@ -196,7 +195,7 @@ class ServerController:
         """Le nom de l'utilisateur"""
         self.url_serveur: str = url_serveur
         """L'URL du serveur"""
-        self.frame_module = 2
+        self.frame_module = 2 # Retirer du update action pour testing
         """Le nombre de frames entre chaque appel au serveur"""
 
         self.pause_game = pause_game
@@ -212,26 +211,25 @@ class ServerController:
         actions du joueur
         :return: les actions à faire
         """
-        if frame % self.frame_module == 0:
-            if actions:
-                actions_temp = actions.get_all()
-            else:
-                actions_temp = None
-            url = self.url_serveur + "/boucler_sur_jeu"
-            params = {"nom": self.username,
-                      "cadrejeu": frame,
-                      "actionsrequises": actions_temp}
-            try:
-                temp = call_server(url, params)
-                if "ATTENTION" in temp:
-                    print("ATTEND QUELQU'UN")
-                    self.pause_game()
-                else:
-                    self.unpause_game()
-                    model.ajouter_actions(temp, frame)
-            except urllib.error.URLError as e:
-                print("ERREUR ", frame, e)
+        if actions:
+            actions_temp = actions.get_all()
+        else:
+            actions_temp = None
+        url = self.url_serveur + "/boucler_sur_jeu"
+        params = {"nom": self.username,
+                  "cadrejeu": frame,
+                  "actionsrequises": actions_temp}
+        try:
+            temp = call_server(url, params)
+            if "ATTENTION" in temp:
+                print("ATTEND QUELQU'UN")
                 self.pause_game()
+            else:
+                self.unpause_game()
+                model.ajouter_actions(temp, frame)
+        except urllib.error.URLError as e:
+            print("ERREUR ", frame, e)
+            self.pause_game()
 
 
 class LobbyController:
