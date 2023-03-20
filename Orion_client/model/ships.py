@@ -319,11 +319,18 @@ class Reconnaissance(Ship):
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
-        super().move()
-        if self.position == self.position_cible:
-            self.target_change(None)
-            # do colonize on arrival
+        if not self.is_close_enough(self.position_cible):
+            super().move()
+        else:
+            self.controller_model_queue.add(
+                "handle_model_to_server_queue",
+                "change_planet_ownership", "model", (self.id, self.proprietaire))
 
+  # Todo: créer la classe probe avant.
+"""
+    def create_probe(self, owner: str):
+        self.controller_model_queue.add()
+"""
 
 class Flotte(dict):
     """Classe representant une flotte.
