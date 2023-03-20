@@ -2,7 +2,7 @@ from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
 from Orion_client.helper import CommandQueue
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    SideBar
+    SideBar, Hud
 
 
 class GameView(Frame):
@@ -17,7 +17,7 @@ class GameView(Frame):
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
 
-        self.top_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.hud = Hud(self)
         """Représente la barre du haut de la vue du jeu."""
 
         self.side_bar = SideBar(self)
@@ -54,7 +54,7 @@ class GameView(Frame):
             self.grid_rowconfigure(i, weight=1,
                                    minsize=50 if i == 0 else None)
 
-        self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
+        self.hud.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
         self.side_bar.grid_propagate(False)
         self.canvas.grid(row=1, column=1, columnspan=9, rowspan=9,

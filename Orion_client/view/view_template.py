@@ -751,3 +751,78 @@ class ConstructShipMenu(Menu):
         """Montre le menu a la position de la souris"""
         self.planet_id = planet_id
         self.post(event.x_root, event.y_root)
+
+
+class Hud(Frame):
+    def __init__(self, master: Frame):
+        super().__init__(master)
+        self.configure(bg=hexDark, bd=1, relief="solid")
+
+        for i in range(5): #configure HUD columns
+            self.grid_columnconfigure(i, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+
+        self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid") #frame containing ressources
+        self.ressource_frame.grid(row=0, column=0, sticky="nsew")
+        #self.ressource_frame.grid_propagate(False)
+
+
+        for i in range(4): #separate ressources in 4 columns
+            self.ressource_frame.grid_columnconfigure(i, weight=1)
+        self.ressource_frame.rowconfigure(0, weight=1)
+
+        #FRAME ATTRIBUTES
+        self.padx = 10
+        self.pady = 0
+        self.border = 1 #binary value
+
+        metal_frame = Frame(self.ressource_frame, bg="#a84632", bd=self.border, relief="solid")
+        metal_frame.grid(row=0, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+
+        beton_frame = Frame(self.ressource_frame, bg="#364b8f", bd=self.border, relief="solid")
+        beton_frame.grid(row=0, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+
+        energy_frame = Frame(self.ressource_frame, bg="#adba59", bd=self.border, relief="solid")
+        energy_frame.grid(row=0, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+
+        food_frame = Frame(self.ressource_frame, bg="#3f9160", bd=self.border, relief="solid")
+        food_frame.grid(row=0, column=3, sticky="ew", padx=self.padx, pady=self.pady)
+
+        #LABEL ATTRIBUTES
+
+        self.ressource_height = 2
+        self.ressource_width = 7
+        self.text_size = 15
+
+        self.metal_label = Label(metal_frame, text="Metal", bg="#a84632", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
+        self.beton_label = Label(beton_frame, text="Beton", bg="#364b8f", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
+        self.energy_label = Label(energy_frame, text="Energy", bg="#adba59", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
+        self.food_label = Label(food_frame, text="Food", bg="#3f9160", fg="white", font=("Arial", self.text_size),
+                                 width=self.ressource_width, height=self.ressource_height)
+
+        self.show()
+
+        self.metal_label.pack()
+        self.beton_label.pack()
+        self.energy_label.pack()
+        self.food_label.pack()
+
+    def update_ressources(self, metal, beton, energy, food):
+
+        self.metal_text = "Metal: " + str(metal)
+        self.beton_text = "Beton: " + str(beton)
+        self.energy_text = "Energy: " + str(energy)
+        self.food_text = "food: " + str(food)
+
+    def show(self):
+        self.update_ressources(1, 2, 3, 4)
+
+        self.metal_label.config(text=self.metal_text)
+        self.beton_label.config(text=self.beton_text)
+        self.energy_label.config(text=self.energy_text)
+        self.food_label.config(text=self.food_text)
+

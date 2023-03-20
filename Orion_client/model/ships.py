@@ -40,7 +40,7 @@ class Ship(ABC):
     def __init__(self, controller_model_queue,
                  pos: tuple, vitesse: int,
                  vie: int, owner: str, attack_strength: int = 0,
-                 defense_strength: int = 0, attack_range: int = 0,):
+                 defense_strength: int = 0, attack_range: int = 0, ):
         """Initialise un vaisseau.
         :param pos: Position du vaisseau
         :param vitesse: Vitesse du vaisseau
@@ -101,7 +101,6 @@ class Ship(ABC):
                 "lose_ship_request", "model", (self.id, self.proprietaire)
             )
 
-
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       new_target_id: str | None = None,
                       new_target_type: str | None = None,
@@ -129,6 +128,26 @@ class Ship(ABC):
     def type(self) -> str:
         """Retourne le type du vaisseau (le nom de sa classe)."""
         return self.__class__.__name__.lower()
+
+    def is_close_enough(self, target_pos: tuple[int, int] | tuple[
+                            float, float]) -> bool:
+        """Retourne True si le vaisseau est assez proche de sa cible."""
+        # If the target is close enough to attack or to move to attack
+        if math.hypot(
+                target_pos[0] - self.position[0],
+                target_pos[1] - self.position[1]) \
+                <= self.attack_range + self.vitesse:
+            # if the target is not close enough to attack
+            if math.hypot(
+                    target_pos[0] - self.position[0],
+                    target_pos[1] - self.position[1]) > self.attack_range:
+                self.position_cible = \
+                    (target_pos[0] - self.attack_range * cos(
+                        self.direction_angle),
+                     target_pos[1] - self.attack_range * sin(
+                         self.direction_angle))
+            return True
+        return False
 
 
 class Militaire(Ship):
@@ -161,7 +180,6 @@ class Militaire(Ship):
     :param owner: Le proprietaire du vaisseau.
 
     """
-
     def __init__(self, pos: tuple, owner: str,
                  model_controller_queue) -> None:
         """Initialise un vaisseau militaire.
@@ -205,26 +223,7 @@ class Militaire(Ship):
         else:
             self.is_set_to_attack = False
 
-    def is_close_enough_to_attack(self,
-                                  target_pos: tuple[int, int] | tuple[
-                                      float, float]) -> bool:
-        """Retourne True si le vaisseau est assez proche de sa cible."""
-        # If the target is close enough to attack or to move to attack
-        if math.hypot(
-                target_pos[0] - self.position[0],
-                target_pos[1] - self.position[1]) \
-                <= self.attack_range + self.vitesse:
-            # if the target is not close enough to attack
-            if math.hypot(
-                    target_pos[0] - self.position[0],
-                    target_pos[1] - self.position[1]) > self.attack_range:
-                self.position_cible = \
-                    (target_pos[0] - self.attack_range * cos(
-                        self.direction_angle),
-                     target_pos[1] - self.attack_range * sin(
-                         self.direction_angle))
-            return True
-        return False
+
 
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
@@ -233,7 +232,7 @@ class Militaire(Ship):
             self.current_recharge += 1
 
         if self.position_cible is not None:
-            if self.is_close_enough_to_attack(self.position_cible) \
+            if self.is_close_enough(self.position_cible) \
                     and self.is_set_to_attack:
                 if self.cadence == self.current_recharge:
                     self.attack()
@@ -269,13 +268,25 @@ class Transportation(Ship):
         """Initialise un vaisseau de transport."""
         super().__init__(model_controller_queue,
                          pos=pos, vitesse=3, vie=100, owner=owner)
+        self.position_depart = pos
+        self.position_origin = self.position_depart
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
-        super().move()
-        if self.position == self.position_cible:
-            self.target_change(None)
-            # do go back after moving to target
+        if self.is_close_enough(self.position_cible):
+            temp = self.position_depart
+            self.position_depart = self.position_cible
+            self.position_cible = temp
+        else:
+            super().move()
+
+    def target_change(self, new_target_pos: tuple[int, int] | None,
+                      new_target_id: str | None = None,
+                      new_target_type: str | None = None,
+                      new_target_owner: str | None = None) -> None:
+        super().target_change(new_target_pos, new_target_id, new_target_type, new_target_owner)
+        self.position_depart = self.position_origin
+
 
 
 class Reconnaissance(Ship):
@@ -317,6 +328,7 @@ class Reconnaissance(Ship):
 class Flotte(dict):
     """Classe representant une flotte.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self["militaire"]: dict[str, Militaire] = {}
