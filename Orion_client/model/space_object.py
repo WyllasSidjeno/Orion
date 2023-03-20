@@ -24,9 +24,9 @@ class TrouDeVers:
         """
         self.id = get_prochain_id()
         taille = randrange(6, 20)
-        self.porte_a = PorteDeVers(self.id, x1, y1, "red", taille)
-        self.porte_b = PorteDeVers(self.id, x2, y2, "orange", taille)
-        self.liste_transit = []  # pour mettre les vaisseaux qui ne sont plus dans l'espace mais maintenant l'hyper-espace
+        self.porte_a = PorteDeVers(self.id, x1, y1, taille)
+        self.porte_b = PorteDeVers(self.id, x2, y2, taille)
+        self.liste_transit = []
 
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
@@ -42,8 +42,7 @@ class PorteDeVers:
     la partie visible de l'hyper-espace. Elle est representee par un
     cercle qui se dilate et se contracte."""
 
-    def __init__(self, hole_id: str, x: int, y: int,
-                 couleur: str, taille: int) -> None:
+    def __init__(self, hole_id: str, x: int, y: int, taille: int) -> None:
         """Constructeur de la classe PorteDeVers.
 
         :param parent_id: l'id du trou de vers auquel la porte de vers appartient
@@ -58,7 +57,6 @@ class PorteDeVers:
         self.y = y
         self.pulsemax = taille
         self.pulse = randrange(self.pulsemax)
-        self.couleur = couleur
 
     def tick(self) -> None:
         """Incremente le compteur de pulsation de la porte ou le remet
@@ -81,6 +79,7 @@ class Etoile:
         :param x: coordonnee x de l'etoile
         :param y: coordonnee y de l'etoile
         """
+        self.log = []
         self.transit: bool = False
         self.id: str = get_prochain_id()
         self.parent = parent
@@ -93,13 +92,21 @@ class Etoile:
                                 energie=0,
                                 beton=random.randint(0, 10),
                                 nourriture=random.randint(0, 10))
-        self.buildinglist: list[Building] = [PowerPlant(), ConcreteFactory()]
+        self.resistance = 100
+        self.buildinglist: list[Building] = []
+        self.couleur = "grey"
         self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
 
+        self.needs_refresh: bool = True
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""
         pass
+
+    def attacked(self, attackee, attacker_info):
+        damage = attacker_info[1]
+        self.resistance -= damage
+        print("attacked", self.resistance)
 
 class Population:
     """ Population de la planète découverte
