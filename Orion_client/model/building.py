@@ -17,7 +17,7 @@ class Building(ABC):
     :param description: la description du bâtiment
     """
     building_cost: dict = {}  # todo: Ressource class
-    baseMul = 1.25
+    baseMul = 2
 
     def __init__(self, name: str, description: str, upgrade_cost: dict,
                  output: RessourceMul, level: int, max_level: int, consumption: int):
@@ -78,7 +78,7 @@ class Mine(Building):
         name = "Mine"
         description = "Une mine de fer extractant les ressources du sol"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(metal=super().baseMul)
+        output: RessourceMul = RessourceMul(metal=super().baseMul, beton=1, energie=1, nourriture=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -105,7 +105,7 @@ class Farm(Building):
         name = "Ferme"
         description = "Une ferme produisant de la nourriture"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(nourriture=super().baseMul)
+        output: RessourceMul = RessourceMul(metal=1, beton=1, energie=1, nourriture=super().baseMul)
         level = 1
         max_level = 3
         consumption = 100
@@ -129,10 +129,10 @@ class ConcreteFactory(Building):
     building_cost: dict = {}  # todo: Ressource class
 
     def __init__(self):
-        name = "Usine"
+        name = "Usine "
         description = "Une usine produisant du beton"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(beton=super().baseMul)
+        output: RessourceMul = RessourceMul(metal=1, beton=super().baseMul, energie=1, nourriture=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -158,8 +158,8 @@ class PowerPlant(Building):
     def __init__(self):
         name = "Centrale électrique"
         description = "Une centrale électrique produisant de l'électricité"
-        upgrade_cost: dict = {}  # todo: Ressource class
-        output: Ressource = Ressource(energie=2000)  # todo: Ressource class
+        upgrade_cost: dict = {}
+        output: Ressource = Ressource(energie=100)
         level = 1
         max_level = 3
         consumption = 0

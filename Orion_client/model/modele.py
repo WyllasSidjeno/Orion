@@ -15,7 +15,7 @@ from random import randrange, choice
 from ast import literal_eval
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
-from Orion_client.model.building import Building
+from Orion_client.model.building import Building, PowerPlant, ResearchCenter
 from Orion_client.model.ships import Ship, Transport, Militaire, Reconnaissance
 from Orion_client.model.space_object import TrouDeVers, Etoile
 from Orion_client.model.ressource import Ressource
@@ -211,6 +211,7 @@ class Joueur:
         self.id: str = get_prochain_id()
         self.nom = nom
         self.etoile_mere = etoile_mere
+        self.etoile_mere.transit = True
         self.etoile_mere.proprietaire = self.nom
         self.couleur = couleur
         self.log: list = []
@@ -221,13 +222,16 @@ class Joueur:
         self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
 
-        self.ressources_total = Ressource(metal=100, beton=100, energie=500, nourriture=100)
+        self.ressources_total = Ressource(metal=100, beton=100, energie=100, nourriture=100)
 
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
         for i in self.flotte:
             self.flotte[i].tick()
+
+        self.ressources_cumul()
+        print(self.ressources_total)
 
     def action_from_server(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
@@ -310,6 +314,22 @@ class Joueur:
                 pos.append(self.flotte[i].position)
         return pos
 
+    def ressources_cumul(self):
+        for e in self.etoiles_controlees:
+            print("nb building: " + str(len(e.buildinglist)))
+
+            if e.transit:
+                planet_res: Ressource = e.output
+                for b in e.buildinglist:
+                    if isinstance(b, PowerPlant):
+                        planet_res += b.output
+                    elif isinstance(b, ResearchCenter):
+                        continue
+                    else:
+                        for key in planet_res:
+                            planet_res[key] = planet_res[key] * b.output[key]
+                print(planet_res)
+                self.ressources_total += planet_res
 
 class AI(Joueur):
     """Classe de l'AI.

@@ -1,9 +1,11 @@
 import random
-from random import randrange
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model.building import Building, PowerPlant, ConcreteFactory
 from Orion_client.model.ressource import Ressource
+from random import randrange
+
+
 
 class TrouDeVers:
     """Classe representant un trou de vers.
@@ -87,14 +89,11 @@ class Etoile:
         self.y = y
         self.position = (x, y)
         self.taille = randrange(4, 8)
-        self.output = Ressource(metal=random.randint(0, 1000),
-                                energie=1,
-                                beton=random.randint(0, 1000),
-                                nourriture=random.randint(0, 1000))
+        self.output = Ressource(metal=random.randint(0, 10),
+                                energie=0,
+                                beton=random.randint(0, 10),
+                                nourriture=random.randint(0, 10))
         self.buildinglist: list[Building] = [PowerPlant(), ConcreteFactory()]
-        self.ressources = {"metal": 1000,
-                           "energie": 10000,
-                           "existentielle": 100}
         self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
 
     def tick(self) -> None:

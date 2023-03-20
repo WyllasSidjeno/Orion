@@ -5,7 +5,7 @@ import urllib
 import urllib.error
 import urllib.parse
 import urllib.request
-from random import seed
+import random
 
 from Orion_client.helper import LogHelper
 from Orion_client.view.view import GameView, LobbyView
@@ -48,7 +48,11 @@ class Controller:
         """Debute le jeu avec les joueurs donnés en paramètre,
         tout en initialisant le modèle et le sous controller serveur
         :param joueurs: la liste des joueurs"""
-        seed(12471)
+
+        #todo random seed
+        #random.seed(int(joueurs[1][0][0]))
+
+        random.seed(12471)
 
         listejoueurs = []
         for i in joueurs:
