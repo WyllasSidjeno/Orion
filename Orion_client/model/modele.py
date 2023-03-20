@@ -8,10 +8,7 @@ from __future__ import annotations
 from ast import literal_eval
 from random import randrange, choice
 
-from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model.building import *
-from Orion_client.model.ships import Ship, Transport, Militaire, Reconnaissance
-from Orion_client.model.space_object import TrouDeVers, Etoile
 from Orion_client.helper import get_prochain_id, AlwaysInt, CommandQueue, \
     StringTypes
 from Orion_client.model import ships
@@ -372,6 +369,7 @@ class Joueur:
         self.nom = nom
         self.etoile_mere = etoile_mere
         self.etoile_mere.transit = True
+        self.etoile_mere.buildinglist = [Farm(), Mine()]
         self.etoile_mere.proprietaire = self.nom
         """Le nom du joueur."""
         self.is_controller_owner = controller_owner == nom
@@ -592,12 +590,18 @@ class Joueur:
             for ship in self.flotte[type_ship]:
                 self.flotte[type_ship][ship].tick()
 
+        self.ressources_cumul()
+        print(self.ressources_total)
+
     def ressources_cumul(self):
         for e in self.etoiles_controlees:
             print("nb building: " + str(len(e.buildinglist)))
 
             if e.transit:
-                planet_res: Ressource = e.output
+                planet_res: Ressource = {}
+                for key in e.output:
+                    planet_res[key] = e.output[key]
+
                 for b in e.buildinglist:
                     if isinstance(b, PowerPlant):
                         planet_res += b.output
@@ -606,7 +610,9 @@ class Joueur:
                     else:
                         for key in planet_res:
                             planet_res[key] = planet_res[key] * b.output[key]
+
                 print(planet_res)
+                print(e.output)
                 self.ressources_total += planet_res
 
 class AI(Joueur):
