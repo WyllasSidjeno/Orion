@@ -222,7 +222,7 @@ class Joueur:
         self.flotte: dict[str, list[Ship] | Ship] = {}
         """Flotte du joueur."""
 
-        self.ressources_total = Ressource(metal=100, beton=100, energie=100, nourriture=100)
+        self.ressources_total = Ressource(metal=100, beton=100, energie=100, nourriture=100, population=0, science=0)
 
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
