@@ -3,16 +3,15 @@
 Ce module contient des methodes statiques pour calculer des points
 et des angles a partir de coordonnees cartesiennes.
 """
-from typing import Any
+from enum import Enum
+from typing import Any, List
 import functools
 
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from Orion_client.model.modele import Joueur, Modele
+
 
 prochainid: int = 0
 """Prochain identifiant a utiliser."""
-
 
 def get_prochain_id() -> str:
     """Recupere le prochain id a utiliser.
@@ -91,57 +90,78 @@ class AlwaysInt(int, metaclass=Inherited):
                 _implements[int].append(method)
 
 
-def call_wrapper(target: str,
-                 funct_name: str,
-                 *args: Any) -> tuple[str, str, tuple[Any]]:
-    """Wrapper pour les fonctions de Joueur et Modele.
-    :param target: Le joueur ou le model.
-    :type target: str ('nom' ou 'model')
-    :param funct_name: Le nom de la fonction.
-    :param add_func_name: Les noms des fonctions à ajouter.
-    :param args: Les arguments de la fonction.
-    """
-    return target, funct_name, args
+class CommandQueue:
+    def __init__(self) -> None:
+        self.queue = []
 
-
-class LogHelper(list):
-    """Helper pour les logs de view et de modele avant envoi au serveur ou local
-    """
-    def __init__(self):
-        super().__init__()
-
-    def add(self, target: str, funct_name: str, *args: Any) -> None:
-        """Ajoute une action.
-        :param target: Le joueur ou le model.
-        :type target: str ('nom' ou 'model')
+    def add(self, funct_name: str, *args: Any) -> None:
+        """Ajoute une commande dans la queue.
         :param funct_name: Le nom de la fonction.
-        :param add_func_name: Les noms des fonctions à ajouter.
         :param args: Les arguments de la fonction.
         """
-        self.append((target, funct_name, args))
+        # Check for doubles
+        for i, (name, args) in enumerate(self.queue):
+            if name == funct_name:
+                self.queue[i] = (name, args)
+                break
+        else:
+            self.queue.append((funct_name, args))
 
-    def add_log(self, log) -> None:
-        """Ajoute un log.
-        :param log: Le log.
-        """
-        self.append(log)
+    def execute(self, command_obj) -> None:
+        """Execute la queue grace a l'objet en parametre."""
+        for funct_name, args in self.queue:
+            print(funct_name, args)
+            getattr(command_obj, funct_name)(*args)
+        self.queue = []
 
-    def get_and_clear(self):
-        """Recupere les logs et supprime ses propres logs.
-        :return: Les logs.
-        :rtype: dict[str, list[list[str | list[Any] | tuple[Any]]]]
+    def get_all(self) -> List[tuple[str, tuple[Any]]]:
+        """Retourne la queue.
+        :return: La queue.
+        :rtype: list[tuple[str, str, tuple[Any]]]
         """
-        log = self.copy()
-        self.clear()
-        return log
+        temp_copy = self.queue.copy()
+        self.queue.clear()
+        return temp_copy
 
-    def change_main_players(self, username) -> None:
-        """Change les mentions de "main_player" par "nom".
-        :param username: Le nouveau nom.
+
+class StringTypes(Enum):
+    """Classe énumérative pour retrouver les strings des types de planètes."""
+    # Les éléments de maps
+    ETOILE_OCCUPEE = "etoile_occupee"
+    ETOILE = "etoile"
+    TROUDEVERS = "TrouDeVers"
+
+    # Les éléments de joueurs
+    VAISSEAU = "vaisseau"
+    MILITAIRE = "militaire"
+    TRANSPORTATION = "transportation"
+    RECONNAISSANCE = "reconnaissance"
+
+    def __str__(self):
+        return self.value
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.value == other
+        return super().__eq__(other)
+
+    @classmethod
+    def ship_types(cls) -> list[str]:
+        """Retourne la liste des types de vaisseaux.
+        :return: La liste des types de vaisseaux.
+        :rtype: list[str]
         """
-        for i, log in enumerate(self):
-            if log[0] == 'main_player':
-                self[i] = (username, *log[1:])
+        return [cls.VAISSEAU.value, cls.MILITAIRE.value,
+                cls.TRANSPORTATION.value, cls.RECONNAISSANCE.value]
+
+    @classmethod
+    def planet_types(cls) -> list[str]:
+        """Retourne la liste des types de planètes.
+        :return: La liste des types de planètes.
+        :rtype: list[str]
+        """
+        return [cls.ETOILE_OCCUPEE.value, cls.ETOILE.value,
+                cls.TROUDEVERS.value]
 
 
 
