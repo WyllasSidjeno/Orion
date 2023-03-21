@@ -34,9 +34,6 @@ class Ship(ABC):
     :param vie: La vie du vaisseau.
     :param owner: Le proprietaire du vaisseau.
     """
-    id_cible: str | None
-    type_cible: str | None
-
     def __init__(self, controller_model_queue,
                  pos: tuple, vitesse: int,
                  vie: int, owner: str, attack_strength: int = 0,
@@ -65,6 +62,8 @@ class Ship(ABC):
         self.position_cible: tuple | None = None
         self.direction_angle = 0  # TODO: Type
         self.cible_owner: str | None = None
+        self.id_cible: str | None = None
+        self.type_cible: str | None = None
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
@@ -288,7 +287,6 @@ class Transportation(Ship):
         self.position_depart = self.position_origin
 
 
-
 class Reconnaissance(Ship):
     """Classe représentant un vaisseau de reconnaissance.
 
@@ -317,14 +315,20 @@ class Reconnaissance(Ship):
         super().__init__(model_controller_queue,
                          pos=pos, vitesse=3, vie=100, owner=owner)
 
-    def move(self) -> None:
-        """Fait avancer le vaisseau d'une unite de temps."""
-        if not self.is_close_enough(self.position_cible):
-            super().move()
-        else:
-            self.controller_model_queue.add(
-                "handle_model_to_server_queue",
-                "change_planet_ownership", "model", (self.id, self.proprietaire))
+    def tick(self) -> None:
+        if self.position_cible:
+            print(self.id_cible)
+            if self.id_cible:
+                if self.is_close_enough(self.position_cible):
+                    self.controller_model_queue.add(
+                        "handle_model_to_server_queue",
+                        "change_planet_ownership", "model", *(self.id_cible, self.proprietaire))
+                    self.target_change(None)
+                else:
+                    self.move()
+
+            else:
+                self.move()
 
   # Todo: créer la classe probe avant.
 """

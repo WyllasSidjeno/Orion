@@ -72,12 +72,15 @@ class Modele:
         """Change la propriété des planètes en fonction de la distance
         entre les vaisseaux et les planètes.
         """
-        planet = self.get_object(planet_info[0],
-                                 StringTypes.ETOILE_OCCUPEE, planet_info[1])
-        print(f"change_planet_ownership : {planet_info}, {new_owner}")
+        print(new_owner)
+        planet = self.get_object(planet_info, StringTypes.ETOILE)
+
+        print(planet)
+
+        # Todo : Optimize Etoile and Etoile occupe from received tag list.
         if planet:
             if new_owner is None:
-                self.joueurs[planet_info[1]].etoiles_controlees.remove(planet)
+                self.joueurs[planet_info].etoiles_controlees.remove(planet)
                 self.etoiles.append(planet)
                 planet.proprietaire = None
                 planet.couleur = "grey"
@@ -146,24 +149,21 @@ class Modele:
 
         return temp_object
 
-    def __get_etoile(self, planet_id,
+    def __get_etoile(self, etoile_id,
                      owner: str | None = None):
         """Retourne une étoile.
 
         :param planet_id: L'id de l'étoile
         :param owner: Le propriétaire de l'étoile
         """
-        if owner:
-            return self.joueurs[owner].get_etoile_by_id(planet_id)
-        else:
-            for planet in self.etoiles:
-                if planet.id == planet_id:
-                    return planet
+        for etoile in self.etoiles:
+            if etoile.id == etoile_id:
+                return etoile
 
         for joueur in self.joueurs.values():
-            planet = joueur.get_etoile_by_id(planet_id)
-            if planet:
-                return planet
+            etoile = joueur.get_etoile_by_id(etoile_id)
+            if etoile:
+                return etoile
 
     def __get_ship(self, ship_id, ship_type=None, owner=None):
         """Retourne un vaisseau.

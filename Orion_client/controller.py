@@ -107,7 +107,13 @@ class Controller:
             if self.model.is_type(self.previous_selection, "reconnaissance"):
                 if self.model.is_type(new_tags_list, StringTypes.ETOILE.value) \
                         and not self.model.is_owner(new_tags_list):
-                    print("recon to star request")
+                    self.controller_server_queue.add(self.username,
+                                                     "ship_target_change_request",
+                                                     self.previous_selection[1],
+                                                     self.previous_selection[3],
+                                                     pos, new_tags_list[1],
+                                                     new_tags_list[0],
+                                                     )
             elif self.model.is_type(self.previous_selection, "militaire"):
                 if self.model.is_type(new_tags_list,
                                       [StringTypes.ETOILE_OCCUPEE.value,
