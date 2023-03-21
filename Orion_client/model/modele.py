@@ -1,5 +1,4 @@
 """Module des modeles de donnees du jeu
-
 Ce module contient les classes qui representent les objets du jeu ainsi
 que le modèle de base du jeu.
 """
@@ -8,6 +7,7 @@ from __future__ import annotations
 from ast import literal_eval
 from random import randrange, choice
 
+from Orion_client.model.building import *
 from Orion_client.helper import get_prochain_id, AlwaysInt, CommandQueue, \
     StringTypes
 from Orion_client.model import ships
@@ -19,24 +19,18 @@ from Orion_client.model.space_object import TrouDeVers, Etoile
 
 class Modele:
     """Classe du modèle.
-
     Le modèle contient les données du jeu.
-
     :ivar largeur: La largeur du jeu
     :ivar hauteur: La hauteur du jeu
-
     :ivar trou_de_vers: La liste des trous de ver.
     :ivar etoiles: La liste des étoiles
     :ivar joueurs: le dictionnaire des joueurs
-
     : La queue de communication entre le modèle et
      le modèle local
     :ivar modele_controller_queue: La queue de communication entre le modèle
     et le contrôleur
     :ivar log: Le dictionnaire des logs
-
     :param joueurs: Les joueurs du jeu
-
     :param model_controller_queue: La queue de communication entre le
     modèle et le contrôleur
     """
@@ -44,7 +38,6 @@ class Modele:
     def __init__(self, joueurs, model_controller_queue: CommandQueue,
                  username: str):
         """Initialise le modèle.
-
         :param joueurs: Les joueurs du jeu
         :param model_controller_queue: La queue de communication entre le
         modèle et le contrôleur
@@ -96,7 +89,6 @@ class Modele:
 
     def attack_request(self, attacker_info: tuple, defender_info: tuple):
         """Demande d'attaque d'un vaisseau.
-
         :param attacker_info: Les informations du vaisseau attaquant
         :param defender_info: Les informations du vaisseau défendant
         """
@@ -119,11 +111,9 @@ class Modele:
     def get_object(self, object_id, object_type=None,
                    owner=None) -> None | Ship | Flotte | TrouDeVers | Etoile:
         """Retourne un objet du jeu.
-
         :param object_id: L'id de l'objet
         :param object_type: Le type de l'objet
         :param owner: Le propriétaire de l'objet
-
         :return: L'objet demandé
         """
         temp_object = None
@@ -152,7 +142,6 @@ class Modele:
     def __get_etoile(self, etoile_id,
                      owner: str | None = None):
         """Retourne une étoile.
-
         :param planet_id: L'id de l'étoile
         :param owner: Le propriétaire de l'étoile
         """
@@ -167,7 +156,6 @@ class Modele:
 
     def __get_ship(self, ship_id, ship_type=None, owner=None):
         """Retourne un vaisseau.
-
         :param ship_id: L'id du vaisseau
         :param ship_type: Le type du vaisseau
         :param owner: Le propriétaire du vaisseau
@@ -182,7 +170,6 @@ class Modele:
 
     def receive_action(self, funct: str, args: list):
         """Reçoit une action du serveur et l'ajoute dans la queue.
-
         :param funct: La fonction à appeler
         :param args: les arguments de la fonction
         """
@@ -190,9 +177,7 @@ class Modele:
 
     def tick(self, cadre: int):
         """Joue le prochain coup pour chaque objet.
-
         Ne pas modifier.
-
         :param cadre: le cadre a joué (frame)
         """
         # Clean self.log doubles first
@@ -230,7 +215,6 @@ class Modele:
     def ajouter_actions(self, actionsrecues: list, frame: int):
         """Ajoute les actions reçues dans la liste des actions à faire
          si et seulement si le cadre est plus petit que le cadre courant.
-
         :param actionsrecues: La liste des actions reçues du serveur
         :param frame: le cadre courant
         """
@@ -250,7 +234,6 @@ class Modele:
 
     def creer_trou_de_vers(self, num_wormholes: int):
         """Crée n trous de vers.
-
         :param num_wormholes: le nombre de trous de vers à créer"""
         for _ in range(num_wormholes):
             x1 = randrange(10, self.largeur - 10)
@@ -261,7 +244,6 @@ class Modele:
 
     def creer_etoiles(self, nb_etoiles: int):
         """Crée des étoiles, d'une certaine couleur dépendant du joueur.
-
         :param nb_etoiles: le nombre d'étoiles à créer
         """
         bordure = 10
@@ -272,7 +254,6 @@ class Modele:
 
     def creer_joueurs(self, joueurs: list):
         """Créé les joueurs et leur attribue une etoile mère.
-
         :param joueurs: la liste des joueurs à créer
         """
         couleurs = ["red", "blue", "lightgreen", "yellow", "lightblue", "pink",
@@ -295,7 +276,6 @@ class Modele:
 
     def creer_ias(self, ias: int = 0):
         """Créer les IAs et leur attribue une etoile mère.
-
         :param ias: le nombre d'IA à créer
         """
         couleurs_ia = ["orange", "green", "cyan", "SeaGreen1", "turquoise1",
@@ -333,11 +313,9 @@ class Modele:
 
 class Joueur:
     """Classe du joueur.
-
     Le joueur est le personnage qui joue le jeu.
     Il possede une flotte de vaisseaux, une liste d'etoiles controlees et une
     liste d'actions.
-
     :ivar id: l'id du joueur
     :ivar nom: le nom du joueur
     :ivar couleur: la couleur du joueur
@@ -345,20 +323,15 @@ class Joueur:
     :ivar etoile_mere: l'etoile mere du joueur
     :ivar etoiles_controlees: la liste des etoiles controlees par le joueur
     :ivar consommation_energie_joueur: la consommation d'energie du joueur
-
     :param nom: le nom du joueur
     :param etoile_mere: l'etoile mere du joueur
     :param couleur: la couleur du joueur
-
-
-
     """
 
     def __init__(self, nom: str, etoile_mere: Etoile, couleur: str
                  , model_controller_queue,
                  controller_owner: str):
         """Initialise le joueur.
-
         :param nom: le nom du joueur
         :param etoile_mere: l'etoile mere du joueur
         :param couleur: la couleur du joueur
@@ -366,6 +339,10 @@ class Joueur:
         self.id: str = get_prochain_id()
         """L'id du joueur."""
         self.nom = nom
+        self.etoile_mere = etoile_mere
+        self.etoile_mere.transit = True
+        self.etoile_mere.buildinglist = [Farm(), Mine()]
+        self.etoile_mere.proprietaire = self.nom
         """Le nom du joueur."""
         self.is_controller_owner = controller_owner == nom
         self.couleur = couleur
@@ -387,6 +364,7 @@ class Joueur:
         self.model_to_controller_queue = model_controller_queue
         """Queue de commandes du modèle au controller."""
 
+        self.ressources_total = Ressource(metal=100, beton=100, energie=100, nourriture=100, population=0, science=0)
         self.etoile_mere = etoile_mere
         """L'etoile mere du joueur."""
         self.etoile_mere.couleur = couleur
@@ -397,7 +375,6 @@ class Joueur:
     def conquer_planet(self, etoile: Etoile):
         """Conquiert une etoile et lui établie les charactérisques
         du joueur.
-
         :param etoile: l'etoile à conquérir
         """
         etoile.proprietaire = self.nom
@@ -406,10 +383,18 @@ class Joueur:
         etoile.need_refresh = False
         self.etoiles_controlees.append(etoile)
 
-    def construct_ship(self, planet_id: str, type_ship: str):
-        """Déclenche la construction d'un vaisseau sur une planète dépendant
-        du type de vaisseau demandé.
+    def action_from_server(self, funct: str, args: list):
+        """Fonction qui active une action du joueur reçue du serveur en
+        fonction de la fonction et des arguments envoyés.
+        :param funct: la fonction à activer
+        :param args: les arguments de la fonction
+        """
+        getattr(self, funct)(*args)
 
+    def construct_ship(self, planet_id, type_ship):
+        """
+        Déclenche la construction d'un vaisseau sur une planète dépendant
+        du type de vaisseau demandé.
         :param planet_id: l'id de la planète sur laquelle construire
         le vaisseau
         :param type_ship: le type de vaisseau à construire
@@ -425,7 +410,6 @@ class Joueur:
 
     def remove_ship(self, ship_id: str, ship_type: str):
         """Supprime un vaisseau de la flotte du joueur.
-
         :param ship_id: l'id du vaisseau à supprimer
         :param ship_type: le type du vaisseau à supprimer
         """
@@ -436,7 +420,6 @@ class Joueur:
     def attacked(self, defender_infos: tuple, attack_info: tuple):
         """Fonction qui est appelée lorsque le joueur est attaqué et
         que son attaque en est confirmé.
-
         :param defender_infos: les informations du défenseur
         :param attack_info: les informations de l'attaquant
         """
@@ -478,7 +461,6 @@ class Joueur:
                                    pos: tuple[int, int], *args):
         """Fonction qui est envoyé depuis la serveyr, via la vue, afin de
         changer la cible du vaisseau si possible.
-
         :param ship_id: l'id du vaisseau à déplacer
         :param ship_type: le type du vaisseau à déplacer
         :param pos: la position cible du vaisseau
@@ -523,7 +505,6 @@ class Joueur:
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.
-
         :param etoile_id: Id de l'étoile
         :return: l'étoile correspondant à l'id
         """
@@ -535,7 +516,6 @@ class Joueur:
     def get_ship(self, ship_id: str,
                  ship_type: str | None = None) -> Ship | None:
         """Renvoie le vaisseau correspondant à l'id donné.
-
         :param ship_id: L'id du vaisseau
         :param ship_type: Le type du vaisseau
         :return: le vaisseau correspondant à l'id
@@ -556,10 +536,8 @@ class Joueur:
     def receive_action(self, funct: str, args: list):
         """Fonction qui active une action du joueur reçue du serveur en
         fonction de la fonction et des arguments envoyés.
-
         :param funct: la fonction à activer
         :param args: les arguments de la fonction
-
         """
         getattr(self, funct)(*args)
 
@@ -570,12 +548,34 @@ class Joueur:
             for ship in self.flotte[type_ship]:
                 self.flotte[type_ship][ship].tick()
 
+        self.ressources_cumul()
+        print(self.ressources_total)
+
+    def ressources_cumul(self):
+        for e in self.etoiles_controlees:
+            print("nb building: " + str(len(e.buildinglist)))
+
+            if e.transit:
+                planet_res: Ressource = {}
+                for key in e.output:
+                    planet_res[key] = e.output[key]
+
+                for b in e.buildinglist:
+                    if isinstance(b, PowerPlant):
+                        planet_res += b.output
+                    elif isinstance(b, ResearchCenter):
+                        continue
+                    else:
+                        for key in planet_res:
+                            planet_res[key] = planet_res[key] * b.output[key]
+
+                print(planet_res)
+                print(e.output)
+                self.ressources_total += planet_res
 
 class AI(Joueur):
     """Classe de l'AI.
-
     L'AI est le personnage non-joueur qui joue le jeu.
-
     :ivar id: l'id du joueur
     :ivar nom: le nom du joueur
     :ivar couleur: la couleur du joueur
@@ -583,7 +583,6 @@ class AI(Joueur):
     :ivar etoile_mere: l'etoile mere du joueur
     :ivar etoiles_controlees: la liste des etoiles controlees par le joueur
     :ivar consommation_energie_joueur: la consommation d'energie du joueur
-
     :param nom: le nom du joueur
     :param etoile_mere: l'etoile mere du joueur
     :param couleur: la couleur du joueur
@@ -593,7 +592,6 @@ class AI(Joueur):
                  etoile_mere: Etoile, couleur: str,
                  model_controller_queue, owner) -> None:
         """Initialise l'AI.
-
         :param nom: le nom de l'AI
         :param etoile_mere: l'etoile mere de l'AI
         :param couleur: la couleur de l'AI

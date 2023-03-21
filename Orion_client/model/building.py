@@ -6,10 +6,8 @@ from Orion_client.model.ressource import RessourceMul, Ressource
 
 class Building(ABC):
     """Classe représentant un bâtiment
-
     Cette classe contient les attributs et les méthodes communes à tous les
     bâtiments du jeu.
-
     :param name: le nom du bâtiment
     :param cost: le coût du bâtiment
     :param level: le niveau du bâtiment
@@ -17,12 +15,11 @@ class Building(ABC):
     :param description: la description du bâtiment
     """
     building_cost: dict = {}  # todo: Ressource class
-    baseMul = 1.25
+    baseMul = 2
 
     def __init__(self, name: str, description: str, upgrade_cost: dict,
                  output: RessourceMul, level: int, max_level: int, consumption: int):
         """Constructeur de la classe Building
-
         :param name: le nom du bâtiment
         :param description: la description du bâtiment
         :param upgrade_cost: le coût de l'amélioration du bâtiment
@@ -52,14 +49,12 @@ class Building(ABC):
     def can_build(ressources: dict) -> bool:  # todo : Ressource
         """Méthode statique permettant de savoir si le joueur peut construire
         une mine.
-
         :return: True si le joueur peut construire une batiment, False sinon
         """
         # todo : compare ressource ??
 
     def can_afford(self, ressources: dict) -> bool: # todo : Ressource
         """Méthode permettant de savoir si le joueur peut acheter une mine.
-
         :return: True si le joueur peut acheter une batiment, False sinon
         """
         # todo : compare ressource ??
@@ -67,7 +62,6 @@ class Building(ABC):
 
 class Mine(Building):
     """Classe représentant une mine
-
     Cette classe contient les attributs et les méthodes communes à toutes les
     mines du jeu.
     """
@@ -78,7 +72,7 @@ class Mine(Building):
         name = "Mine"
         description = "Une mine de fer extractant les ressources du sol"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(metal=super().baseMul)
+        output: RessourceMul = RessourceMul(metal=super().baseMul, beton=1, energie=1, nourriture=1, population=1, science=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -95,7 +89,6 @@ class Mine(Building):
 
 class Farm(Building):
     """Classe représentant une ferme
-
     Cette classe contient les attributs et les méthodes communes à toutes les
     fermes du jeu.
     """
@@ -105,7 +98,7 @@ class Farm(Building):
         name = "Ferme"
         description = "Une ferme produisant de la nourriture"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(nourriture=super().baseMul)
+        output: RessourceMul = RessourceMul(metal=1, beton=1, energie=1, nourriture=super().baseMul, population=1, science=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -122,17 +115,16 @@ class Farm(Building):
 
 class ConcreteFactory(Building):
     """Classe représentant une usine à béton
-
     Cette classe contient les attributs et les méthodes communes à tout les
     building du jeu.
     """
     building_cost: dict = {}  # todo: Ressource class
 
     def __init__(self):
-        name = "Usine"
+        name = "Usine "
         description = "Une usine produisant du beton"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(beton=super().baseMul)
+        output: RessourceMul = RessourceMul(metal=1, beton=super().baseMul, energie=1, nourriture=1, population=1, science=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -149,7 +141,6 @@ class ConcreteFactory(Building):
 
 class PowerPlant(Building):
     """Classe représentant une centrale électrique
-
     Cette classe contient les attributs et les méthodes communes à toutes les
     centrales électriques du jeu.
     """
@@ -158,8 +149,8 @@ class PowerPlant(Building):
     def __init__(self):
         name = "Centrale électrique"
         description = "Une centrale électrique produisant de l'électricité"
-        upgrade_cost: dict = {}  # todo: Ressource class
-        output: Ressource = Ressource(energie=2000)  # todo: Ressource class
+        upgrade_cost: dict = {}
+        output: Ressource = Ressource(energie=100)
         level = 1
         max_level = 3
         consumption = 0
@@ -176,7 +167,6 @@ class PowerPlant(Building):
 
 class ResearchCenter(Building): #todo Research center avec science
     """Classe représentant un centre de recherche
-
     Cette classe contient les attributs et les méthodes communes à tous les
     centres de recherches du jeu.
     """

@@ -6,10 +6,8 @@ from typing import Any
 from Orion_client.helper import AlwaysInt
 
 
-
 class Ressource(dict):
     """Classe qui contient les ressources du jeu
-
     Les seules ressources acceptés sont les suivantes :
         - Metal
         - Beton
@@ -17,13 +15,15 @@ class Ressource(dict):
         - Nourriture """
 
     def __init__(self, metal: int = 0, beton: int = 0,
-                 energie: int = 0, nourriture: int = 0, **kwargs):
+                 energie: int = 0, nourriture: int = 0, population: int = 0, science: int = 0, **kwargs):
         """Initialise une ressource avec les valeurs par defaut à 0"""
         super().__init__(**kwargs)
         self["Metal"] = AlwaysInt(metal)
         self["Beton"] = AlwaysInt(beton)
         self["Energie"] = AlwaysInt(energie)
         self["Nourriture"] = AlwaysInt(nourriture)
+        self["Population"] = AlwaysInt(population)
+        self["Science"] = AlwaysInt(science)
 
     def __add__(self, other: Ressource | dict | Any) -> Ressource:
         """Additionne deux ressources"""
@@ -41,7 +41,9 @@ class Ressource(dict):
             metal=self["Metal"] + other["Metal"],
             beton=self["Beton"] + other["Beton"],
             energie=self["Energie"] + other["Energie"],
-            nourriture=self["Nourriture"] + other["Nourriture"]
+            nourriture=self["Nourriture"] + other["Nourriture"],
+            population=self["Population"] + other["Population"],
+            science=self["Science"] + other["Science"]
         )
 
     def __sub__(self, other: Ressource | dict | Any) -> Ressource:
@@ -60,7 +62,9 @@ class Ressource(dict):
             metal=self["Metal"] - other["Metal"],
             beton=self["Beton"] - other["Beton"],
             energie=self["Energie"] - other["Energie"],
-            nourriture=self["Nourriture"] - other["Nourriture"]
+            nourriture=self["Nourriture"] - other["Nourriture"],
+            population=self["Population"] - other["Population"],
+            science=self["Science"] - other["Science"]
         )
 
     def __truediv__(self, other: Ressource | dict | Any) -> Ressource:
@@ -79,7 +83,9 @@ class Ressource(dict):
             metal=self["Metal"] / other,
             beton=self["Beton"] / other,
             energie=self["Energie"] / other,
-            nourriture=self["Nourriture"] / other
+            nourriture=self["Nourriture"] / other,
+            population=self["Population"] / other,
+            science=self["Science"] / other
         )
 
     def __mul__(self, other: Ressource | dict | Any) -> Ressource:
@@ -100,15 +106,19 @@ class Ressource(dict):
             metal=self["Metal"] * other,
             beton=self["Beton"] * other,
             energie=self["Energie"] * other,
-            nourriture=self["Nourriture"] * other
+            nourriture=self["Nourriture"] * other,
+            population=self["Population"] * other,
+            science=self["Science"] * other
         )
 
     def __str__(self) -> str:
         """Affiche les ressources"""
-        return f"Metal : {self['Metal']}," \
-               f" Beton : {self['Beton']}, " \
+        return f"Metal : {self['Metal']}, " \
+               f"Beton : {self['Beton']}, " \
                f"Energie : {self['Energie']}, " \
-               f"Nourriture : {self['Nourriture']}"
+               f"Nourriture : {self['Nourriture']}, " \
+               f"Population : {self['Population']}, " \
+               f"Science : {self['Science']}"
 
 
 class RessourceMul(Ressource):
