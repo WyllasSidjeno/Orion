@@ -758,15 +758,14 @@ class Hud(Frame):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1, relief="solid")
 
-        for i in range(5): #configure HUD columns
-            self.grid_columnconfigure(i, weight=1)
+        for i in range(1): #configure HUD columns
+            self.grid_columnconfigure(i)
         self.grid_rowconfigure(0, weight=1)
+        self.grid_propagate(False)
 
 
-        self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid") #frame containing ressources
+        self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
         self.ressource_frame.grid(row=0, column=0, sticky="nsew")
-        #self.ressource_frame.grid_propagate(False)
-
 
         for i in range(4): #separate ressources in 4 columns
             self.ressource_frame.grid_columnconfigure(i, weight=1)
@@ -777,16 +776,20 @@ class Hud(Frame):
         self.pady = 0
         self.border = 1 #binary value
 
-        metal_frame = Frame(self.ressource_frame, bg="#a84632", bd=self.border, relief="solid")
+        metal_frame = Frame(self.ressource_frame, bg="#a84632", bd=self.border, relief="solid",
+                            padx=10)
         metal_frame.grid(row=0, column=0, sticky="ew", padx=self.padx, pady=self.pady)
 
-        beton_frame = Frame(self.ressource_frame, bg="#364b8f", bd=self.border, relief="solid")
+        beton_frame = Frame(self.ressource_frame, bg="#364b8f", bd=self.border, relief="solid",
+                            padx=10)
         beton_frame.grid(row=0, column=1, sticky="ew", padx=self.padx, pady=self.pady)
 
-        energy_frame = Frame(self.ressource_frame, bg="#adba59", bd=self.border, relief="solid")
+        energy_frame = Frame(self.ressource_frame, bg="#adba59", bd=self.border, relief="solid",
+                             padx=10)
         energy_frame.grid(row=0, column=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        food_frame = Frame(self.ressource_frame, bg="#3f9160", bd=self.border, relief="solid")
+        food_frame = Frame(self.ressource_frame, bg="#3f9160", bd=self.border, relief="solid",
+                           padx=10)
         food_frame.grid(row=0, column=3, sticky="ew", padx=self.padx, pady=self.pady)
 
         #LABEL ATTRIBUTES
