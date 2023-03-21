@@ -65,10 +65,8 @@ class Modele:
         """Change la propriété des planètes en fonction de la distance
         entre les vaisseaux et les planètes.
         """
-        print(new_owner)
         planet = self.get_object(planet_info, StringTypes.ETOILE)
 
-        print(planet)
 
         # Todo : Optimize Etoile and Etoile occupe from received tag list.
         if planet:
@@ -180,17 +178,19 @@ class Modele:
         Ne pas modifier.
         :param cadre: le cadre a joué (frame)
         """
-        # Clean self.log doubles first
-        for cadre in self.log:
-            seen_actions = set()
-            for i in self.log[cadre]:
-                if i in seen_actions:
-                    self.log[cadre].remove(i)
-                    print("Removed duplicate action")
-                else:
-                    seen_actions.add(i)
+        # For all keys in logs, for all elements in these keys, make sure that there are never any doubles
+        # (i.e. if a player sends an action twice, it will only be executed once)
+        for i in self.log:
+            for m in self.log[i]:
+                if self.log[i].count(m) > 1:
+                    self.log[i].remove(m)
+            for j in self.log:
+                if i != j:
+                    for k in self.log[i]:
+                        if k in self.log[j]:
+                            self.log[j].remove(k)
+
         self.cadre = cadre
-        print(self.log)
         if cadre in self.log:
             for i in self.log[cadre]:
                 if i:
@@ -216,19 +216,19 @@ class Modele:
         :param actionsrecues: La liste des actions reçues du serveur
         :param frame: le cadre courant
         """
+        print(self.log)
         for i in actionsrecues:
             cadrecle = i[0]
             if cadrecle:
                 if (frame - 1) > int(cadrecle):
-                    print("PEUX PASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+                    raise Exception("Le cadre est plus petit que le cadre ")
                 action = literal_eval(i[1])
-
                 if cadrecle not in self.log.keys():
                     # If the key is not in the dict, create it
                     self.log[cadrecle] = action
                 else:
-                    # Else add the action to the list of actions for this key
-                    self.log[cadrecle] = self.log[cadrecle] + action
+                    # Check for duplicates in the actions
+                        self.log[cadrecle] = self.log[cadrecle] + action
 
     def creer_trou_de_vers(self, num_wormholes: int):
         """Crée n trous de vers.
@@ -426,10 +426,11 @@ class Joueur:
             if etoile:
                 etoile.attacked(defender_infos, attack_info)
                 if etoile.resistance <= 0:
-                    self.model_to_controller_queue.add(
-                        "handle_model_to_server_queue",
-                        "change_planet_ownership", "model",
-                        (etoile.id, self.nom))
+                    if self.is_controller_owner:
+                        self.model_to_controller_queue.add(
+                            "handle_model_to_server_queue",
+                            "change_planet_ownership", "model",
+                            (etoile.id, self.nom))
             else:
                 print("Etoile non trouvée")
         elif defender_infos[1] == StringTypes.VAISSEAU:
@@ -547,12 +548,9 @@ class Joueur:
                 self.flotte[type_ship][ship].tick()
 
         self.ressources_cumul()
-        print(self.ressources_total)
 
     def ressources_cumul(self):
         for e in self.etoiles_controlees:
-            print("nb building: " + str(len(e.buildinglist)))
-
             if e.transit:
                 planet_res: Ressource = {}
                 for key in e.output:

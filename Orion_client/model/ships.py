@@ -87,12 +87,9 @@ class Ship(ABC):
         """Fait subir des degats au vaisseau.
         :param damage: Les degats a subir.
         """
-        print("attacked")
         damage = attacker_info[1]
         damage -= self.defense_strength
         self.vie -= damage
-        print(damage)
-        print(self.vie)
 
         if self.vie <= 0:
             self.controller_model_queue.add(
@@ -317,7 +314,6 @@ class Reconnaissance(Ship):
 
     def tick(self) -> None:
         if self.position_cible:
-            print(self.id_cible)
             if self.id_cible:
                 if self.is_close_enough(self.position_cible):
                     self.controller_model_queue.add(

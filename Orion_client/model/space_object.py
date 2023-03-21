@@ -102,7 +102,6 @@ class Etoile:
     def attacked(self, attackee, attacker_info):
         damage = attacker_info[1]
         self.resistance -= damage
-        print("attacked", self.resistance)
 
 class Population:
     """ Population de la planète découverte
