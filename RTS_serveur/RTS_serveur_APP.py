@@ -255,7 +255,7 @@ def boucler_sur_jeu():
         for i in info:
             db.ajouteractionaujoueur(i[0], sautdecadre, actionsrequises)
 
-    if (cadrejeu - _min[1]) > 10:
+    if (cadrejeu - _min[1]) > 2:
         # on envoi attention
         maliste = ["ATTENTION"]
     else:
@@ -264,7 +264,7 @@ def boucler_sur_jeu():
 
         maliste = []
         for i in info:
-            if i[0] == nom:
+            if i[0] == nom :
                 maliste.append([i[1], i[2]])
         db.effaceractionsjoueur(nom)
     db.fermerdb()
