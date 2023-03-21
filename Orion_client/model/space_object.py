@@ -1,20 +1,20 @@
 import random
-from random import randrange
 
 from Orion_client.helper import get_prochain_id, AlwaysInt
 from Orion_client.model.building import Building, PowerPlant, ConcreteFactory
 from Orion_client.model.ressource import Ressource
+from random import randrange
+
+
 
 class TrouDeVers:
     """Classe representant un trou de vers.
-
     Un trou de vers est un lien entre deux systemes stellaires. Il
     permet de voyager d'un systeme a l'autre en passant par l'hyper-espace
     via une porte de vers vers une autre porte de vers. todo: link"""
 
     def __init__(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """Constructeur de la classe TrouDeVers.
-
         :param x1: coordonnee x de la premiere porte de vers
         :param y1: coordonnee y de la premiere porte de vers
         :param x2: coordonnee x de la deuxieme porte de vers
@@ -35,14 +35,12 @@ class TrouDeVers:
 
 class PorteDeVers:
     """Classe representant une porte de vers.
-
     Une porte de vers est une partie d'un trou de vers. Il s'agit de
     la partie visible de l'hyper-espace. Elle est representee par un
     cercle qui se dilate et se contracte."""
 
     def __init__(self, hole_id: str, x: int, y: int, taille: int) -> None:
         """Constructeur de la classe PorteDeVers.
-
         :param parent_id: l'id du trou de vers auquel la porte de vers appartient
         :param x: coordonnee x du centre de la porte
         :param y: coordonnee y du centre de la porte
@@ -66,13 +64,11 @@ class PorteDeVers:
 
 class Etoile:
     """Classe representant une etoile.
-
     Une etoile est un objet celeste qui contient des ressources et
     potentiellement un propriétaire."""
 
     def __init__(self, parent, x: int, y: int) -> None:
         """Constructeur de la classe Etoile.
-
         :param parent: le modele auquel l'etoile appartient
         :param x: coordonnee x de l'etoile
         :param y: coordonnee y de l'etoile
@@ -86,15 +82,14 @@ class Etoile:
         self.y = y
         self.position = (x, y)
         self.taille = randrange(4, 8)
-        self.output = Ressource(metal=random.randint(0, 1000),
-                                energie=1,
-                                beton=random.randint(0, 1000),
-                                nourriture=random.randint(0, 1000))
+        self.output = Ressource(metal=random.randint(1, 10),
+                                energie=0,
+                                beton=random.randint(1, 10),
+                                nourriture=random.randint(1, 10),
+                                population=0,
+                                science=0)
         self.resistance = 100
-        self.buildinglist: list[Building] = [PowerPlant(), ConcreteFactory()]
-        self.ressources = {"metal": 1000,
-                           "energie": 10000,
-                           "existentielle": 100}
+        self.buildinglist: list[Building] = []
         self.couleur = "grey"
         self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
 
@@ -119,8 +114,6 @@ class Population:
         :param totalNourriture: Initialise la quantité de nourriture disponible.
         :param pourcentBonus: taux de croissance de la population lorsqu'elle prospère
                 ou taux de perte de vie humaine si elle est attaquée
-
-
         """
         self.nb_humains = AlwaysInt(pop)
         self.is_under_siege = False
@@ -132,7 +125,6 @@ class Population:
     def increment_pop(self, isUnderSiege: bool):
         """ Modifie la quantité de la population de la planète selon son état.
             Appelée à des intervalles spécifiques ou dès que la planète est attaquée
-
             :param isUnderSiege: Booléen qui détermine si la planète est présentement attaquée.
             :return: quantité d'humains vivant sur la planète.
         """
