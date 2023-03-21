@@ -181,16 +181,14 @@ class Modele:
         :param cadre: le cadre a joué (frame)
         """
         # Clean self.log doubles first
-        if cadre in self.log:
+        for cadre in self.log:
+            seen_actions = set()
             for i in self.log[cadre]:
-                temp = i
-                for j in self.log[cadre]:
-                    if i == j:
-                        if temp != j:
-                            self.log[cadre].remove(j)
-                            print("Removed duplicate action")
-                        else:
-                            temp = j
+                if i in seen_actions:
+                    self.log[cadre].remove(i)
+                    print("Removed duplicate action")
+                else:
+                    seen_actions.add(i)
         self.cadre = cadre
         print(self.log)
         if cadre in self.log:
