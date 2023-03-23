@@ -323,17 +323,14 @@ class Joueur:
         self.energie = AlwaysInt(10000)
         # Todo : A changer pour que l'energie soit
         #  pas dupliqué dans ressource @ Romain & Julien-Karl
-        """Energie du joueur."""
-        self.ressources_total = Ressource(metal=100, beton=100, energie=500,
-                                          nourriture=100)
         """Ressources totales du joueur."""
 
         self.local_queue = local_queue
         """Queue de commandes du modèle au controller."""
 
-        self.ressources_total = Ressource(metal=100, beton=100, energie=100,
-                                          nourriture=100, population=0,
-                                          science=0)
+        self.ressources = Ressource(metal=100, beton=100, energie=100,
+                                    nourriture=100, population=0,
+                                    science=0)
         self.etoile_mere = etoile_mere
         """L'etoile mere du joueur."""
         self.etoile_mere.couleur = couleur
@@ -427,7 +424,7 @@ class Joueur:
         # Todo: Ajouter les variables bool docked et int consommation
         #  dans le modele vaisseau (2e sprint)
 
-        self.ressources_total["Energie"] -= AlwaysInt(
+        self.ressources["Energie"] -= AlwaysInt(
             (
                     conso_vaisseaux + conso_structures +
                     self.consommation_energie_joueur))
@@ -495,7 +492,7 @@ class Joueur:
                         for key in planet_res:
                             planet_res[key] = planet_res[key] * b.output[key]
 
-                self.ressources_total += planet_res
+                self.ressources += planet_res
 
 
 class AI(Joueur):
