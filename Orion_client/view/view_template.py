@@ -74,7 +74,7 @@ class EtoileWindow(Frame):
         """Frame contenant les ressources de la planete"""
 
 
-        self.ressource_label = Label(self.side_frame, text="Ressources",
+        self.ressource_label = Label(self.side_frame, text="Rendement :",
                                      bg=hexDarkGrey, fg="white",
                                      font=("Arial", 13))
         """Label contenant le nom du header du menu de ressource"""
