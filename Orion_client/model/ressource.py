@@ -120,6 +120,10 @@ class Ressource(dict):
                f"Population : {self['Population']}, " \
                f"Science : {self['Science']}"
 
+    def __dict__(self) -> dict:
+        """Retourne un dictionnaire de la ressource"""
+        return self
+
 
 class RessourceMul(Ressource):
     def __init__(self, **kwargs):

@@ -6,7 +6,6 @@ from Orion_client.model.ressource import Ressource
 from random import randrange
 
 
-
 class TrouDeVers:
     """Classe representant un trou de vers.
     Un trou de vers est un lien entre deux systemes stellaires. Il
