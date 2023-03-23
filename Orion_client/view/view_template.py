@@ -58,7 +58,7 @@ class EtoileWindow(Frame):
         self.main_frame: Frame = Frame(self, bg=hexDarkGrey, bd=1,
                                        relief="solid")
         """Frame contenant les batiments de la planete"""
-        self.batiment_label = Label(self.main_frame, text="Batiments",
+        self.batiment_label = Label(self.main_frame, text="Colonies",
                                     bg=hexDarkGrey, fg="white",
                                     font=("Arial", 13))
         """Label contenant le nom du header du menu de batiment"""
@@ -79,7 +79,7 @@ class EtoileWindow(Frame):
                                      font=("Arial", 13))
         """Label contenant le nom du header du menu de ressource"""
 
-        self.energie_label = Label(self.ressource_grid, text="Energie :",
+        self.energie_label = Label(self.ressource_grid, text="energie :",
                                    bg=hexDarkGrey, fg="white",
                                    font=("Arial", 10))
         self.energie_value_label = Label(self.ressource_grid, text="0",
@@ -160,11 +160,13 @@ class EtoileWindow(Frame):
             self.building_list[i].reinitialize()
 
         output = star.output.__dict__()
-        self.energie_value_label.config(text=output["Energie"])
-        self.metal_value_label.config(text=output["Metal"])
-        self.beton_value_label.config(text=output["Beton"])
-        self.nourriture_value_label.config(text=output["Nourriture"])
-        self.science_value_label.config(text=output["Science"])
+        self.energie_value_label.config(text=output["energie"])
+        self.metal_value_label.config(text=output["metal"])
+        self.beton_value_label.config(text=output["beton"])
+        self.nourriture_value_label.config(text=output["nourriture"])
+        self.science_value_label.config(text=output["science"])
+
+        self.nom_label.config(text=star.name)
 
 
 
@@ -211,7 +213,9 @@ class EtoileWindow(Frame):
         self.population_canvas.place(anchor="center", relx=0.85, rely=0.45)
         self.population_label.place(anchor="center", relx=0.5, rely=0.5)
 
-        self.nom_label.place(anchor="center", relx=0.1, rely=0.7)
+        # Anchor choices for tkinter are : n, ne, e, se, s, sw, w, nw, or center.
+
+        self.nom_label.place(anchor="w", relx=0.02, rely=0.7)
 
     def place_main(self) -> None:
         """Crée le main de la fenetre, là ou les bâtiments sont affichés
