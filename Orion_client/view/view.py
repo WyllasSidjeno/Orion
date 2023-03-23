@@ -94,6 +94,10 @@ class GameView(Frame):
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
 
+        dict_ress = mod.joueurs[self.nom].ressources
+
+        self.hud.update_ressources(**dict_ress)
+
     def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
         pctx = event.x / self.side_bar.minimap.winfo_width()
