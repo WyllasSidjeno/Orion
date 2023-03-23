@@ -17,7 +17,6 @@ hexDark: str = "#2f3136"
 hexSpaceBlack: str = "#23272a"
 """Pour l'espace, on utilise un noir plus sombre"""
 
-
 class EtoileWindow(Frame):
     star_id: int | None
 
@@ -897,22 +896,33 @@ class Hud(Frame):
         # LABEL ATTRIBUTES
 
         self.ressource_height = 2
-        self.ressource_width = 7
+        self.ressource_width = 10
         self.text_size = 15
 
-        self.metal_label = Label(metal_frame, text="Metal", bg="#a84632",
-                                 fg="white", font=("Arial", self.text_size),
+        self.food_text = "Food : 0"
+        self.energy_text = "Energy : 0"
+        self.beton_text = "Beton : 0"
+        self.metal_text = "Metal : 0"
+
+        self.metal_label = Label(metal_frame, text=self.metal_text,
+                                 bg="#a84632",fg="white",
+                                 font=("Arial", self.text_size),
                                  width=self.ressource_width,
                                  height=self.ressource_height)
-        self.beton_label = Label(beton_frame, text="Beton", bg="#364b8f",
-                                 fg="white", font=("Arial", self.text_size),
+
+        self.beton_label = Label(beton_frame, text=self.beton_text,
+                                 bg="#364b8f", fg="white",
+                                 font=("Arial", self.text_size),
                                  width=self.ressource_width,
                                  height=self.ressource_height)
-        self.energy_label = Label(energy_frame, text="Energy", bg="#adba59",
-                                  fg="white", font=("Arial", self.text_size),
+
+        self.energy_label = Label(energy_frame, text=self.energy_text,
+                                  bg="#adba59", fg="white",
+                                  font=("Arial", self.text_size),
                                   width=self.ressource_width,
                                   height=self.ressource_height)
-        self.food_label = Label(food_frame, text="Food", bg="#3f9160",
+
+        self.food_label = Label(food_frame, text=self.food_text, bg="#3f9160",
                                 fg="white", font=("Arial", self.text_size),
                                 width=self.ressource_width,
                                 height=self.ressource_height)
@@ -924,16 +934,21 @@ class Hud(Frame):
         self.energy_label.pack()
         self.food_label.pack()
 
-    def update_ressources(self, metal, beton, energy, food):
+    def update_ressources(self, metal, beton, energie, nourriture,
+                          **kwargs):
 
         self.metal_text = "Metal: " + str(metal)
         self.beton_text = "Beton: " + str(beton)
-        self.energy_text = "Energy: " + str(energy)
-        self.food_text = "food: " + str(food)
+        self.energy_text = "Energy: " + str(energie)
+        self.food_text = "Food: " + str(nourriture)
+
+        self.metal_label.config(text=self.metal_text)
+        self.beton_label.config(text=self.beton_text)
+        self.energy_label.config(text=self.energy_text)
+        self.food_label.config(text=self.food_text)
+
 
     def show(self):
-        self.update_ressources(1, 2, 3, 4)
-
         self.metal_label.config(text=self.metal_text)
         self.beton_label.config(text=self.beton_text)
         self.energy_label.config(text=self.energy_text)
