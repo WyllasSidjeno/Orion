@@ -48,10 +48,15 @@ class Modele:
         self.local_queue: CommandQueue = CommandQueue()
         self.log: dict = {}
 
+        with open("assets/planet.csv", "r") as planet_name_csv:
+
+            planet_name_csv = planet_name_csv.read().split("\n")
+
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
-        self.creer_etoiles(int((self.hauteur * self.largeur) / 500000))
-        self.creer_joueurs(joueurs)
-        self.creer_ias(0)
+        self.creer_etoiles(int((self.hauteur * self.largeur) / 500000),
+                           planet_name_csv)
+        self.creer_joueurs(joueurs, planet_name_csv)
+        self.creer_ias(planet_name_csv)
 
     def change_planet_ownership(self, planet_id: str,
                                 new_owner: None | str = None,
@@ -208,7 +213,7 @@ class Modele:
             y2 = randrange(10, self.hauteur - 10)
             self.trou_de_vers.append(TrouDeVers(x1, y1, x2, y2))
 
-    def creer_etoiles(self, nb_etoiles: int):
+    def creer_etoiles(self, nb_etoiles: int, planet_name_csv):
         """Crée des étoiles, d'une certaine couleur dépendant du joueur.
         :param nb_etoiles: le nombre d'étoiles à créer
         """
@@ -216,10 +221,10 @@ class Modele:
         self.etoiles = [
             Etoile(randrange(self.largeur - (2 * bordure)) + bordure,
                    randrange(self.hauteur - (2 * bordure)) + bordure,
-                   self.local_queue)
+                   self.local_queue, planet_name_csv)
             for _ in range(nb_etoiles)]
 
-    def creer_joueurs(self, joueurs: list):
+    def creer_joueurs(self, joueurs: list, planet_name_csv):
         """Créé les joueurs et leur attribue une etoile mère.
         :param joueurs: la liste des joueurs à créer
         """
@@ -240,9 +245,10 @@ class Modele:
                 self.etoiles.append(
                     Etoile(randrange(etoile.x - 500, etoile.x + 500),
                            randrange(etoile.y - 500, etoile.y + 500),
-                           self.local_queue))
+                           self.local_queue, planet_name_csv)
+                )
 
-    def creer_ias(self, ias: int = 0):
+    def creer_ias(self, planet_name_csv, ias: int = 0):
         """Créer les IAs et leur attribue une etoile mère.
         :param ias: le nombre d'IA à créer
         """

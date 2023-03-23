@@ -66,7 +66,7 @@ class Etoile:
     Une etoile est un objet celeste qui contient des ressources et
     potentiellement un propriétaire."""
 
-    def __init__(self, x: int, y: int, local_queue) -> None:
+    def __init__(self, x: int, y: int, local_queue, planet_name_csv) -> None:
         """Constructeur de la classe Etoile.
         :param parent: le modele auquel l'etoile appartient
         :param x: coordonnee x de l'etoile
@@ -76,6 +76,8 @@ class Etoile:
         self.log = []
         self.transit: bool = False
         self.id: str = get_prochain_id()
+        # Is a csv file with planet names
+        self.name = random.choice(planet_name_csv)
         self.proprietaire: str = ""
         self.x = x
         self.y = y
