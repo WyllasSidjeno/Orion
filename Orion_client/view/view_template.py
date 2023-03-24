@@ -18,13 +18,12 @@ hexDark: str = "#2f3136"
 hexSpaceBlack: str = "#23272a"
 """Pour l'espace, on utilise un noir plus sombre"""
 
-
 class EtoileWindow(Frame):
-    planet_id: int
+    star_id: int | None
 
-    def __init__(self, parent: GameCanvas):
+    def __init__(self, proprietaire: str):
         """Initialise la fenetre"""
-        super().__init__(parent, bg=hexDarkGrey, bd=1, relief="solid",
+        super().__init__(bg=hexDarkGrey, bd=1, relief="solid",
                          width=500, height=500)
 
         self.is_shown: bool = False
@@ -59,7 +58,7 @@ class EtoileWindow(Frame):
         self.main_frame: Frame = Frame(self, bg=hexDarkGrey, bd=1,
                                        relief="solid")
         """Frame contenant les batiments de la planete"""
-        self.batiment_label = Label(self.main_frame, text="Batiments",
+        self.batiment_label = Label(self.main_frame, text="Colonies",
                                     bg=hexDarkGrey, fg="white",
                                     font=("Arial", 13))
         """Label contenant le nom du header du menu de batiment"""
@@ -71,10 +70,49 @@ class EtoileWindow(Frame):
         self.side_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
         """Frame contenant les informations de production de la planete"""
 
-        self.ressource_label = Label(self.side_frame, text="Ressources",
+        self.ressource_grid = Frame(self.side_frame, bg=hexDarkGrey)
+        """Frame contenant les ressources de la planete"""
+
+
+        self.ressource_label = Label(self.side_frame, text="Rendement :",
                                      bg=hexDarkGrey, fg="white",
                                      font=("Arial", 13))
         """Label contenant le nom du header du menu de ressource"""
+
+        self.energie_label = Label(self.ressource_grid, text="energie :",
+                                   bg=hexDarkGrey, fg="white",
+                                   font=("Arial", 10))
+        self.energie_value_label = Label(self.ressource_grid, text="0",
+                                         bg=hexDarkGrey, fg="white",
+                                         font=("Arial", 10))
+
+        self.metal_label = Label(self.ressource_grid, text="Métal :",
+                                 bg=hexDarkGrey, fg="white",
+                                 font=("Arial", 10))
+        self.metal_value_label = Label(self.ressource_grid, text="0",
+                                       bg=hexDarkGrey, fg="white",
+                                       font=("Arial", 10))
+
+        self.beton_label = Label(self.ressource_grid, text="Béton :",
+                                 bg=hexDarkGrey, fg="white",
+                                 font=("Arial", 10))
+        self.beton_value_label = Label(self.ressource_grid, text="0",
+                                       bg=hexDarkGrey, fg="white",
+                                       font=("Arial", 10))
+
+        self.nourriture_label = Label(self.ressource_grid, text="Nourriture :",
+                                      bg=hexDarkGrey, fg="white",
+                                      font=("Arial", 10))
+        self.nourriture_value_label = Label(self.ressource_grid, text="0",
+                                            bg=hexDarkGrey, fg="white",
+                                            font=("Arial", 10))
+
+        self.science_label = Label(self.ressource_grid, text="Science :",
+                                   bg=hexDarkGrey, fg="white",
+                                   font=("Arial", 10))
+        self.science_value_label = Label(self.ressource_grid, text="0",
+                                         bg=hexDarkGrey, fg="white",
+                                         font=("Arial", 10))
 
         self.line = Frame(self.side_frame, bg="white", bd=1, relief="solid")
 
@@ -90,7 +128,7 @@ class EtoileWindow(Frame):
                                                 font=("Arial", 10))
         """Label contenant le nom du header du menu d'information"""
         self.stockpile_boolean_label = Label(self.side_frame,
-                                             text="",
+                                             text="Non",
                                              bg=hexDarkGrey, fg="white",
                                              font=("Arial", 10))
         """Label contenant le nom du header du menu d'information"""
@@ -110,22 +148,45 @@ class EtoileWindow(Frame):
         for i in range(8):
             self.building_list.append(BuildingWindow(self.batiment_grid))
 
+    def refresh(self, model):
+        """Rafraichit la fenetre"""
+        star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
+        self.population_label.config(text=star.population.nb_humains)
+        self.stockpile_boolean_label.config(
+            text="Oui" if star.transit else "Non")
+
+        for i in range(star.taille):
+            self.building_list[i].grid(row=i // 3, column=i % 3)
+            self.building_list[i].reinitialize()
+
+        output = star.output.__dict__()
+        self.energie_value_label.config(text=output["energie"])
+        self.metal_value_label.config(text=output["metal"])
+        self.beton_value_label.config(text=output["beton"])
+        self.nourriture_value_label.config(text=output["nourriture"])
+        self.science_value_label.config(text=output["science"])
+
+        self.nom_label.config(text=star.name)
+
+
+
     def hide(self) -> None:
         """Cache la fenetre"""
-        self.construct_ship_menu.current_planet_id = None
+        self.construct_ship_menu.current_star_id = None
+        self.star_id = None
         self.place_forget()
         self.is_shown = False
 
-    def show(self, planet_id: int) -> None:
+    def show(self, star_id: int) -> None:
         """Affiche la fenetre"""
-        self.planet_id = planet_id
-        self.construct_ship_menu.current_planet_id = planet_id
+        self.star_id = star_id
+        self.construct_ship_menu.current_planet_id = star_id
         self.place(relx=0.5, rely=0.5, anchor="center")
         self.is_shown = True
 
     def show_construct_menu(self, event) -> None:
         """Affiche le menu de construction de vaisseau"""
-        self.construct_ship_menu.show(event, self.planet_id)
+        self.construct_ship_menu.show(event, self.star_id)
 
     def show_buildings(self, max_building: int) -> None:
         """Affiche les bâtiments de la planete"""
@@ -152,7 +213,9 @@ class EtoileWindow(Frame):
         self.population_canvas.place(anchor="center", relx=0.85, rely=0.45)
         self.population_label.place(anchor="center", relx=0.5, rely=0.5)
 
-        self.nom_label.place(anchor="center", relx=0.1, rely=0.7)
+        # Anchor choices for tkinter are : n, ne, e, se, s, sw, w, nw, or center.
+
+        self.nom_label.place(anchor="w", relx=0.02, rely=0.7)
 
     def place_main(self) -> None:
         """Crée le main de la fenetre, là ou les bâtiments sont affichés
@@ -183,22 +246,43 @@ class EtoileWindow(Frame):
 
         self.ressource_label.place(anchor="center", relx=0.5, rely=0.05)
 
-        # # Ressource labels
+        self.ressource_grid.place(relx=0.1, rely=0.1,
+                                  relwidth=0.8, relheight=0.4)
+        self.ressource_grid.columnconfigure(0 , weight=1)
+        self.ressource_grid.columnconfigure(1, weight=1)
+        self.ressource_grid.rowconfigure(0, weight=1)
+        self.ressource_grid.rowconfigure(1, weight=1)
+        self.ressource_grid.rowconfigure(2, weight=1)
+        self.ressource_grid.rowconfigure(3, weight=1)
+        self.ressource_grid.rowconfigure(4, weight=1)
 
-        self.line.place(relx=0.1, rely=0.5, relwidth=0.8, relheight=0.01)
+        self.energie_label.grid(row=0, column=0, sticky="nsew")
+        self.energie_value_label.grid(row=0, column=1, sticky="nsew")
 
-        self.other_label.place(anchor="center", relx=0.5, rely=0.55)
+        self.metal_label.grid(row=1, column=0, sticky="nsew")
+        self.metal_value_label.grid(row=1, column=1, sticky="nsew")
+
+        self.nourriture_label.grid(row=2, column=0, sticky="nsew")
+        self.nourriture_value_label.grid(row=2, column=1, sticky="nsew")
+
+        self.science_label.grid(row=3, column=0, sticky="nsew")
+        self.science_value_label.grid(row=3, column=1, sticky="nsew")
+
+        self.beton_label.grid(row=4, column=0, sticky="nsew")
+        self.beton_value_label.grid(row=4, column=1, sticky="nsew")
+
+        self.line.place(relx=0.1, rely=0.55, relwidth=0.8, relheight=0.01)
+
+        self.other_label.place(anchor="center", relx=0.5, rely=0.6)
 
         self.stockpile_connection_label.place(anchor="center", relx=0.5,
-                                              rely=0.65)
+                                              rely=0.70)
 
         self.stockpile_boolean_label.place(anchor="center", relx=0.5,
-                                           rely=0.72)
+                                           rely=0.77)
 
         self.construct_ship_button.place(anchor="center", relx=0.5,
-                                         rely=0.85)
-
-
+                                         rely=0.9)
 
 
 class BuildingWindow(Frame):
@@ -216,20 +300,17 @@ class BuildingWindow(Frame):
                     relief="solid",
                     width=75, height=75)
 
-        self.name_label = Label(self, text="Batiment", bg=hexDark,
+        self.name_label = Label(self, text="Libre", bg=hexDark,
                                 fg="white", font=("Arial", 10))
         """Label contenant le nom du bâtiment"""
 
-        self.level_label = Label(self, text="Tier 1", bg=hexDark,
+        self.level_label = Label(self, text="", bg=hexDark,
                                  fg="white", font=("Arial", 10))
         """Label contenant le niveau du bâtiment"""
 
         self.upgrade_canvas = Canvas(self, bg=hexDark, width=20, height=20,
                                      bd=0, highlightthickness=0)
         """Canvas contenant le bouton d'amélioration du bâtiment"""
-
-        self.upgrade_canvas.create_polygon(10, 0, 0, 20, 20, 20, fill="white")
-        """Triangle blanc représentant le bouton d'amélioration"""
 
     def initialize(self):
         """Crée le layout du bâtiment window"""
@@ -247,6 +328,16 @@ class BuildingWindow(Frame):
     def show(self, **kwargs):
         self.grid(**kwargs)
 
+    def reinitialize(self):
+        self.name_label.config(text="Libre")
+        self.level_label.config(text="")
+        self.upgrade_canvas.delete("all")
+
+    def show_building(self, building):
+        self.name_label.config(text=building.name)
+        self.level_label.config(text=building.level)
+        self.upgrade_canvas.create_polygon(10, 0, 0, 20, 20, 20, fill="white")
+
 
 class GameCanvas(Canvas):
     """ Représente le canvas de jeu, ce qui veux dire l'ensemble des
@@ -256,14 +347,15 @@ class GameCanvas(Canvas):
     username: str
     command_queue: CommandQueue
 
-    def __init__(self, master: Frame, scroll_x: Scrollbar,
-                 scroll_y: Scrollbar):
+    def __init__(self, master, scroll_x: Scrollbar,
+                 scroll_y: Scrollbar, proprietaire: str):
         """Initialise le canvas de jeu
         :param master: Le Frame parent
         :param scroll_x: La scrollbar horizontale
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
+        self.proprietaire = proprietaire
         self.configure(bg=hexSpaceBlack, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scroll_x.set,
@@ -275,9 +367,9 @@ class GameCanvas(Canvas):
         self.configure(scrollregion=(0, 0, 9000, 9000))
         self.ship_view = ShipViewGenerator()
 
-        self.planet_window = EtoileWindow(self)
+        self.etoile_window = EtoileWindow(self.proprietaire)
         """Représente la fenêtre de planète de la vue du jeu."""
-        self.planet_window.hide()
+        self.etoile_window.hide()
 
     def initialize(self, mod: Modele):
         """Initialise le canvas de jeu avec les données du model
@@ -301,6 +393,8 @@ class GameCanvas(Canvas):
         :param mod: Le model"""
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with a move or coords function
+        if self.etoile_window.star_id is not None:
+            self.etoile_window.refresh(mod)
 
         self.delete(StringTypes.TROUDEVERS.value)
         self.delete(StringTypes.ETOILE_OCCUPEE.value)
@@ -575,8 +669,8 @@ class Minimap(Canvas):
 
         for tag, color in items:
             for star in self.find_withtag(tag):
-                new_x1, new_y1,\
-                    new_x2,\
+                new_x1, new_y1, \
+                    new_x2, \
                     new_y2 = self.get_new_star_position(*self.coords(star))
                 self.delete(star)
                 self.create_oval(new_x1, new_y1, new_x2, new_y2,
@@ -759,54 +853,80 @@ class Hud(Frame):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1, relief="solid")
 
-        for i in range(1): #configure HUD columns
+        for i in range(1):  # configure HUD columns
             self.grid_columnconfigure(i)
         self.grid_rowconfigure(0, weight=1)
         self.grid_propagate(False)
 
-
         self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
         self.ressource_frame.grid(row=0, column=0, sticky="nsew")
 
-        for i in range(4): #separate ressources in 4 columns
+        for i in range(4):  # separate ressources in 4 columns
             self.ressource_frame.grid_columnconfigure(i, weight=1)
         self.ressource_frame.rowconfigure(0, weight=1)
 
-        #FRAME ATTRIBUTES
+        # FRAME ATTRIBUTES
         self.padx = 10
         self.pady = 0
-        self.border = 1 #binary value
+        self.border = 1  # binary value
 
-        metal_frame = Frame(self.ressource_frame, bg="#a84632", bd=self.border, relief="solid",
+        metal_frame = Frame(self.ressource_frame, bg="#a84632", bd=self.border,
+                            relief="solid",
                             padx=10)
-        metal_frame.grid(row=0, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        metal_frame.grid(row=0, column=0, sticky="ew", padx=self.padx,
+                         pady=self.pady)
 
-        beton_frame = Frame(self.ressource_frame, bg="#364b8f", bd=self.border, relief="solid",
+        beton_frame = Frame(self.ressource_frame, bg="#364b8f", bd=self.border,
+                            relief="solid",
                             padx=10)
-        beton_frame.grid(row=0, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        beton_frame.grid(row=0, column=1, sticky="ew", padx=self.padx,
+                         pady=self.pady)
 
-        energy_frame = Frame(self.ressource_frame, bg="#adba59", bd=self.border, relief="solid",
+        energy_frame = Frame(self.ressource_frame, bg="#adba59",
+                             bd=self.border, relief="solid",
                              padx=10)
-        energy_frame.grid(row=0, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+        energy_frame.grid(row=0, column=2, sticky="ew", padx=self.padx,
+                          pady=self.pady)
 
-        food_frame = Frame(self.ressource_frame, bg="#3f9160", bd=self.border, relief="solid",
+        food_frame = Frame(self.ressource_frame, bg="#3f9160", bd=self.border,
+                           relief="solid",
                            padx=10)
-        food_frame.grid(row=0, column=3, sticky="ew", padx=self.padx, pady=self.pady)
+        food_frame.grid(row=0, column=3, sticky="ew", padx=self.padx,
+                        pady=self.pady)
 
-        #LABEL ATTRIBUTES
+        # LABEL ATTRIBUTES
 
         self.ressource_height = 2
-        self.ressource_width = 7
+        self.ressource_width = 10
         self.text_size = 15
 
-        self.metal_label = Label(metal_frame, text="Metal", bg="#a84632", fg="white", font=("Arial", self.text_size),
-                                 width=self.ressource_width, height=self.ressource_height)
-        self.beton_label = Label(beton_frame, text="Beton", bg="#364b8f", fg="white", font=("Arial", self.text_size),
-                                 width=self.ressource_width, height=self.ressource_height)
-        self.energy_label = Label(energy_frame, text="Energy", bg="#adba59", fg="white", font=("Arial", self.text_size),
-                                 width=self.ressource_width, height=self.ressource_height)
-        self.food_label = Label(food_frame, text="Food", bg="#3f9160", fg="white", font=("Arial", self.text_size),
-                                 width=self.ressource_width, height=self.ressource_height)
+        self.food_text = "Food : 0"
+        self.energy_text = "Energy : 0"
+        self.beton_text = "Beton : 0"
+        self.metal_text = "Metal : 0"
+
+        self.metal_label = Label(metal_frame, text=self.metal_text,
+                                 bg="#a84632",fg="white",
+                                 font=("Arial", self.text_size),
+                                 width=self.ressource_width,
+                                 height=self.ressource_height)
+
+        self.beton_label = Label(beton_frame, text=self.beton_text,
+                                 bg="#364b8f", fg="white",
+                                 font=("Arial", self.text_size),
+                                 width=self.ressource_width,
+                                 height=self.ressource_height)
+
+        self.energy_label = Label(energy_frame, text=self.energy_text,
+                                  bg="#adba59", fg="white",
+                                  font=("Arial", self.text_size),
+                                  width=self.ressource_width,
+                                  height=self.ressource_height)
+
+        self.food_label = Label(food_frame, text=self.food_text, bg="#3f9160",
+                                fg="white", font=("Arial", self.text_size),
+                                width=self.ressource_width,
+                                height=self.ressource_height)
 
         self.show()
 
@@ -815,16 +935,20 @@ class Hud(Frame):
         self.energy_label.pack()
         self.food_label.pack()
 
-    def update_ressources(self, metal, beton, energy, food):
+    def update_ressources(self, metal, beton, energie, nourriture,
+                          **kwargs):
 
         self.metal_text = "Metal: " + str(metal)
         self.beton_text = "Beton: " + str(beton)
-        self.energy_text = "Energy: " + str(energy)
-        self.food_text = "food: " + str(food)
+        self.energy_text = "Energy: " + str(energie)
+        self.food_text = "Food: " + str(nourriture)
+
+        self.metal_label.config(text=self.metal_text)
+        self.beton_label.config(text=self.beton_text)
+        self.energy_label.config(text=self.energy_text)
+        self.food_label.config(text=self.food_text)
 
     def show(self):
-        self.update_ressources(1, 2, 3, 4)
-
         self.metal_label.config(text=self.metal_text)
         self.beton_label.config(text=self.beton_text)
         self.energy_label.config(text=self.energy_text)

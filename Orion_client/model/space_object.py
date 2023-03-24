@@ -6,7 +6,6 @@ from Orion_client.model.ressource import Ressource
 from random import randrange
 
 
-
 class TrouDeVers:
     """Classe representant un trou de vers.
     Un trou de vers est un lien entre deux systemes stellaires. Il
@@ -67,16 +66,18 @@ class Etoile:
     Une etoile est un objet celeste qui contient des ressources et
     potentiellement un propriétaire."""
 
-    def __init__(self, parent, x: int, y: int) -> None:
+    def __init__(self, x: int, y: int, local_queue, planet_name_csv) -> None:
         """Constructeur de la classe Etoile.
         :param parent: le modele auquel l'etoile appartient
         :param x: coordonnee x de l'etoile
         :param y: coordonnee y de l'etoile
         """
+        self.local_queue = local_queue
         self.log = []
         self.transit: bool = False
         self.id: str = get_prochain_id()
-        self.parent = parent
+        # Is a csv file with planet names
+        self.name = random.choice(planet_name_csv)
         self.proprietaire: str = ""
         self.x = x
         self.y = y
@@ -99,14 +100,15 @@ class Etoile:
         a l'etoile."""
         pass
 
-    def attacked(self, attackee, attacker_info):
-        damage = attacker_info[1]
+    def attacked(self, damage: int) -> None:
         self.resistance -= damage
+        if self.resistance <= 0:
+            self.local_queue.add("change_planet_ownership", self.id, None,
+                                 self.proprietaire)
 
 class Population:
     """ Population de la planète découverte
     """
-
     def __init__(self, pop, totalNourriture, pourcentBonus):
         """
         :param pop: Initialise la quantité d'habitants sur la planètes.
