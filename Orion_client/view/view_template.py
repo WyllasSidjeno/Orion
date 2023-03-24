@@ -830,3 +830,25 @@ class Hud(Frame):
         self.energy_label.config(text=self.energy_text)
         self.food_label.config(text=self.food_text)
 
+
+class ChatBox(Frame):
+    def __init__(self):
+        super().__init__()
+        self.configure(bg=hexDark, bd=1, relief="solid", height=200, width=400)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.chat_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.chat_frame.grid(row=0, column=0, sticky="nsew")
+        self.chat_frame.grid_columnconfigure(0, weight=1)
+        self.chat_frame.grid_rowconfigure(0, weight=1)
+        self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
+                                relief="solid", height=10, width=50)
+        self.chat_text.grid(row=0, column=0, sticky="nsew")
+        self.chat_text.insert(END, "Bienvenue sur le chat !\n")
+        self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
+        self.chat_entry.grid(row=1, column=0, sticky="nsew")
+        self.chat_entry.bind("<Return>", self.send_message)
+    def send_message(self, event):
+        message = self.chat_entry.get()
+        self.chat_text.insert(END, message + "\n")
+        self.chat_entry.delete(0, END)
