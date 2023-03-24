@@ -1,7 +1,8 @@
 from __future__ import annotations
 import random
 from functools import partial
-from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Tk
+from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
+    Entry
 from typing import TYPE_CHECKING
 
 from Orion_client.helper import CommandQueue, StringTypes
@@ -947,9 +948,55 @@ class Hud(Frame):
         self.energy_label.config(text=self.energy_text)
         self.food_label.config(text=self.food_text)
 
-
     def show(self):
         self.metal_label.config(text=self.metal_text)
         self.beton_label.config(text=self.beton_text)
         self.energy_label.config(text=self.energy_text)
         self.food_label.config(text=self.food_text)
+
+
+class ChatBox(Frame):
+    def __init__(self):
+        super().__init__()
+        self.configure(bg=hexDark, bd=1, relief="solid", height=200, width=400)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.chat_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.chat_frame.grid(row=0, column=0, sticky="nsew")
+        self.chat_frame.grid_columnconfigure(0, weight=1)
+        self.chat_frame.grid_rowconfigure(0, weight=1)
+        self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
+                                relief="solid", height=10, width=50)
+        self.chat_text.grid(row=0, column=0, sticky="nsew")
+        self.chat_text.insert(END, "Bienvenue sur le chat !\n")
+        self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
+        self.chat_entry.grid(row=1, column=0, sticky="nsew")
+        self.chat_entry.bind("<Return>", self.send_message)
+    def send_message(self, event):
+        message = self.chat_entry.get()
+        self.chat_text.insert(END, message + "\n")
+        self.chat_entry.delete(0, END)
+
+
+class MouseOverView(Frame):
+    def __init__(self):
+        super().__init__()
+        self.configure(bg=hexDark, bd=1, relief="solid")
+    def on_mouse_over(self, *args):
+        dictlist = []
+        for dict in args:
+            if dict is not None:
+                dictlist.append(dict)
+        for i in range(len(dictlist)):
+            container = Frame(self, bg=hexDark, bd=1, relief="solid",
+                              padx=25, pady=10)
+            container.grid(row=i, column=0, sticky="nsew")
+            title = Label(container, text=dictlist[i].pop("header"),
+                               bg=hexDark, fg="white", font=("Arial", 15),
+                               pady=2)
+            title.grid(row=0, column=0, sticky="nsew")
+            for j, (key, value) in enumerate(dictlist[i].items()):
+                label = Label(container, text=key + " : " + str(value),
+                              bg=hexDark, fg="white")
+                label.grid(row=j+1, column=0, sticky="nsew")
+
