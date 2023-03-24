@@ -763,7 +763,6 @@ class Hud(Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_propagate(False)
 
-
         self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
         self.ressource_frame.grid(row=0, column=0, sticky="nsew")
 

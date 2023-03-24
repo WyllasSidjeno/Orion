@@ -14,8 +14,8 @@ class Ship(ABC):
     :ivar id: L'id du vaisseau.
     :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
-    :ivar vie: La vie du vaisseau.
-    :ivar vie_max: La vie maximale du vaisseau.
+    :ivar resistance: La resistance du vaisseau.
+    :ivar resistance_max: La resistance maximale du vaisseau.
 
     :ivar controller_model_queue: La queue du modele du controleur.
     :ivar nouveau: Si le vaisseau est nouveau.
@@ -24,50 +24,43 @@ class Ship(ABC):
     :ivar angle: L'angle du vaisseau.
     :ivar position_cible: La position cible du vaisseau.
     :ivar direction_angle: L'angle de direction du vaisseau.
-    :ivar cible_owner: Le proprietaire de la cible du vaisseau.
-
-    :ivar id_cible: L'id de la cible du vaisseau.
-    :ivar type_cible: Le type de la cible du vaisseau.
 
     :param pos: La position du vaisseau.
     :param vitesse: La vitesse du vaisseau.
-    :param vie: La vie du vaisseau.
+    :param resistance: La resistance du vaisseau.
     :param owner: Le proprietaire du vaisseau.
     """
-    def __init__(self, controller_model_queue,
+    def __init__(self, local_queue,
                  pos: tuple, vitesse: int,
-                 vie: int, owner: str, attack_strength: int = 0,
+                 resistance: int, owner: str, attack_strength: int = 0,
                  defense_strength: int = 0, attack_range: int = 0, ):
         """Initialise un vaisseau.
         :param pos: Position du vaisseau
         :param vitesse: Vitesse du vaisseau
-        :param vie: Vie du vaisseau
+        :param resistance: resistance du vaisseau
         :param owner: Proprietaire du vaisseau
         """
         self.id: str = get_prochain_id()
         self.proprietaire: str = owner
         self.vitesse = vitesse
-        self.vie: AlwaysInt = AlwaysInt(vie)
-        self.vie_max: AlwaysInt = AlwaysInt(vie)
+        self.resistance: AlwaysInt = AlwaysInt(resistance)
+        self.resistance_max: AlwaysInt = AlwaysInt(resistance)
         self.attack_strength: int = attack_strength
         self.defense_strength: int = defense_strength
         self.attack_range: int = attack_range
 
-        self.controller_model_queue = controller_model_queue
+        self.local_queue = local_queue
 
         self.nouveau: bool = True
 
         self.position: tuple = pos
-        self.angle = 0  # TODO : Type
+        self.angle = 0
         self.position_cible: tuple | None = None
-        self.direction_angle = 0  # TODO: Type
-        self.cible_owner: str | None = None
-        self.id_cible: str | None = None
-        self.type_cible: str | None = None
+        self.cible = None
+        self.direction_angle = 0
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
-        # todo : Extend signature to ID.
         self.direction_angle = atan2(self.position_cible[1] - self.position[1],
                                      self.position_cible[0] - self.position[0])
 
@@ -83,34 +76,23 @@ class Ship(ABC):
         if self.position == self.position_cible:
             self.target_change(None)
 
-    def attacked(self, attackee, attacker_info) -> None:
+    def attacked(self, damage) -> None:
         """Fait subir des degats au vaisseau.
-        :param damage: Les degats a subir.
         """
-        damage = attacker_info[1]
         damage -= self.defense_strength
-        self.vie -= damage
-
-        if self.vie <= 0:
-            self.controller_model_queue.add(
-                "handle_model_to_server_queue",
-                "lose_ship_request", "model", (self.id, self.proprietaire)
-            )
+        self.resistance -= damage
+        if self.resistance <= 0:
+            self.local_queue.add("ship_destroyed", self.id)
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
-                      new_target_id: str | None = None,
-                      new_target_type: str | None = None,
-                      new_target_owner: str | None = None) -> None:
+                      target=None) -> None:
         """Change la position cible du vaisseau.
-        :param new_target_type: Le type de la nouvelle cible.
-        :param new_target_id: L'id de la nouvelle cible.
         :param new_target_pos: La nouvelle position cible.
-        :param new_target_owner: Le proprietaire de la nouvelle cible.
+        :param target: La nouvelle cible.
         """
+        print("target_change", new_target_pos)
         self.position_cible = new_target_pos
-        self.type_cible = new_target_type
-        self.id_cible = new_target_id
-        self.cible_owner = new_target_owner
+        self.cible = target
 
     def is_static(self) -> bool:
         """Retourne True si le vaisseau est immobile."""
@@ -118,6 +100,8 @@ class Ship(ABC):
 
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
+        if self.cible is not None:
+            self.position_cible = self.cible.position
         if self.position_cible is not None:
             self.move()
 
@@ -125,22 +109,22 @@ class Ship(ABC):
         """Retourne le type du vaisseau (le nom de sa classe)."""
         return self.__class__.__name__.lower()
 
-    def is_close_enough(self, target_pos: tuple[int, int] | tuple[
-                            float, float]) -> bool:
+    def is_close_enough(self) -> bool:
         """Retourne True si le vaisseau est assez proche de sa cible."""
         # If the target is close enough to attack or to move to attack
         if math.hypot(
-                target_pos[0] - self.position[0],
-                target_pos[1] - self.position[1]) \
+                self.position_cible[0] - self.position[0],
+                self.position_cible[1] - self.position[1]) \
                 <= self.attack_range + self.vitesse:
             # if the target is not close enough to attack
             if math.hypot(
-                    target_pos[0] - self.position[0],
-                    target_pos[1] - self.position[1]) > self.attack_range:
+                    self.position_cible[0] - self.position[0],
+                    self.position_cible[1] - self.position[1]) \
+                    > self.attack_range:
                 self.position_cible = \
-                    (target_pos[0] - self.attack_range * cos(
+                    (self.position_cible[0] - self.attack_range * cos(
                         self.direction_angle),
-                     target_pos[1] - self.attack_range * sin(
+                     self.position_cible[1] - self.attack_range * sin(
                          self.direction_angle))
             return True
         return False
@@ -158,8 +142,8 @@ class Militaire(Ship):
     :ivar id: L'id du vaisseau.
     :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
-    :ivar vie: La vie du vaisseau.
-    :ivar vie_max: La vie maximale du vaisseau.
+    :ivar resistance: La resistance du vaisseau.
+    :ivar resistance_max: La resistance maximale du vaisseau.
 
     :ivar nouveau: Si le vaisseau est nouveau.
 
@@ -167,69 +151,49 @@ class Militaire(Ship):
     :ivar angle: L'angle du vaisseau.
     :ivar position_cible: La position cible du vaisseau.
     :ivar direction_angle: L'angle de direction du vaisseau.
-    :ivar cible_owner: Le proprietaire de la cible du vaisseau.
-
-    :ivar id_cible: L'id de la cible du vaisseau.
-    :ivar type_cible: Le type de la cible du vaisseau.
 
     :param pos: La position du vaisseau.
     :param owner: Le proprietaire du vaisseau.
 
     """
     def __init__(self, pos: tuple, owner: str,
-                 model_controller_queue) -> None:
+                 local_queue) -> None:
         """Initialise un vaisseau militaire.
         :param pos: Position du vaisseau
         :param owner: Proprietaire du vaisseau"""
-        super().__init__(model_controller_queue,
-                         pos=pos, vitesse=150, vie=100, owner=owner,
+        super().__init__(local_queue,
+                         pos=pos, vitesse=150, resistance=100, owner=owner,
                          attack_strength=30, defense_strength=10,
                          attack_range=20)
         self.is_currently_attacking = False
         self.is_set_to_attack = False
-        self.cadence = 72
+        self.cadence = 36
         self.current_recharge = 36
 
     def attack(self) -> None:
         """Fait attaquer le vaisseau."""
-        attacker_info = (self.id, self.type(), self.proprietaire,
-                         self.attack_strength)
+        self.cible.attacked(self.attack_strength)
+        if self.cible.resistance <= 0:
+            self.target_change(None)
 
-        enemy_info = (self.id_cible, self.type_cible, self.cible_owner)
-
-        self.controller_model_queue.add(
-            "handle_model_to_server_queue",
-            "attack_request", "model", *(attacker_info, enemy_info))
-
-    def target_change(self, new_target_pos: tuple[int, int] | None,
-                      new_target_id: str | None = None,
-                      new_target_type: str | None = None,
-                      new_target_owner: str | None = None) -> None:
+    def target_change(self, pos, target = None) -> None:
         """Change la position cible du vaisseau.
-        :param new_target_type: Le type de la nouvelle cible.
-        :param new_target_id: L'id de la nouvelle cible.
-        :param new_target_pos: La nouvelle position cible.
-        :param new_target_owner: Le proprietaire de la nouvelle cible.
         """
-        super().target_change(new_target_pos, new_target_id, new_target_type,
-                              new_target_owner)
-        if new_target_type == "vaisseau" \
-                or new_target_type == "etoile_occupee":
+        super().target_change(pos, target)
+        if target is not None:
             self.is_set_to_attack = True
         else:
             self.is_set_to_attack = False
-
-
-
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
+        if self.cible is not None:
+            self.position_cible = self.cible.position
         self.is_currently_attacking = False
         if self.current_recharge < self.cadence:
             self.current_recharge += 1
 
         if self.position_cible is not None:
-            if self.is_close_enough(self.position_cible) \
-                    and self.is_set_to_attack:
+            if self.is_close_enough() and self.is_set_to_attack:
                 if self.cadence == self.current_recharge:
                     self.attack()
                     self.current_recharge = 0
@@ -243,44 +207,36 @@ class Transportation(Ship):
     :ivar id: L'id du vaisseau.
     :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
-    :ivar vie: La vie du vaisseau.
-    :ivar vie_max: La vie maximale du vaisseau.
+    :ivar resistance: La resistance du vaisseau.
+    :ivar resistance_max: La resistance maximale du vaisseau.
 
-    :ivar log: Le log du vaisseau.
     :ivar nouveau: Si le vaisseau est nouveau.
 
     :ivar position: La position du vaisseau.
     :ivar angle: L'angle du vaisseau.
     :ivar position_cible: La position cible du vaisseau.
-    :ivar direction_angle: L'angle de direction du vaisseau.
-    :ivar cible_owner: Le proprietaire de la cible du vaisseau.
 
-    :ivar id_cible: L'id de la cible du vaisseau.
-    :ivar type_cible: Le type de la cible du vaisseau.
     """
 
     def __init__(self, pos: tuple, owner: str,
-                 model_controller_queue):
+                 local_queue):
         """Initialise un vaisseau de transport."""
-        super().__init__(model_controller_queue,
-                         pos=pos, vitesse=3, vie=100, owner=owner)
+        super().__init__(local_queue,
+                         pos=pos, vitesse=3, resistance=100, owner=owner)
         self.position_depart = pos
         self.position_origin = self.position_depart
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
-        if self.is_close_enough(self.position_cible):
+        if self.is_close_enough():
             temp = self.position_depart
             self.position_depart = self.position_cible
             self.position_cible = temp
         else:
             super().move()
 
-    def target_change(self, new_target_pos: tuple[int, int] | None,
-                      new_target_id: str | None = None,
-                      new_target_type: str | None = None,
-                      new_target_owner: str | None = None) -> None:
-        super().target_change(new_target_pos, new_target_id, new_target_type, new_target_owner)
+    def target_change(self, pos, target = None) -> None:
+        super().target_change(pos, target)
         self.position_depart = self.position_origin
 
 
@@ -290,8 +246,8 @@ class Reconnaissance(Ship):
     :ivar id: L'id du vaisseau.
     :ivar proprietaire: Le proprietaire du vaisseau.
     :ivar vitesse: La vitesse du vaisseau.
-    :ivar vie: La vie du vaisseau.
-    :ivar vie_max: La vie maximale du vaisseau.
+    :ivar resistance: La resistance du vaisseau.
+    :ivar resistance_max: La resistance maximale du vaisseau.
 
     :ivar log: Le log du vaisseau.
     :ivar nouveau: Si le vaisseau est nouveau.
@@ -300,25 +256,20 @@ class Reconnaissance(Ship):
     :ivar angle: L'angle du vaisseau.
     :ivar position_cible: La position cible du vaisseau.
     :ivar direction_angle: L'angle de direction du vaisseau.
-    :ivar cible_owner: Le proprietaire de la cible du vaisseau.
-
-    :ivar id_cible: L'id de la cible du vaisseau.
-    :ivar type_cible: Le type de la cible du vaisseau.
     """
 
     def __init__(self, pos: tuple, owner: str,
-                 model_controller_queue):
+                 local_queue):
         """Initialise un vaisseau de reconnaissance."""
-        super().__init__(model_controller_queue,
-                         pos=pos, vitesse=3, vie=100, owner=owner)
+        super().__init__(local_queue,
+                         pos=pos, vitesse=3, resistance=100, owner=owner)
 
     def tick(self) -> None:
         if self.position_cible:
-            if self.id_cible:
-                if self.is_close_enough(self.position_cible):
-                    self.controller_model_queue.add(
-                        "handle_model_to_server_queue",
-                        "change_planet_ownership", "model", *(self.id_cible, self.proprietaire))
+            if self.cible:
+                if self.is_close_enough():
+                    self.local_queue.add("change_planet_ownership",
+                                            self.cible.id, self.proprietaire)
                     self.target_change(None)
                 else:
                     self.move()
@@ -326,11 +277,6 @@ class Reconnaissance(Ship):
             else:
                 self.move()
 
-  # Todo: créer la classe probe avant.
-"""
-    def create_probe(self, owner: str):
-        self.controller_model_queue.add()
-"""
 
 class Flotte(dict):
     """Classe representant une flotte.
