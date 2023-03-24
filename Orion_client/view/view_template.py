@@ -852,3 +852,27 @@ class ChatBox(Frame):
         message = self.chat_entry.get()
         self.chat_text.insert(END, message + "\n")
         self.chat_entry.delete(0, END)
+
+
+class MouseOverView(Frame):
+    def __init__(self):
+        super().__init__()
+        self.configure(bg=hexDark, bd=1, relief="solid")
+    def on_mouse_over(self, *args):
+        dictlist = []
+        for dict in args:
+            if dict is not None:
+                dictlist.append(dict)
+        for i in range(len(dictlist)):
+            container = Frame(self, bg=hexDark, bd=1, relief="solid",
+                              padx=25, pady=10)
+            container.grid(row=i, column=0, sticky="nsew")
+            title = Label(container, text=dictlist[i].pop("header"),
+                               bg=hexDark, fg="white", font=("Arial", 15),
+                               pady=2)
+            title.grid(row=0, column=0, sticky="nsew")
+            for j, (key, value) in enumerate(dictlist[i].items()):
+                label = Label(container, text=key + " : " + str(value),
+                              bg=hexDark, fg="white")
+                label.grid(row=j+1, column=0, sticky="nsew")
+
