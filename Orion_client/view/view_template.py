@@ -1,7 +1,8 @@
 from __future__ import annotations
 import random
 from functools import partial
-from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu
+from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
+    Entry
 from typing import TYPE_CHECKING
 
 from Orion_client.helper import CommandQueue, StringTypes
