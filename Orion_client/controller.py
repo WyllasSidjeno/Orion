@@ -68,11 +68,12 @@ class Controller:
         self.lobby_controller.view.destroy()
         self.lobby_controller = None
 
-        self.view = GameView()
+        self.view = GameView(self.username)
         self.view.register_command_queue(self.view_controller_queue)
 
         self.view.initialize(self.model, self.username,
                              self.model.joueurs[self.username].id)
+        # TOdo : Remove initialize ?
 
         self.server_controller = ServerController(self.username,
                                                   self.urlserveur,
@@ -107,11 +108,11 @@ class Controller:
                 if self.model.is_type(new_tags_list, StringTypes.ETOILE.value) \
                         and not self.model.is_owner(new_tags_list):
                     ship_info = {"id": self.previous_selection[1],
-                                    "type": self.previous_selection[3]
-                                    }
+                                 "type": self.previous_selection[3]
+                                 }
                     target_info = {"id": new_tags_list[1],
-                              "type": new_tags_list[0],
-                              "pos": pos}
+                                   "type": new_tags_list[0],
+                                   "pos": pos}
                     self.controller_server_queue.add("model",
                                                      "target_change_request",
                                                      ship_info, target_info)
@@ -147,7 +148,8 @@ class Controller:
         une etoile dans le canvas."""
         if self.model.is_owner_and_is_type(tags_list,
                                            StringTypes.ETOILE_OCCUPEE.value):
-            self.view.canvas.planet_window.show(tags_list[1])
+            self.view.canvas.etoile_window.show(tags_list[1])
+            print(tags_list[1])
 
     def look_for_ship_interactions(self, tags_list: list[str],
                                    pos: tuple[int, int]):

@@ -6,16 +6,16 @@ from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
 
 
 class GameView(Frame):
-    nom: str
     id: str
     command_queue: CommandQueue
 
-    def __init__(self):
+    def __init__(self, proprietaire):
         super().__init__()
         """Représente la queue de commandes du jeu."""
 
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
+        self.nom = proprietaire
 
         self.hud = Hud(self)
         """Représente la barre du haut de la vue du jeu."""
@@ -28,7 +28,7 @@ class GameView(Frame):
         self.scrollY = Scrollbar(self, orient="vertical")
         """""Représente la scrollbar verticale de la vue du jeu."""
 
-        self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
+        self.canvas = GameCanvas(self, self.scrollX, self.scrollY, proprietaire)
         """Représente le canvas de la vue du jeu."""
 
         self.previous_selection: list[str] | None = None
@@ -38,10 +38,12 @@ class GameView(Frame):
 
         self.bind_game_requests()
 
+        self.canvas.etoile_window.proprietaire_label.config(text=self.nom)
+
     def register_command_queue(self, command_queue: CommandQueue):
         """Enregistre la queue de commandes du jeu."""
         self.command_queue = command_queue
-        self.canvas.planet_window.construct_ship_menu.register_command_queue(
+        self.canvas.etoile_window.construct_ship_menu.register_command_queue(
             command_queue)
 
     def configure_grid(self):
@@ -72,7 +74,7 @@ class GameView(Frame):
         self.configure_grid()
         self.canvas.initialize(mod)
         self.side_bar.initialize(mod)
-        self.canvas.planet_window.initialize()
+        self.canvas.etoile_window.initialize()
 
     def bind_game_requests(self):
         """Binds les fonctions de la vue du jeu aux evenements du canvas."""
@@ -91,6 +93,10 @@ class GameView(Frame):
         """Refresh la vue du jeu."""
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
+
+        dict_ress = mod.joueurs[self.nom].ressources
+
+        self.hud.update_ressources(**dict_ress)
 
     def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
@@ -113,8 +119,8 @@ class GameView(Frame):
         les fenetres demandés au clic. De plus,
         elle envoie les commandes au controller pour traiter les clics.
         """
-        if self.canvas.planet_window.is_shown:
-            self.canvas.planet_window.hide()
+        if self.canvas.etoile_window.is_shown:
+            self.canvas.etoile_window.hide()
 
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         tags_list = []
