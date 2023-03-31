@@ -2,8 +2,12 @@ from __future__ import annotations
 import random
 from functools import partial
 from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
-    Entry
+    Entry, Tk
+from PIL import Image, ImageTk
 from typing import TYPE_CHECKING
+
+from PIL import ImageTk
+from PIL.ImageTk import PhotoImage
 
 from Orion_client.helper import CommandQueue, StringTypes
 
@@ -371,11 +375,14 @@ class GameCanvas(Canvas):
         """Représente la fenêtre de planète de la vue du jeu."""
         self.etoile_window.hide()
 
+        self.photo_cache = [
+            PhotoImage(file="assets/planet/star_white.png"),
+        ]
+
     def initialize(self, mod: Modele):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
         :param mod: Le model"""
-        # mod mandatory because of background dependancy
         self.generate_background(mod.largeur, mod.hauteur,
                                  len(mod.etoiles) * 50)
         for i in range(len(mod.etoiles)):
@@ -469,11 +476,28 @@ class GameCanvas(Canvas):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
-        size = star.taille * 2  # Legacy JM
+
+        img = Image.open('assets/planet/star_white.png')
+        img = img.resize((star.taille*10, star.taille*10), Image.ANTIALIAS)
+        # todo : Put this in photocache with all the possible image chosen by the player
+
+        #todo : Check ownership, if owned, change color to blue if player and red if ennemy
+        # , else white
+
+        photo = ImageTk.PhotoImage(img)
+
+        self.photo_cache.append(photo)
+
+        print(img.size)
+
+        self.create_image(star.x, star.y, image=photo, tags=(tag, star.id, star.proprietaire))
+
+
+        """size = star.taille * 2  # Legacy JM
         self.create_oval(star.x - size, star.y - size,
                          star.x + size, star.y + size,
                          fill=star.couleur,
-                         tags=(tag, star.id, star.proprietaire))
+                         tags=(tag, star.id, star.proprietaire))"""
 
     def generate_trou_de_vers(self, trou_de_vers: list[TrouDeVers]):
         """Créé deux portes de trou de vers sur le canvas. """
@@ -566,7 +590,7 @@ class SideBar(Frame):
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
         self.minimap_frame.grid_rowconfigure(0, weight=1)
-        self.minimap_frame.grid_rowconfigure(1, weight=3)
+        self.minimap_frame.grid_rowconfigure(1, weight=1)
         self.minimap_frame.grid_rowconfigure(2, weight=1)
 
         self.minimap_frame.grid_columnconfigure(0, weight=1)
@@ -601,6 +625,7 @@ class Minimap(Canvas):
                          relief="solid", highlightthickness=0)
 
         self.propagate(False)
+        self.after_id: None or int = None
 
     def initialize(self, mod: Modele):
         """Initialise la minimap avec les données du model"""
@@ -652,6 +677,12 @@ class Minimap(Canvas):
         # todo : Refresh only what necessary or the whole thing ?
 
     def on_resize(self, _):
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)
+
+        self.after_id = self.after(100, self.do_resize)
+
+    def do_resize(self):
         """Gère le redimensionnement de la minimap"""
         width = self.winfo_width()
         height = self.winfo_height()
@@ -684,11 +715,6 @@ class Minimap(Canvas):
             self.create_oval(new_x1, new_y1, new_x2, new_y2,
                              fill=color, tags="etoile_controlee",
                              outline=hexSpaceBlack)
-
-        self.old_x_ratio = self.x_ratio
-        self.old_y_ratio = self.y_ratio
-        self.old_x_ratio = self.x_ratio
-        self.old_y_ratio = self.y_ratio
 
     def get_new_star_position(self, x1, y1, x2, y2):
         return x1 * self.x_ratio / self.old_x_ratio, \
@@ -999,4 +1025,9 @@ class MouseOverView(Frame):
                 label = Label(container, text=key + " : " + str(value),
                               bg=hexDark, fg="white")
                 label.grid(row=j+1, column=0, sticky="nsew")
+
+
+
+
+
 
