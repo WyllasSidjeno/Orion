@@ -7,52 +7,52 @@ Alnilam
 Alnitak A
 Saiph
 Mintaka AB
-? Ori
-?3 Ori
-? Ori
+Ori
+3 Ori
+Ori
 Meissa A
-? Ori
-?4 Ori
+Ori
+4 Ori
 Alnitak B
-?5 Ori
-? Ori AB
-?2 Ori
-?2 Ori
-? Ori
+5 Ori
+Ori AB
+2 Ori
+2 Ori
+Ori
 29 Ori
 32 Ori
-?2 Ori
-?1 Ori
-?1 Ori
-? Ori
-? Ori
-? Ori
-?6 Ori
-? Ori
+2 Ori
+1 Ori
+1 Ori
+Ori
+Ori
+Ori
+6 Ori
+Ori
 HD 40657
 42 Ori
-?2 Ori
-? Ori
-?1 Ori
-?2 Ori
+2 Ori
+Ori
+1 Ori
+2 Ori
 11 Ori
-?1 Ori
+1 Ori
 31 Ori
 22 Ori
 56 Ori
 49 Ori
 HD 36960
 15 Ori
-?1 Ori
+1 Ori
 51 Ori
 HD 44131
 HD 37756
 69 Ori
-?2 Ori A
+2 Ori A
 23 Ori
 74 Ori
 27 Ori
-?1 Ori C
+1 Ori C
 64 Ori
 6 Ori
 HD 33554
@@ -186,7 +186,7 @@ HD 35775
 HD 42351
 HD 43358
 HD 36058
-?2 Ori B
+2 Ori B
 HD 43335
 HD 34880
 V1377 Ori
@@ -209,11 +209,11 @@ HD 31411
 HD 37150
 HD 37808
 HD 37017
-? Ori E
+Ori E
 HD 43317
-? Ori D
-?1 Ori D
-?1 Ori A
+Ori D
+1 Ori D
+1 Ori A
 HD 35155
 Mintaka C
 HD 42618
@@ -233,14 +233,14 @@ HD 36629
 HD 37903
 HD 35298
 HD 37806
-?1 Ori B
+1 Ori B
 HD 38677
 V372 Ori
 HD 36668
 HD 38801
 HD 39392
 RS Ori
-? Ori C
+Ori C
 HD 37605
 V351 Ori
 V2689 Ori
@@ -274,10 +274,10 @@ GG Ori
 HK Ori
 T Ori
 DY Ori
-LkH? 208
+LkH 208
 GJ 3379
 FH Ori
-?1 Ori E
+1 Ori E
 V371 Ori
 Ross 87
 Gliese 179
@@ -297,23 +297,9 @@ CN Ori
 CZ Ori
 V1647 Ori
 4U 0614+091
-Becklin–Neugebauer Object
+Becklin Neugebauer Object
 2MASS J05352184-0546085
 OMC-2 FIR 4
 Orion Source I
 Reipurth 50
 S Ori 70
-WISE J0521+1025
-"Table legend: • Name = Proper name 
- • B = Bayer designation 
- • F or/and G. = Flamsteed designation or Gould designation 
- • Var = Variable star designation 
- • HD = Henry Draper Catalogue designation number 
- • HIP = Hipparcos Catalogue designation number 
- • RA = Right ascension for the Epoch/Equinox J2000.0 
- • Dec = Declination for the Epoch/Equinox J2000.0 
- • vis. mag. = visual magnitude (m or mv), also known as apparent magnitude 
- • abs. mag. = absolute magnitude (Mv) 
- • Dist. (ly) = Distance in light-years from Earth 
- • Sp. class = Spectral class of the star in the stellar classification system 
- • Notes = Common name(s) or alternate name(s); comments; notable properties [for example: multiple star status, range of variability if it is a variable star, exoplanets, etc.]"
