@@ -70,10 +70,12 @@ class Modele:
                 self.joueurs[old_owner].etoiles_controlees.remove(planet)
                 self.etoiles.append(planet)
                 planet.proprietaire = None
-                planet.couleur = "grey"
+                planet.couleur = "white"
+                planet.needs_refresh = True
             else:
                 self.etoiles.remove(planet)
                 self.joueurs[new_owner].conquer_planet(planet)
+                planet.needs_refresh = True
 
     def target_change_request(self, ship_informations: dict, target: dict):
         """Demande de changement de cible d'un vaisseau.
@@ -285,6 +287,16 @@ class Modele:
     def is_owner(self, tags_list) -> bool:
         """Retourne True si l'objet appartient au joueur de cette vue."""
         return self.controller_username in tags_list
+
+    def get_player_stars(self):
+        """Récupère les étoiles contrôlées par le joueur
+        :param mod: Le model
+        :return: Une liste d'étoiles"""
+        stars = []
+        for star in self.joueurs.keys():
+            for j in self.joueurs[star].etoiles_controlees:
+                stars.append(j)
+        return stars
 
 
 class Joueur:

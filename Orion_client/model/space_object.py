@@ -91,7 +91,7 @@ class Etoile:
                                 science=0)
         self.resistance = 100
         self.buildinglist: list[Building] = []
-        self.couleur = "grey"
+        self.couleur = "white"
         self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
 
         self.needs_refresh: bool = False
