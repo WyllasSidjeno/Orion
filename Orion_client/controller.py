@@ -17,6 +17,8 @@ from pstats import Stats
 
 from typing import Callable
 
+import winsound
+
 
 class Controller:
     """Controller de l'application, incluant la connection au serveur"""
@@ -82,6 +84,10 @@ class Controller:
 
         self.controller_server_queue = CommandQueue()
         self.tick()
+
+        path = "C:\\Users\\perre\Desktop\\School\Orion\\Orion_client\\assets\sounds\\thecelestialcity.wav"
+
+        self.play_sound(path)
 
     def tick(self) -> None:
         """Loop de l'application"""
@@ -149,7 +155,6 @@ class Controller:
         if self.model.is_owner_and_is_type(tags_list,
                                            StringTypes.ETOILE_OCCUPEE.value):
             self.view.canvas.etoile_window.show(tags_list[1])
-            print(tags_list[1])
 
     def look_for_ship_interactions(self, tags_list: list[str],
                                    pos: tuple[int, int]):
@@ -196,6 +201,13 @@ class Controller:
     def unpause_game(self) -> None:
         """Unpause the game"""
         self.pause = False
+
+    def play_sound(self, sound_name: str):
+        """Joue un son."""
+        try:
+            winsound.PlaySound(sound_name, winsound.SND_ASYNC)
+        except Exception as e:
+            print(f'Error while playing sound: {e}')
 
 
 class ServerController:
