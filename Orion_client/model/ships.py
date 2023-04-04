@@ -30,7 +30,8 @@ class Ship(ABC):
     :param resistance: La resistance du vaisseau.
     :param owner: Le proprietaire du vaisseau.
     """
-    def __init__(self, local_queue,
+
+    def __init__(self, local_queue, player_local_queue,
                  pos: tuple, vitesse: int,
                  resistance: int, owner: str, attack_strength: int = 0,
                  defense_strength: int = 0, attack_range: int = 0, ):
@@ -50,6 +51,7 @@ class Ship(ABC):
         self.attack_range: int = attack_range
 
         self.local_queue = local_queue
+        self.player_local_queue = player_local_queue
 
         self.nouveau: bool = True
 
@@ -82,7 +84,8 @@ class Ship(ABC):
         damage -= self.defense_strength
         self.resistance -= damage
         if self.resistance <= 0:
-            self.local_queue.add("ship_destroyed", self.id)
+            self.player_local_queue.add("remove_ship", self.id, self.type())
+            print(self.player_local_queue.queue)
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       target=None) -> None:
@@ -156,12 +159,13 @@ class Militaire(Ship):
     :param owner: Le proprietaire du vaisseau.
 
     """
+
     def __init__(self, pos: tuple, owner: str,
-                 local_queue) -> None:
+                 local_queue, player_local_queue) -> None:
         """Initialise un vaisseau militaire.
         :param pos: Position du vaisseau
         :param owner: Proprietaire du vaisseau"""
-        super().__init__(local_queue,
+        super().__init__(local_queue, player_local_queue,
                          pos=pos, vitesse=150, resistance=100, owner=owner,
                          attack_strength=30, defense_strength=10,
                          attack_range=20)
@@ -176,7 +180,7 @@ class Militaire(Ship):
         if self.cible.resistance <= 0:
             self.target_change(None)
 
-    def target_change(self, pos, target = None) -> None:
+    def target_change(self, pos, target=None) -> None:
         """Change la position cible du vaisseau.
         """
         super().target_change(pos, target)
@@ -184,6 +188,7 @@ class Militaire(Ship):
             self.is_set_to_attack = True
         else:
             self.is_set_to_attack = False
+
     def tick(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
         if self.cible is not None:
@@ -219,9 +224,9 @@ class Transportation(Ship):
     """
 
     def __init__(self, pos: tuple, owner: str,
-                 local_queue):
+                 local_queue, player_local_queue) -> None:
         """Initialise un vaisseau de transport."""
-        super().__init__(local_queue,
+        super().__init__(local_queue, player_local_queue,
                          pos=pos, vitesse=3, resistance=100, owner=owner)
         self.position_depart = pos
         self.position_origin = self.position_depart
@@ -235,7 +240,7 @@ class Transportation(Ship):
         else:
             super().move()
 
-    def target_change(self, pos, target = None) -> None:
+    def target_change(self, pos, target=None) -> None:
         super().target_change(pos, target)
         self.position_depart = self.position_origin
 
@@ -259,9 +264,9 @@ class Reconnaissance(Ship):
     """
 
     def __init__(self, pos: tuple, owner: str,
-                 local_queue):
+                 local_queue, player_local_queue) -> None:
         """Initialise un vaisseau de reconnaissance."""
-        super().__init__(local_queue,
+        super().__init__(local_queue, player_local_queue,
                          pos=pos, vitesse=3, resistance=100, owner=owner)
 
     def tick(self) -> None:
@@ -269,7 +274,7 @@ class Reconnaissance(Ship):
             if self.cible:
                 if self.is_close_enough():
                     self.local_queue.add("change_planet_ownership",
-                                            self.cible.id, self.proprietaire)
+                                         self.cible.id, self.proprietaire)
                     self.target_change(None)
                 else:
                     self.move()
