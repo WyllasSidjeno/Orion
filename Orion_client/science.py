@@ -72,10 +72,13 @@ class Controller:
 
             if self.science_bloquer(f"{science}", data):
                 con_frame = self.science_debloquer()
-                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="orange")
+                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#008081")
+            elif self.is_clickable(f"{science}", data):
+                con_frame = tk.Frame(self.root, bg="#043927", highlightbackground="black", highlightthickness=3)
+                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#0A6522")
             else:
                 con_frame = tk.Frame(self.root, bg="#2f3136", highlightbackground="black", highlightthickness=3)
-                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#2f3136")
+                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#444C38")
 
             if i % self.maxColumn == 0 and i != 0:
                 self.maxRow += 1
@@ -98,18 +101,19 @@ class Controller:
             return True
 
     def science_debloquer(self):
-        con_frame = tk.Frame(self.root, bg="orange", highlightbackground="#F7CE25", highlightthickness=3)
+        con_frame = tk.Frame(self.root, bg="#043927", highlightbackground="black", highlightthickness=3)
         return con_frame
 
     def is_clickable(self, science, data):
         """Verifie si la science peut etre cliquer"""
-        if data.sciences.get(science)[3] == "blocked":
+        if data.sciences.get(science)[3] == "blocked" or data.sciences.get(science)[1]:
             return False
         else:
             return True
 
     def is_unlockable(self):
         """Verifie chaque row si les sciences sont available"""
+
         pass
 
     def buy_science(self, event, science, data):
