@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.helper import CommandQueue, StringTypes
+from Orion_client.helper import CommandQueue, StringTypes, MusicManager
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.modele import Modele
 
@@ -16,8 +16,6 @@ from cProfile import Profile
 from pstats import Stats
 
 from typing import Callable
-
-import winsound
 
 
 class Controller:
@@ -85,9 +83,8 @@ class Controller:
         self.controller_server_queue = CommandQueue()
         self.tick()
 
-        path = "C:\\Users\\perre\Desktop\\School\Orion\\Orion_client\\assets\sounds\\thecelestialcity.wav"
 
-        self.play_sound(path)
+
 
     def tick(self) -> None:
         """Loop de l'application"""
@@ -201,13 +198,6 @@ class Controller:
     def unpause_game(self) -> None:
         """Unpause the game"""
         self.pause = False
-
-    def play_sound(self, sound_name: str):
-        """Joue un son."""
-        try:
-            winsound.PlaySound(sound_name, winsound.SND_ASYNC)
-        except Exception as e:
-            print(f'Error while playing sound: {e}')
 
 
 class ServerController:
