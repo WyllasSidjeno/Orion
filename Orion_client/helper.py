@@ -3,15 +3,21 @@
 Ce module contient des methodes statiques pour calculer des points
 et des angles a partir de coordonnees cartesiennes.
 """
+import os
 from enum import Enum
+import random
 from typing import Any, List
 import functools
 
+
 from typing import TYPE_CHECKING
 
+import wave
+import struct
 
 prochainid: int = 0
 """Prochain identifiant a utiliser."""
+
 
 def get_prochain_id() -> str:
     """Recupere le prochain id a utiliser.
@@ -104,6 +110,7 @@ class CommandQueue:
     def execute(self, command_obj) -> None:
         """Execute la queue grace a l'objet en parametre."""
         for funct_name, args in self.queue:
+            print(funct_name, args)
             getattr(command_obj, funct_name)(*args)
         self.queue = []
 

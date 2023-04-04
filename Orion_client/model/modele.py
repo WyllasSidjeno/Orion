@@ -49,7 +49,6 @@ class Modele:
         self.log: dict = {}
 
         with open("assets/planet.csv", "r") as planet_name_csv:
-
             planet_name_csv = planet_name_csv.read().split("\n")
 
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
@@ -185,6 +184,8 @@ class Modele:
             i.tick()
 
         self.local_queue.execute(self)
+        for i in self.joueurs:
+            self.joueurs[i].player_local_queue.execute(self.joueurs[i])
 
     def ajouter_actions(self, actionsrecues: list, frame: int):
         """Ajoute les actions reçues dans la liste des actions à faire
@@ -333,6 +334,7 @@ class Joueur:
 
         self.local_queue = local_queue
         """Queue de commandes du modèle au controller."""
+        self.player_local_queue = CommandQueue()
 
         self.ressources = Ressource(metal=100, beton=100, energie=100,
                                     nourriture=100, population=0,
@@ -373,7 +375,7 @@ class Joueur:
         """
         pos = self.get_etoile_by_id(planet_id).position
         ship = getattr(ships, type_ship.capitalize())(
-            pos, self.nom, self.local_queue
+            pos, self.nom, self.local_queue, self.player_local_queue
         )
 
         if ship:
