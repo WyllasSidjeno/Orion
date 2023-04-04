@@ -164,4 +164,73 @@ class StringTypes(Enum):
                 cls.TROUDEVERS.value]
 
 
+class MusicManager:
+    def __init__(self) -> None:
+        self.current_music = None
+        self.music = {}
+        self.played_music = []
+        self.volume = 1
+
+    def add_music(self, name: str, path: str) -> None:
+        """Ajoute une musique.
+        :param name: Le nom de la musique.
+        :param path: Le chemin vers la musique.
+        """
+        self.music[name] = path
+
+    def start_shuffle_loop(self) -> None:
+        """Joue une musique au hasard en boucle."""
+        self.shuffle()
+        self.current_music.on_end = self.start_shuffle_loop
+
+    def shuffle(self) -> None:
+        """Joue une musique au hasard."""
+        import random
+        if len(self.played_music) == len(self.music):
+            self.played_music = []
+        self.play(random.choice(list(self.music.keys())))
+        self.played_music.append(self.current_music)
+
+    def play(self, name: str) -> None:
+        """Joue une musique.
+        :param name: Le nom de la musique.
+        """
+        if name in self.music:
+            self.current_music = wave.open(self.music[name], 'rb')
+            self.current_music.play()
+        else:
+            raise ValueError(f"La musique {name} n'existe pas.")
+
+        if self.volume != 1:
+            self.change_volume(self.volume)
+
+    def pause(self) -> None:
+        """Met en pause la musique."""
+        self.current_music.pause()
+
+    def resume(self) -> None:
+        """Reprend la musique."""
+        self.current_music.resume()
+
+    def stop(self) -> None:
+        """Arrête la musique."""
+        self.current_music.stop()
+
+    def change_volume(self, factor):
+        # Get the parameters of the audio file
+        nchannels, sampwidth, framerate, nframes,\
+            comptype, compname = self.current_music.getparams()
+        # Read all the frames of the audio file
+        frames = self.current_music.readframes(nframes)
+        # Convert the frames to a list of integers
+        data = struct.unpack(f"{nframes * nchannels}s", frames)[0]
+        data = list(struct.unpack(f"{nframes * nchannels}h", data))
+        # Change the volume of the audio file by the given factor
+        data = [int(d + factor) for d in data]
+        # Move the file pointer to the beginning of the file
+        self.current_music.rewind()
+        # Convert the list of integers back to bytes and write to the audio file
+        self.current_music.writeframes(struct.pack(f"{nframes * nchannels}h", *data))
+
+
 

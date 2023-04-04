@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.helper import CommandQueue, StringTypes
+from Orion_client.helper import CommandQueue, StringTypes, MusicManager
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.modele import Modele
 
@@ -83,6 +83,9 @@ class Controller:
         self.controller_server_queue = CommandQueue()
         self.tick()
 
+
+
+
     def tick(self) -> None:
         """Loop de l'application"""
         start_time = time.perf_counter()
@@ -149,7 +152,6 @@ class Controller:
         if self.model.is_owner_and_is_type(tags_list,
                                            StringTypes.ETOILE_OCCUPEE.value):
             self.view.canvas.etoile_window.show(tags_list[1])
-            print(tags_list[1])
 
     def look_for_ship_interactions(self, tags_list: list[str],
                                    pos: tuple[int, int]):
