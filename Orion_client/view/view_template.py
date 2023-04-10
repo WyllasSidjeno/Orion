@@ -6,12 +6,10 @@ from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
 from PIL import Image
 from typing import TYPE_CHECKING
 
-from Orion_client.Helpers.helper import StringTypes
 from PIL import ImageTk
 
 from Orion_client.Helpers.CommandQueues import ControllerQueue
 from Orion_client.Helpers.helper import StringTypes
-
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
@@ -28,9 +26,9 @@ hexSpaceBlack: str = "#23272a"
 class EtoileWindow(Frame):
     star_id: int | None
 
-    def __init__(self, proprietaire: str):
+    def __init__(self, master, proprietaire: str):
         """Initialise la fenetre"""
-        super().__init__(bg=hexDarkGrey, bd=1, relief="solid",
+        super().__init__(master, bg=hexDarkGrey, bd=1, relief="solid",
                          width=500, height=500)
 
         self.is_shown: bool = False
@@ -44,6 +42,7 @@ class EtoileWindow(Frame):
         self.proprietaire_label = Label(self.header_frame, bg=hexDarkGrey,
                                         fg="white", font=("Arial", 15))
         """Label contenant le nom du proprietaire de la planete"""
+        self.proprietaire_label["text"] = proprietaire
 
         self.population_canvas = Canvas(self.header_frame, bg=hexDarkGrey,
                                         width=51, height=51,
@@ -146,7 +145,7 @@ class EtoileWindow(Frame):
         self.construct_ship_menu = ConstructShipMenu(self.side_frame)
 
         self.construct_ship_button.bind("<Button-1>",
-                                        self.show_construct_menu)
+                                        self.show_construct_ship_menu)
         self.bind("<Button-1>", self.construct_ship_menu.hide)
 
         self.building_list = []
@@ -154,57 +153,9 @@ class EtoileWindow(Frame):
         for i in range(8):
             self.building_list.append(BuildingWindow(self.batiment_grid))
 
-    def refresh(self, model):
-        """Rafraichit la fenetre"""
-        star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
-        self.population_label.config(text=star.population.nb_humains)
-        self.stockpile_boolean_label.config(
-            text="Oui" if star.transit else "Non")
-
-        for i in range(star.taille):
-            self.building_list[i].grid(row=i // 3, column=i % 3)
-            self.building_list[i].reinitialize()
-
-        output = star.output.__dict__()
-        self.energie_value_label.config(text=output["energie"])
-        self.metal_value_label.config(text=output["metal"])
-        self.beton_value_label.config(text=output["beton"])
-        self.nourriture_value_label.config(text=output["nourriture"])
-        self.science_value_label.config(text=output["science"])
-
-        self.nom_label.config(text=star.name)
-
-    def hide(self) -> None:
-        """Cache la fenetre"""
-        self.construct_ship_menu.current_star_id = None
-        self.star_id = None
-        self.place_forget()
-        self.is_shown = False
-
-    def show(self, star_id: int) -> None:
-        """Affiche la fenetre"""
-        self.star_id = star_id
-        self.construct_ship_menu.current_planet_id = star_id
-        self.place(relx=0.5, rely=0.5, anchor="center")
-        self.is_shown = True
-
-    def show_construct_menu(self, event) -> None:
-        """Affiche le menu de construction de vaisseau"""
-        self.construct_ship_menu.show(event, self.star_id)
-
-    def show_buildings(self, max_building: int) -> None:
-        """Affiche les bâtiments de la planete"""
-        for i in range(max_building):
-            self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
-                                       pady=5)
-
-    def initialize(self) -> None:
-        """Place les widgets dans la fenetre"""
         self.place_header()
         self.place_main()
         self.place_side_bar()
-        for i in self.building_list:
-            i.initialize()
 
     def place_header(self) -> None:
         """Crée le header de la fenetre, la ou les informations identifiante
@@ -286,15 +237,58 @@ class EtoileWindow(Frame):
         self.construct_ship_button.place(anchor="center", relx=0.5,
                                          rely=0.9)
 
+    def refresh(self, model):
+        """Rafraichit la fenetre"""
+        star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
+        self.population_label.config(text=star.population.nb_humains)
+        self.stockpile_boolean_label.config(
+            text="Oui" if star.transit else "Non")
+
+        for i in range(star.taille):
+            self.building_list[i].grid(row=i // 3, column=i % 3)
+            self.building_list[i].reinitialize()
+
+        output = star.output.__dict__()
+        self.energie_value_label.config(text=output["energie"])
+        self.metal_value_label.config(text=output["metal"])
+        self.beton_value_label.config(text=output["beton"])
+        self.nourriture_value_label.config(text=output["nourriture"])
+        self.science_value_label.config(text=output["science"])
+
+        self.nom_label.config(text=star.name)
+
+    def hide(self) -> None:
+        """Cache la fenetre"""
+        self.construct_ship_menu.current_star_id = None
+        self.star_id = None
+        self.place_forget()
+        self.is_shown = False
+
+    def show(self, star_id: int) -> None:
+        """Affiche la fenetre"""
+        self.star_id = star_id
+        self.construct_ship_menu.current_planet_id = star_id
+        self.place(relx=0.5, rely=0.5, anchor="center")
+        self.is_shown = True
+
+    def show_construct_ship_menu(self, event) -> None:
+        """Affiche le menu de construction de vaisseau"""
+        self.construct_ship_menu.show(event, self.star_id)
+
+    def show_buildings(self, max_building: int) -> None:
+        """Affiche les bâtiments de la planete"""
+        for i in range(max_building):
+            self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
+                                       pady=5)
+
 
 class BuildingWindow(Frame):
     name_label: Label
     level_label: Label
     upgrade_canvas: Canvas
 
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         """Crée la fenetre d'un bâtiment
-        :param master: Frame parent
         """
         super().__init__(master)
 
@@ -313,10 +307,6 @@ class BuildingWindow(Frame):
         self.upgrade_canvas = Canvas(self, bg=hexDark, width=20, height=20,
                                      bd=0, highlightthickness=0)
         """Canvas contenant le bouton d'amélioration du bâtiment"""
-
-    def initialize(self):
-        """Crée le layout du bâtiment window"""
-        # todo : self place les widgets ?
 
         self.name_label.place(anchor="center", relx=0.45, rely=0.2)
 
@@ -350,14 +340,12 @@ class GameCanvas(Canvas):
     command_queue: ControllerQueue
 
     def __init__(self, master, scroll_x: Scrollbar,
-                 scroll_y: Scrollbar, proprietaire: str):
+                 scroll_y: Scrollbar, proprietaire):
         """Initialise le canvas de jeu
-        :param master: Le Frame parent
         :param scroll_x: La scrollbar horizontale
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
-        self.proprietaire = proprietaire
         self.configure(bg=hexSpaceBlack, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scroll_x.set,
@@ -367,9 +355,11 @@ class GameCanvas(Canvas):
         scroll_y.config(command=self.yview)
 
         self.configure(scrollregion=(0, 0, 9000, 9000))
+        self.generate_background(9000)
+
         self.ship_view = ShipViewGenerator()
 
-        self.etoile_window = EtoileWindow(self.proprietaire)
+        self.etoile_window = EtoileWindow(master, proprietaire)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.etoile_window.hide()
 
@@ -382,12 +372,6 @@ class GameCanvas(Canvas):
         }
 
         self.cache = []
-
-    def initialize(self, mod: Modele):
-        """Initialise le canvas de jeu avec les données du model
-        lors de sa création
-        :param mod: Le model"""
-        self.generate_background(9000)
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
@@ -443,9 +427,32 @@ class GameCanvas(Canvas):
         :param x: La position x en 0.0 - 1.0
         :param y: La position y en 0.0 - 1.0
         """
+
+        """ Bouge le canvas vers la position du clic sur la minimap."""
         self.xview_moveto(x)
         self.yview_moveto(y)
 
+    def move_to_with_model_coords(self, x: float, y: float) -> None:
+        """Déplace le canvas de jeu à une position donnée
+        :param x: La position x en 0.0 - 1.0
+        :param y: La position y en 0.0 - 1.0
+        """
+
+        """ Bouge le canvas vers la position du clic sur la minimap."""
+        canvas_width = self.winfo_width()
+        canvas_height = self.winfo_height()
+
+        x_view = (x- canvas_width/2) / (9000)
+        y_view = (y- canvas_height/2) / (9000)
+
+        self.xview_moveto(x_view)
+        self.yview_moveto(y_view)
+
+
+    def drag(self, event):
+        """Déplace le canvas de jeu en fonction de la position de la souris
+        :param event: L'événement de la souris"""
+        self.scan_dragto(event.x, event.y, gain=1)
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
         self.xview_scroll(-1 * int(event.delta / 120), "units")
@@ -502,7 +509,7 @@ class GameCanvas(Canvas):
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
 
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         """Initialise la sidebar"""
         super().__init__(master)
         self.configure(bg=hexDark, bd=1,
@@ -536,12 +543,8 @@ class SideBar(Frame):
         for i in range(3):
             self.grid_rowconfigure(i, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_propagate(False)
 
-    def initialize(self, mod):
-        """Initialise la sidebar avec les données du model
-        lors de sa création
-        :param mod: Le model"""
+        self.grid_propagate(False)
 
         self.planet_frame.grid(row=0, column=0, sticky="nsew")
         self.planet_frame.grid_propagate(False)
@@ -562,21 +565,14 @@ class SideBar(Frame):
 
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
-        self.minimap_frame.grid_rowconfigure(0, weight=1)
-        self.minimap_frame.grid_rowconfigure(1, weight=1)
-        self.minimap_frame.grid_rowconfigure(2, weight=1)
-
+        self.minimap_frame.grid_rowconfigure(0, weight=1, minsize=40)
         self.minimap_frame.grid_columnconfigure(0, weight=1)
-        self.minimap_frame.grid_columnconfigure(1, weight=2)
-        self.minimap_frame.grid_columnconfigure(2, weight=1)
+        self.minimap_frame.grid_rowconfigure(1, weight=4)
+        self.minimap_frame.grid_rowconfigure(2, weight=1, minsize=20)
 
-        self.minimap_frame.grid_propagate(False)
-
-        self.minimap_label.grid(row=0, column=1, sticky="nsew")
-        self.minimap.grid(row=1, column=1, sticky="nsew")
-        self.minimap_frame.grid_propagate(False)
-
-        self.minimap.initialize(mod)
+        self.minimap_label.grid(row=0, column=0, sticky="nsew")
+        self.minimap.grid(row=1, column=0, sticky="nsew")
+        self.minimap.grid_propagate(False)
 
     def refresh(self, mod):
         """Rafraichit la sidebar avec les données du model
@@ -592,23 +588,21 @@ class Minimap(Canvas):
     old_x_ratio: float
     old_y_ratio: float
 
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         """Initialise la minimap"""
         super().__init__(master, bg=hexDark, bd=1,
                          relief="solid", highlightthickness=0)
-
         self.propagate(False)
         self.after_id: None or int = None
 
-    def initialize(self, mod: Modele):
-        """Initialise la minimap avec les données du model"""
-        self.update_idletasks()
-        size = min(self.winfo_width(), self.winfo_height())
-        self.config(width=size, height=size)
+        self.x_ratio = self.winfo_width() / 9000
+        self.y_ratio = self.winfo_height() / 9000
 
-        self.x_ratio = self.winfo_width() / mod.largeur
-        self.y_ratio = self.winfo_height() / mod.hauteur
+        self.bind("<Configure>", self.on_resize)
 
+    def refresh(self, mod: Modele):
+        """Rafraichit la minimap avec les données du model"""
+        self.delete("all")
         for star in mod.etoiles:
             self.create_oval(star.x * self.x_ratio - 2,
                              star.y * self.y_ratio - 2,
@@ -627,27 +621,22 @@ class Minimap(Canvas):
                                  tags="etoile_controlee",
                                  outline=hexSpaceBlack)
 
-        for wormhole in mod.trou_de_vers:
-            self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
-                             wormhole.porte_a.y * self.y_ratio - 2,
-                             wormhole.porte_a.x * self.x_ratio + 2,
-                             wormhole.porte_a.y * self.y_ratio + 2,
-                             fill="purple", tags=StringTypes.TROUDEVERS.value,
-                             outline=hexSpaceBlack)
+            for wormhole in mod.trou_de_vers:
+                self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
+                                 wormhole.porte_a.y * self.y_ratio - 2,
+                                 wormhole.porte_a.x * self.x_ratio + 2,
+                                 wormhole.porte_a.y * self.y_ratio + 2,
+                                 fill="purple",
+                                 tags=StringTypes.TROUDEVERS.value,
+                                 outline=hexSpaceBlack)
 
-            self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
-                             wormhole.porte_b.y * self.y_ratio - 2,
-                             wormhole.porte_b.x * self.x_ratio + 2,
-                             wormhole.porte_b.y * self.y_ratio + 2,
-                             fill="purple", tags=StringTypes.TROUDEVERS.value,
-                             outline=hexSpaceBlack)
-
-            self.bind("<Configure>", self.on_resize)
-
-    def refresh(self, mod: Modele):
-        """Rafraichit la minimap avec les données du model"""
-        pass
-        # todo : Refresh only what necessary or the whole thing ?
+                self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
+                                 wormhole.porte_b.y * self.y_ratio - 2,
+                                 wormhole.porte_b.x * self.x_ratio + 2,
+                                 wormhole.porte_b.y * self.y_ratio + 2,
+                                 fill="purple",
+                                 tags=StringTypes.TROUDEVERS.value,
+                                 outline=hexSpaceBlack)
 
     def on_resize(self, _):
         if self.after_id is not None:
@@ -656,7 +645,6 @@ class Minimap(Canvas):
         self.after_id = self.after(100, self.do_resize)
 
     def do_resize(self):
-        """Gère le redimensionnement de la minimap"""
         width = self.winfo_width()
         height = self.winfo_height()
 
@@ -849,7 +837,7 @@ class ConstructShipMenu(Menu):
 
 
 class Hud(Frame):
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1, relief="solid")
 
@@ -935,9 +923,7 @@ class Hud(Frame):
         self.energy_label.pack()
         self.food_label.pack()
 
-    def update_ressources(self, metal, beton, energie, nourriture,
-                          **kwargs):
-
+    def update_ressources(self, metal, beton, energie, nourriture):
         self.metal_text = "Metal: " + str(metal)
         self.beton_text = "Beton: " + str(beton)
         self.energy_text = "Energy: " + str(energie)
@@ -973,7 +959,7 @@ class ChatBox(Frame):
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
 
-    def send_message(self, event):
+    def send_message(self, _):
         message = self.chat_entry.get()
         self.chat_text.insert(END, message + "\n")
         self.chat_entry.delete(0, END)

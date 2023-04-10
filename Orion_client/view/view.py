@@ -9,43 +9,38 @@ class GameView(Frame):
     id: str
     command_queue: ControllerQueue
 
-    def __init__(self, proprietaire):
+    def __init__(self, command_queue: ControllerQueue, username):
         super().__init__()
         """Représente la queue de commandes du jeu."""
-
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
-        self.nom = proprietaire
 
-        self.hud = Hud(self)
-        """Représente la barre du haut de la vue du jeu."""
-
-        self.side_bar = SideBar(self)
-        """Représente la barre de droite de la vue du jeu."""
+        self.command_queue = command_queue
 
         self.scrollX = Scrollbar(self, orient="horizontal")
         """Représente la scrollbar horizontale de la vue du jeu."""
         self.scrollY = Scrollbar(self, orient="vertical")
         """""Représente la scrollbar verticale de la vue du jeu."""
 
-        self.canvas = GameCanvas(self, self.scrollX, self.scrollY,
-                                 proprietaire)
+        self.hud = Hud(self)
+        """Représente la barre du haut de la vue du jeu."""
+        self.side_bar = SideBar(self)
+        """Représente la barre de droite de la vue du jeu."""
+        self.canvas = GameCanvas(self, self.scrollX, self.scrollY, username)
         """Représente le canvas de la vue du jeu."""
-
-        self.previous_selection: list[str] | None = None
-        """Représente la sélection précédente de l'utilisateur dans la vue."""
 
         self.pack(fill="both", expand=True)
 
-        self.bind_game_requests()
-
-        self.canvas.etoile_window.proprietaire_label.config(text=self.nom)
-
-    def register_command_queue(self, command_queue: ControllerQueue):
-        """Enregistre la queue de commandes du jeu."""
-        self.command_queue = command_queue
         self.canvas.etoile_window.construct_ship_menu.register_command_queue(
             command_queue)
+
+        self.bind_game_requests()
+
+        self.canvas.etoile_window.proprietaire_label.config(text=username)
+        # todo : Add a function to update the username in the view because
+        #  encapsulation is important
+
+        self.configure_grid()
 
     def configure_grid(self):
         """Configures la grid de la vue principale du jeu."""
@@ -66,17 +61,6 @@ class GameView(Frame):
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
 
-    def initialize(self, mod, username: str, user_id: str):
-        """Initialise la vue du jeu apres son lancement et lors de la
-        reception du modele."""
-        self.nom = username
-        self.id = user_id
-
-        self.configure_grid()
-        self.canvas.initialize(mod)
-        self.side_bar.initialize(mod)
-        self.canvas.etoile_window.initialize()
-
     def bind_game_requests(self):
         """Binds les fonctions de la vue du jeu aux evenements du canvas."""
         self.side_bar.minimap.bind("<Button-1>",
@@ -90,12 +74,17 @@ class GameView(Frame):
         self.canvas.bind("<Button-1>", self.on_game_click)
         self.canvas.bind("<Button-3>", self.on_game_click)
 
+        self.canvas.bind("<B1-Motion>", self.canvas.drag)
+
     def refresh(self, mod):
         """Refresh la vue du jeu."""
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
 
-        dict_ress = mod.joueurs[self.nom].ressources
+        dict_ress = mod.joueurs[mod.controller_username].ressources
+
+        dict_ress.pop("population")
+        dict_ress.pop("science")
 
         self.hud.update_ressources(**dict_ress)
 
@@ -120,6 +109,7 @@ class GameView(Frame):
         les fenetres demandés au clic. De plus,
         elle envoie les commandes au controller pour traiter les clics.
         """
+        self.canvas.scan_mark(event.x, event.y)
         if self.canvas.etoile_window.is_shown:
             self.canvas.etoile_window.hide()
 
