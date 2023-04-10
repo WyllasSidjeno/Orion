@@ -48,14 +48,14 @@ class Modele:
         self.local_queue: CommandQueue = CommandQueue()
         self.log: dict = {}
 
-        with open("assets/planet.csv", "r") as planet_name_csv:
+        with open("assets/text/star.csv", "r") as planet_name_csv:
             planet_name_csv = planet_name_csv.read().split("\n")
 
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
         self.creer_etoiles(int((self.hauteur * self.largeur) / 500000),
                            planet_name_csv)
         self.creer_joueurs(joueurs, planet_name_csv)
-        self.creer_ias(planet_name_csv)
+        self.creer_ias()
 
     def change_planet_ownership(self, planet_id: str,
                                 new_owner: None | str = None,
@@ -70,10 +70,12 @@ class Modele:
                 self.joueurs[old_owner].etoiles_controlees.remove(planet)
                 self.etoiles.append(planet)
                 planet.proprietaire = None
-                planet.couleur = "grey"
+                planet.couleur = "white"
+                planet.needs_refresh = True
             else:
                 self.etoiles.remove(planet)
                 self.joueurs[new_owner].conquer_planet(planet)
+                planet.needs_refresh = True
 
     def target_change_request(self, ship_informations: dict, target: dict):
         """Demande de changement de cible d'un vaisseau.
@@ -229,8 +231,7 @@ class Modele:
         """Créé les joueurs et leur attribue une etoile mère.
         :param joueurs: la liste des joueurs à créer
         """
-        couleurs = ["red", "blue", "lightgreen", "yellow", "lightblue", "pink",
-                    "gold", "purple"]
+        couleurs = ["red", "blue", "yellow", "orange"]
         etoiles_occupee = []
         for i in range(len(joueurs)):
             p = choice(self.etoiles)
@@ -238,6 +239,8 @@ class Modele:
             self.etoiles.remove(p)
 
         for i, joueur in enumerate(joueurs):
+            if not couleurs:
+                couleurs = ["red", "blue", "yellow", "orange"]
             etoile = etoiles_occupee[i]
             self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0),
                                           self.local_queue,
@@ -249,20 +252,21 @@ class Modele:
                            self.local_queue, planet_name_csv)
                 )
 
-    def creer_ias(self, planet_name_csv, ias: int = 0):
+    def creer_ias(self, ias: int = 0):
         """Créer les IAs et leur attribue une etoile mère.
         :param ias: le nombre d'IA à créer
         """
-        couleurs_ia = ["orange", "green", "cyan", "SeaGreen1", "turquoise1",
-                       "firebrick1"]
+        couleurs = ["red", "blue", "yellow", "orange"]
         etoiles_occupee = []
         for i in range(ias):
+            if not couleurs:
+                couleurs = ["red", "blue", "yellow", "orange"]
             p = choice(self.etoiles)
             etoiles_occupee.append(p)
             self.etoiles.remove(p)
         for i in range(ias):
             self.joueurs[f"IA_{i}"] = AI(f"IA_{i}", etoiles_occupee.pop(0),
-                                         couleurs_ia.pop(0),
+                                         couleurs.pop(0),
                                          self.local_queue,
                                          self.controller_username)
 
@@ -283,6 +287,16 @@ class Modele:
     def is_owner(self, tags_list) -> bool:
         """Retourne True si l'objet appartient au joueur de cette vue."""
         return self.controller_username in tags_list
+
+    def get_player_stars(self):
+        """Récupère les étoiles contrôlées par le joueur
+        :param mod: Le model
+        :return: Une liste d'étoiles"""
+        stars = []
+        for star in self.joueurs.keys():
+            for j in self.joueurs[star].etoiles_controlees:
+                stars.append(j)
+        return stars
 
 
 class Joueur:
