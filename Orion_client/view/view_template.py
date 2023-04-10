@@ -542,19 +542,14 @@ class SideBar(Frame):
 
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
-        self.minimap_frame.grid_rowconfigure(0, weight=1)
-        self.minimap_frame.grid_rowconfigure(1, weight=1)
-        self.minimap_frame.grid_rowconfigure(2, weight=1)
-
+        self.minimap_frame.grid_rowconfigure(0, weight=1, minsize=40)
         self.minimap_frame.grid_columnconfigure(0, weight=1)
-        self.minimap_frame.grid_columnconfigure(1, weight=2)
-        self.minimap_frame.grid_columnconfigure(2, weight=1)
+        self.minimap_frame.grid_rowconfigure(1, weight=4)
+        self.minimap_frame.grid_rowconfigure(2, weight=1, minsize=20)
 
-        self.minimap_frame.grid_propagate(False)
-
-        self.minimap_label.grid(row=0, column=1, sticky="nsew")
-        self.minimap.grid(row=1, column=1, sticky="nsew")
-        self.minimap_frame.grid_propagate(False)
+        self.minimap_label.grid(row=0, column=0, sticky="nsew")
+        self.minimap.grid(row=1, column=0, sticky="nsew")
+        self.minimap.grid_propagate(False)
 
     def refresh(self, mod):
         """Rafraichit la sidebar avec les données du model
