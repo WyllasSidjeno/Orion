@@ -106,6 +106,16 @@ class Etoile:
             self.local_queue.add("change_planet_ownership", self.id, None,
                                  self.proprietaire)
 
+    def to_mouse_over_dict(self) -> dict:
+        """Retourne un dictionnaire contenant les informations
+        necessaires pour afficher les informations de l'etoile
+        dans la fenetre d'information."""
+        return {"header": "Etoile",
+                "name": self.name,
+                "owner": self.proprietaire,
+                "output": self.output,
+                "population": self.population.nb_humains}
+
 class Population:
     """ Population de la planète découverte
     """
