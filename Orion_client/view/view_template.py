@@ -427,8 +427,27 @@ class GameCanvas(Canvas):
         :param x: La position x en 0.0 - 1.0
         :param y: La position y en 0.0 - 1.0
         """
+
+        """ Bouge le canvas vers la position du clic sur la minimap."""
         self.xview_moveto(x)
         self.yview_moveto(y)
+
+    def move_to_with_model_coords(self, x: float, y: float) -> None:
+        """Déplace le canvas de jeu à une position donnée
+        :param x: La position x en 0.0 - 1.0
+        :param y: La position y en 0.0 - 1.0
+        """
+
+        """ Bouge le canvas vers la position du clic sur la minimap."""
+        canvas_width = self.winfo_width()
+        canvas_height = self.winfo_height()
+
+        x_view = (x- canvas_width/2) / (9000)
+        y_view = (y- canvas_height/2) / (9000)
+
+        self.xview_moveto(x_view)
+        self.yview_moveto(y_view)
+
 
     def drag(self, event):
         """Déplace le canvas de jeu en fonction de la position de la souris
