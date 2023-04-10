@@ -1,5 +1,6 @@
 from __future__ import annotations
 import random
+import time
 from functools import partial
 from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
     Entry, Tk
@@ -146,7 +147,6 @@ class EtoileWindow(Frame):
 
         self.construct_ship_button.bind("<Button-1>",
                                         self.show_construct_ship_menu)
-        self.bind("<Button-1>", self.construct_ship_menu.hide)
 
         self.building_list = []
 
@@ -156,6 +156,38 @@ class EtoileWindow(Frame):
         self.place_header()
         self.place_main()
         self.place_side_bar()
+
+
+        self.last_visual_move = time.time()
+
+        self.header_frame.bind("<Button-1>", self.start_move)
+        self.header_frame.bind("<ButtonRelease-1>", self.stop_move)
+        self.header_frame.bind("<B1-Motion>", self.do_move)
+
+
+    def start_move(self, event) -> None:
+        """Démarre le déplacement de la fenetre
+        """
+        self.x = self.master.winfo_pointerx() - self.master.winfo_rootx()
+        self.y = self.master.winfo_pointery() - self.master.winfo_rooty()
+
+    def stop_move(self, event) -> None:
+        """Arrête le déplacement de la fenetre
+        """
+        self.x = None
+        self.y = None
+
+    def do_move(self, event) -> None:
+        """Déplace la fenetre en suivant la souris
+        """
+        if self.x is not None and self.y is not None:
+            x = self.master.winfo_pointerx() - self.x - self.master.winfo_rootx()
+            y = self.master.winfo_pointery() - self.y - self.master.winfo_rooty()
+            self.place(x=x, y=y)
+
+
+
+
 
     def place_header(self) -> None:
         """Crée le header de la fenetre, la ou les informations identifiante
@@ -372,6 +404,11 @@ class GameCanvas(Canvas):
         }
 
         self.cache = []
+
+        self.mouseOverView = MouseOverView(master)
+
+        self.tag_bind(StringTypes.ETOILE.value, "<Enter>", self.mouseOverView.show)
+        self.tag_bind(StringTypes.ETOILE.value, "<Leave>", self.mouseOverView.hide)
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
@@ -966,9 +1003,12 @@ class ChatBox(Frame):
 
 
 class MouseOverView(Frame):
-    def __init__(self):
-        super().__init__()
-        self.configure(bg=hexDark, bd=1, relief="solid")
+    def __init__(self, master):
+        super().__init__(master)
+        self.configure(bg=hexDark, bd=1, relief="solid",
+                       padx=25, pady=10,
+                       width=200, height=200)
+        self.visible = False
 
     def on_mouse_over(self, *args):
         dictlist = []
@@ -988,6 +1028,21 @@ class MouseOverView(Frame):
                               bg=hexDark, fg="white")
                 label.grid(row=j + 1, column=0, sticky="nsew")
 
+    def hide(self, _):
+        self.lower()
+        self.visible = False
+
+    def show(self, event):
+        # Place under the mouse
+        self.visible = True
+        x = event.x
+        y = event.y
+        # Place it under the mouse
+        x = x - self.winfo_width() / 2
+        y = y + 20
+        self.place(x=x, y=y)
+        self.lift()
+
 
 if __name__ == "__main__":
     root = Tk()
@@ -995,7 +1050,8 @@ if __name__ == "__main__":
     root.geometry("1280x720")
     # chat box
 
-    chatbox = ChatBox()
-    chatbox.grid(row=0, column=0, sticky="nsew")
+    mouse_over_view = MouseOverView(root)
+
+
 
     root.mainloop()
