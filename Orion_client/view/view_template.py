@@ -5,7 +5,11 @@ from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
     Entry
 from typing import TYPE_CHECKING
 
-from Orion_client.helper import CommandQueue, StringTypes
+from Orion_client.Helpers.helper import StringTypes
+from PIL import ImageTk
+
+from Orion_client.Helpers.CommandQueues import ControllerQueue
+from Orion_client.Helpers.helper import StringTypes
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
@@ -345,7 +349,7 @@ class GameCanvas(Canvas):
     pas des menus ou des fenetres ou de l'information
     """
     username: str
-    command_queue: CommandQueue
+    command_queue: ControllerQueue
 
     def __init__(self, master, scroll_x: Scrollbar,
                  scroll_y: Scrollbar, proprietaire: str):
@@ -452,13 +456,11 @@ class GameCanvas(Canvas):
         """Effectue un scroll vertical sur le canvas."""
         self.yview_scroll(-1 * int(event.delta / 120), "units")
 
-    def generate_background(self, width: int, height: int, n: int):
-        """ Genère un background de n étoiles de tailles aléatoires
-        :param width: La largeur du background
-        :param height: La hauteur du background
+    def generate_background(self, n: int):
+        """Genère un background de n étoiles de tailles aléatoires
         :param n: Le nombre d'étoiles à générer"""
         for i in range(n):
-            x, y = random.randrange(int(width)), random.randrange(int(height))
+            x, y = random.randrange(int(9000)), random.randrange(int(9000))
             size = random.randrange(3) + 1
             col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
 
@@ -816,7 +818,7 @@ class ConstructShipMenu(Menu):
     """Menu deroulant qui affiche la possibilite des constructions de vaisseaux
     """
     planet_id: str
-    command_queue: CommandQueue
+    command_queue: ControllerQueue
 
     def __init__(self, master: Frame):
         """Initialise le menu deroulant"""
@@ -828,15 +830,16 @@ class ConstructShipMenu(Menu):
                              command=partial(self.add_event_to_command_queue,
                                              i))
 
-    def register_command_queue(self, command_queue: CommandQueue):
+    def register_command_queue(self, command_queue: ControllerQueue):
         """Enregistre la file de commandes"""
         self.command_queue = command_queue
 
     def add_event_to_command_queue(self, i):
         """Ajoute un evenement de construction de vaisseau au
         view_controller_queue"""
-        self.command_queue.add("handle_ship_construct_request",
-                               self.planet_id, self.ship_types[i].lower())
+        self.command_queue. \
+            handle_ship_construct_request(self.planet_id,
+                                          self.ship_types[i].lower())
 
     def hide(self, _):
         """Cache le menu"""
@@ -972,7 +975,8 @@ class ChatBox(Frame):
         self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
-    def send_message(self, event):
+
+    def send_message(self, _):
         message = self.chat_entry.get()
         self.chat_text.insert(END, message + "\n")
         self.chat_entry.delete(0, END)

@@ -7,8 +7,10 @@ from __future__ import annotations
 from ast import literal_eval
 from random import randrange, choice
 
+from Orion_client.Helpers.CommandQueues import ModelQueue, JoueurQueue
+from Orion_client.Interface import IModel, IJoueur
 from Orion_client.model.building import *
-from Orion_client.helper import get_prochain_id, AlwaysInt, CommandQueue, \
+from Orion_client.Helpers.helper import get_prochain_id, AlwaysInt, \
     StringTypes
 from Orion_client.model import ships
 from Orion_client.model.building import Building
@@ -17,7 +19,7 @@ from Orion_client.model.ships import Ship, Flotte
 from Orion_client.model.space_object import TrouDeVers, Etoile
 
 
-class Modele:
+class Modele(IModel):
     """Classe du modèle.
     Le modèle contient les données du jeu.
     :ivar largeur: La largeur du jeu
@@ -45,7 +47,7 @@ class Modele:
         self.etoiles: list = []
         self.joueurs: dict = {}
 
-        self.local_queue: CommandQueue = CommandQueue()
+        self.local_queue = ModelQueue()
         self.log: dict = {}
 
         with open("assets/planet.csv", "r") as planet_name_csv:
@@ -166,14 +168,14 @@ class Modele:
         self.cadre = cadre
         if cadre in self.log:
             for i in self.log[cadre]:
-                if i:
-                    username = i[0]
-                    action = i[1][0]
-                    args = i[1][1:]
-                    if username == "model":
-                        self.receive_action(action, args)
-                    else:
-                        self.joueurs[username].receive_action(action, args)
+                if i[0] != "model":
+                    cible = self.joueurs[i[0]]
+                else:
+                    cible = self
+                funct = i[1]
+                args = i[2]
+                funct = getattr(cible, funct)
+                funct(*args)
 
             del self.log[cadre]
 
@@ -183,9 +185,11 @@ class Modele:
         for i in self.trou_de_vers:
             i.tick()
 
-        self.local_queue.execute(self)
+        # Command queues
+        self.execute_commands(self.local_queue)
         for i in self.joueurs:
-            self.joueurs[i].player_local_queue.execute(self.joueurs[i])
+            self.joueurs[i].execute_commands(self.joueurs[i].local_queue)
+
 
     def ajouter_actions(self, actionsrecues: list, frame: int):
         """Ajoute les actions reçues dans la liste des actions à faire
@@ -285,7 +289,7 @@ class Modele:
         return self.controller_username in tags_list
 
 
-class Joueur:
+class Joueur(IJoueur):
     """Classe du joueur.
     Le joueur est le personnage qui joue le jeu.
     Il possede une flotte de vaisseaux, une liste d'etoiles controlees et une
@@ -303,7 +307,7 @@ class Joueur:
     """
 
     def __init__(self, nom: str, etoile_mere: Etoile, couleur: str,
-                 local_queue: CommandQueue,
+                 local_queue,
                  controller_owner: str):
         """Initialise le joueur.
         :param nom: le nom du joueur
@@ -334,7 +338,7 @@ class Joueur:
 
         self.local_queue = local_queue
         """Queue de commandes du modèle au controller."""
-        self.player_local_queue = CommandQueue()
+        self.player_local_queue = JoueurQueue()
 
         self.ressources = Ressource(metal=100, beton=100, energie=100,
                                     nourriture=100, population=0,

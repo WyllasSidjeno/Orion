@@ -2,7 +2,8 @@
 import math
 from abc import ABC
 
-from Orion_client.helper import get_prochain_id, AlwaysInt
+from Orion_client.Helpers.CommandQueues import JoueurQueue, ModelQueue
+from Orion_client.Helpers.helper import get_prochain_id, AlwaysInt
 
 from math import atan2, sin, cos
 
@@ -17,7 +18,6 @@ class Ship(ABC):
     :ivar resistance: La resistance du vaisseau.
     :ivar resistance_max: La resistance maximale du vaisseau.
 
-    :ivar controller_model_queue: La queue du modele du controleur.
     :ivar nouveau: Si le vaisseau est nouveau.
 
     :ivar position: La position du vaisseau.
@@ -31,7 +31,7 @@ class Ship(ABC):
     :param owner: Le proprietaire du vaisseau.
     """
 
-    def __init__(self, local_queue, player_local_queue,
+    def __init__(self, local_queue : ModelQueue, player_local_queue : JoueurQueue,
                  pos: tuple, vitesse: int,
                  resistance: int, owner: str, attack_strength: int = 0,
                  defense_strength: int = 0, attack_range: int = 0, ):
@@ -84,8 +84,7 @@ class Ship(ABC):
         damage -= self.defense_strength
         self.resistance -= damage
         if self.resistance <= 0:
-            self.player_local_queue.add("remove_ship", self.id, self.type())
-            print(self.player_local_queue.queue)
+            self.player_local_queue.remove_ship(self.id, self.type())
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       target=None) -> None:
@@ -93,7 +92,6 @@ class Ship(ABC):
         :param new_target_pos: La nouvelle position cible.
         :param target: La nouvelle cible.
         """
-        print("target_change", new_target_pos)
         self.position_cible = new_target_pos
         self.cible = target
 
@@ -273,8 +271,8 @@ class Reconnaissance(Ship):
         if self.position_cible:
             if self.cible:
                 if self.is_close_enough():
-                    self.local_queue.add("change_planet_ownership",
-                                         self.cible.id, self.proprietaire)
+                    self.local_queue.change_planet_ownership(
+                        self.cible.id, self.proprietaire)
                     self.target_change(None)
                 else:
                     self.move()

@@ -4,6 +4,7 @@ Ce module contient des methodes statiques pour calculer des points
 et des angles a partir de coordonnees cartesiennes.
 """
 import os
+import threading
 from enum import Enum
 import random
 from typing import Any, List
@@ -96,34 +97,6 @@ class AlwaysInt(int, metaclass=Inherited):
                 _implements[int].append(method)
 
 
-class CommandQueue:
-    def __init__(self) -> None:
-        self.queue = []
-
-    def add(self, funct_name: str, *args: Any) -> None:
-        """Ajoute une commande dans la queue.
-        :param funct_name: Le nom de la fonction.
-        :param args: Les arguments de la fonction.
-        """
-        self.queue.append((funct_name, args))
-
-    def execute(self, command_obj) -> None:
-        """Execute la queue grace a l'objet en parametre."""
-        for funct_name, args in self.queue:
-            print(funct_name, args)
-            getattr(command_obj, funct_name)(*args)
-        self.queue = []
-
-    def get_all(self) -> List[tuple[str, tuple[Any]]]:
-        """Retourne la queue.
-        :return: La queue.
-        :rtype: list[tuple[str, str, tuple[Any]]]
-        """
-        temp_copy = self.queue.copy()
-        self.queue.clear()
-        return temp_copy
-
-
 class StringTypes(Enum):
     """Classe énumérative pour retrouver les strings des types de planètes."""
     # Les éléments de maps
@@ -195,14 +168,8 @@ class MusicManager:
         """Joue une musique.
         :param name: Le nom de la musique.
         """
-        if name in self.music:
-            self.current_music = wave.open(self.music[name], 'rb')
-            self.current_music.play()
-        else:
-            raise ValueError(f"La musique {name} n'existe pas.")
 
-        if self.volume != 1:
-            self.change_volume(self.volume)
+
 
     def pause(self) -> None:
         """Met en pause la musique."""

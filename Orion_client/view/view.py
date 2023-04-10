@@ -1,13 +1,13 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.helper import CommandQueue
+from Orion_client.Helpers.CommandQueues import ControllerQueue
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
     SideBar, Hud
 
 
 class GameView(Frame):
     id: str
-    command_queue: CommandQueue
+    command_queue: ControllerQueue
 
     def __init__(self, proprietaire):
         super().__init__()
@@ -28,7 +28,8 @@ class GameView(Frame):
         self.scrollY = Scrollbar(self, orient="vertical")
         """""Représente la scrollbar verticale de la vue du jeu."""
 
-        self.canvas = GameCanvas(self, self.scrollX, self.scrollY, proprietaire)
+        self.canvas = GameCanvas(self, self.scrollX, self.scrollY,
+                                 proprietaire)
         """Représente le canvas de la vue du jeu."""
 
         self.previous_selection: list[str] | None = None
@@ -40,7 +41,7 @@ class GameView(Frame):
 
         self.canvas.etoile_window.proprietaire_label.config(text=self.nom)
 
-    def register_command_queue(self, command_queue: CommandQueue):
+    def register_command_queue(self, command_queue: ControllerQueue):
         """Enregistre la queue de commandes du jeu."""
         self.command_queue = command_queue
         self.canvas.etoile_window.construct_ship_menu.register_command_queue(
@@ -128,11 +129,9 @@ class GameView(Frame):
             tags_list.append(tag)
 
         if event.num == 3:
-            self.command_queue.add("handle_right_click",
-                                   pos, tags_list)
+            self.command_queue.handle_right_click(pos, tags_list)
         elif event.num == 1:
-            self.command_queue.add("handle_left_click",
-                                   pos, tags_list)
+            self.command_queue.handle_left_click(pos, tags_list)
 
 
 class LobbyView(Frame):

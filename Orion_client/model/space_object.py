@@ -1,7 +1,7 @@
 import random
 
-from Orion_client.helper import get_prochain_id, AlwaysInt
-from Orion_client.model.building import Building, PowerPlant, ConcreteFactory
+from Orion_client.Helpers.helper import get_prochain_id, AlwaysInt
+from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from random import randrange
 
