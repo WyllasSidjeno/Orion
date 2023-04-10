@@ -2,7 +2,8 @@ from __future__ import annotations
 import random
 from functools import partial
 from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
-    Entry
+    Entry, Tk
+from PIL import Image
 from typing import TYPE_CHECKING
 
 from Orion_client.Helpers.helper import StringTypes
@@ -10,6 +11,7 @@ from PIL import ImageTk
 
 from Orion_client.Helpers.CommandQueues import ControllerQueue
 from Orion_client.Helpers.helper import StringTypes
+
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
@@ -21,6 +23,7 @@ hexDark: str = "#2f3136"
 """Couleur de fond de l'application"""
 hexSpaceBlack: str = "#23272a"
 """Pour l'espace, on utilise un noir plus sombre"""
+
 
 class EtoileWindow(Frame):
     star_id: int | None
@@ -76,7 +79,6 @@ class EtoileWindow(Frame):
 
         self.ressource_grid = Frame(self.side_frame, bg=hexDarkGrey)
         """Frame contenant les ressources de la planete"""
-
 
         self.ressource_label = Label(self.side_frame, text="Rendement :",
                                      bg=hexDarkGrey, fg="white",
@@ -172,8 +174,6 @@ class EtoileWindow(Frame):
 
         self.nom_label.config(text=star.name)
 
-
-
     def hide(self) -> None:
         """Cache la fenetre"""
         self.construct_ship_menu.current_star_id = None
@@ -217,8 +217,6 @@ class EtoileWindow(Frame):
         self.population_canvas.place(anchor="center", relx=0.85, rely=0.45)
         self.population_label.place(anchor="center", relx=0.5, rely=0.5)
 
-        # Anchor choices for tkinter are : n, ne, e, se, s, sw, w, nw, or center.
-
         self.nom_label.place(anchor="w", relx=0.02, rely=0.7)
 
     def place_main(self) -> None:
@@ -252,7 +250,7 @@ class EtoileWindow(Frame):
 
         self.ressource_grid.place(relx=0.1, rely=0.1,
                                   relwidth=0.8, relheight=0.4)
-        self.ressource_grid.columnconfigure(0 , weight=1)
+        self.ressource_grid.columnconfigure(0, weight=1)
         self.ressource_grid.columnconfigure(1, weight=1)
         self.ressource_grid.rowconfigure(0, weight=1)
         self.ressource_grid.rowconfigure(1, weight=1)
@@ -375,22 +373,21 @@ class GameCanvas(Canvas):
         """Représente la fenêtre de planète de la vue du jeu."""
         self.etoile_window.hide()
 
+        self.photo_cache = {
+            "white": Image.open("assets/planet/star_white01.png"),
+            "blue": Image.open("assets/planet/star_blue01.png"),
+            "red": Image.open("assets/planet/star_red01.png"),
+            "yellow": Image.open("assets/planet/star_yellow01.png"),
+            "orange": Image.open("assets/planet/star_orange01.png"),
+        }
+
+        self.cache = []
+
     def initialize(self, mod: Modele):
         """Initialise le canvas de jeu avec les données du model
         lors de sa création
         :param mod: Le model"""
-        # mod mandatory because of background dependancy
-        self.generate_background(mod.largeur, mod.hauteur,
-                                 len(mod.etoiles) * 50)
-        for i in range(len(mod.etoiles)):
-            self.generate_etoile(mod.etoiles[i], StringTypes.ETOILE.value)
-
-        owned_stars = self.get_player_stars(mod)
-        # todo : Colors
-        for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i],
-                                 StringTypes.ETOILE_OCCUPEE.value)
-        self.generate_trou_de_vers(mod.trou_de_vers)
+        self.generate_background(9000)
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
@@ -399,23 +396,24 @@ class GameCanvas(Canvas):
         #  delete but only move it with a move or coords function
         if self.etoile_window.star_id is not None:
             self.etoile_window.refresh(mod)
-
         self.delete(StringTypes.TROUDEVERS.value)
-        self.delete(StringTypes.ETOILE_OCCUPEE.value)
 
-        owned_stars = self.get_player_stars(mod)
-        for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i],
-                                 StringTypes.ETOILE_OCCUPEE.value)
+        stars = mod.get_player_stars() + mod.etoiles
 
-        for i in range(len(mod.etoiles)):
-            if mod.etoiles[i].needs_refresh:
-                self.delete(mod.etoiles[i].id)
-                self.generate_etoile(mod.etoiles[i], StringTypes.ETOILE.value)
-                mod.etoiles[i].needs_refresh = False
+        for star in stars:
+            if star.id not in self.cache or star.needs_refresh:
+                if star.needs_refresh:
+                    self.delete(star.id)
+                if star.proprietaire != '':
+                    tags = StringTypes.ETOILE_OCCUPEE.value
+                else:
+                    tags = StringTypes.ETOILE.value
+                self.generate_etoile(star, tags)
+                self.cache.append(star.id)
 
-        self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
+        self.generate_trou_de_vers(mod.trou_de_vers)
 
+        # todo : Could be optimized.
         for joueur in mod.joueurs.values():
             if joueur.recently_lost_ships_id:
                 for ship_id in joueur.recently_lost_ships_id:
@@ -459,8 +457,9 @@ class GameCanvas(Canvas):
     def generate_background(self, n: int):
         """Genère un background de n étoiles de tailles aléatoires
         :param n: Le nombre d'étoiles à générer"""
+        self.update_idletasks()
         for i in range(n):
-            x, y = random.randrange(int(9000)), random.randrange(int(9000))
+            x, y = random.randrange(9000), random.randrange(9000)
             size = random.randrange(3) + 1
             col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
 
@@ -471,15 +470,22 @@ class GameCanvas(Canvas):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
-        size = star.taille * 2  # Legacy JM
-        self.create_oval(star.x - size, star.y - size,
-                         star.x + size, star.y + size,
-                         fill=star.couleur,
-                         tags=(tag, star.id, star.proprietaire))
+        photo = self.photo_cache[star.couleur]
+
+        photo = photo.resize((star.taille * 12, star.taille * 12),
+                             Image.ANTIALIAS)
+
+        photo = ImageTk.PhotoImage(photo)
+
+        self.cache.append(photo)
+
+        self.create_image(star.x, star.y, image=photo,
+                          tags=(tag,
+                                star.id,
+                                star.proprietaire))
 
     def generate_trou_de_vers(self, trou_de_vers: list[TrouDeVers]):
         """Créé deux portes de trou de vers sur le canvas. """
-
         for wormhole in trou_de_vers:
             self.generate_porte_de_vers(wormhole.porte_a, wormhole.id)
             self.generate_porte_de_vers(wormhole.porte_b, wormhole.id)
@@ -489,19 +495,8 @@ class GameCanvas(Canvas):
         self.create_oval(porte.x - porte.pulse, porte.y - porte.pulse,
                          porte.x + porte.pulse, porte.y + porte.pulse,
                          fill="purple",
-                         tags=(StringTypes.TROUDEVERS.value
-                               , porte.id, parent_id))
-
-    @staticmethod
-    def get_player_stars(mod: Modele):
-        """Récupère les étoiles contrôlées par le joueur
-        :param mod: Le model
-        :return: Une liste d'étoiles"""
-        stars = []
-        for star in mod.joueurs.keys():
-            for j in mod.joueurs[star].etoiles_controlees:
-                stars.append(j)
-        return stars
+                         tags=(StringTypes.TROUDEVERS.value,
+                               porte.id, parent_id))
 
 
 class SideBar(Frame):
@@ -568,7 +563,7 @@ class SideBar(Frame):
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
         self.minimap_frame.grid_rowconfigure(0, weight=1)
-        self.minimap_frame.grid_rowconfigure(1, weight=3)
+        self.minimap_frame.grid_rowconfigure(1, weight=1)
         self.minimap_frame.grid_rowconfigure(2, weight=1)
 
         self.minimap_frame.grid_columnconfigure(0, weight=1)
@@ -603,6 +598,7 @@ class Minimap(Canvas):
                          relief="solid", highlightthickness=0)
 
         self.propagate(False)
+        self.after_id: None or int = None
 
     def initialize(self, mod: Modele):
         """Initialise la minimap avec les données du model"""
@@ -654,6 +650,12 @@ class Minimap(Canvas):
         # todo : Refresh only what necessary or the whole thing ?
 
     def on_resize(self, _):
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)
+
+        self.after_id = self.after(100, self.do_resize)
+
+    def do_resize(self):
         """Gère le redimensionnement de la minimap"""
         width = self.winfo_width()
         height = self.winfo_height()
@@ -686,11 +688,6 @@ class Minimap(Canvas):
             self.create_oval(new_x1, new_y1, new_x2, new_y2,
                              fill=color, tags="etoile_controlee",
                              outline=hexSpaceBlack)
-
-        self.old_x_ratio = self.x_ratio
-        self.old_y_ratio = self.y_ratio
-        self.old_x_ratio = self.x_ratio
-        self.old_y_ratio = self.y_ratio
 
     def get_new_star_position(self, x1, y1, x2, y2):
         return x1 * self.x_ratio / self.old_x_ratio, \
@@ -909,7 +906,7 @@ class Hud(Frame):
         self.metal_text = "Metal : 0"
 
         self.metal_label = Label(metal_frame, text=self.metal_text,
-                                 bg="#a84632",fg="white",
+                                 bg="#a84632", fg="white",
                                  font=("Arial", self.text_size),
                                  width=self.ressource_width,
                                  height=self.ressource_height)
@@ -969,14 +966,14 @@ class ChatBox(Frame):
         self.chat_frame.grid_columnconfigure(0, weight=1)
         self.chat_frame.grid_rowconfigure(0, weight=1)
         self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
-                                relief="solid", height=10, width=50)
+                              relief="solid", height=10, width=50)
         self.chat_text.grid(row=0, column=0, sticky="nsew")
         self.chat_text.insert(END, "Bienvenue sur le chat !\n")
         self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
 
-    def send_message(self, _):
+    def send_message(self, event):
         message = self.chat_entry.get()
         self.chat_text.insert(END, message + "\n")
         self.chat_entry.delete(0, END)
@@ -986,6 +983,7 @@ class MouseOverView(Frame):
     def __init__(self):
         super().__init__()
         self.configure(bg=hexDark, bd=1, relief="solid")
+
     def on_mouse_over(self, *args):
         dictlist = []
         for dict in args:
@@ -996,11 +994,22 @@ class MouseOverView(Frame):
                               padx=25, pady=10)
             container.grid(row=i, column=0, sticky="nsew")
             title = Label(container, text=dictlist[i].pop("header"),
-                               bg=hexDark, fg="white", font=("Arial", 15),
-                               pady=2)
+                          bg=hexDark, fg="white", font=("Arial", 15),
+                          pady=2)
             title.grid(row=0, column=0, sticky="nsew")
             for j, (key, value) in enumerate(dictlist[i].items()):
                 label = Label(container, text=key + " : " + str(value),
                               bg=hexDark, fg="white")
-                label.grid(row=j+1, column=0, sticky="nsew")
+                label.grid(row=j + 1, column=0, sticky="nsew")
 
+
+if __name__ == "__main__":
+    root = Tk()
+    root.title("Game")
+    root.geometry("1280x720")
+    # chat box
+
+    chatbox = ChatBox()
+    chatbox.grid(row=0, column=0, sticky="nsew")
+
+    root.mainloop()
