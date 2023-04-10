@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 
 from PIL import ImageTk
 
-from Orion_client.Helpers.CommandQueues import ControllerQueue
-from Orion_client.Helpers.helper import StringTypes
+from Orion_client.helpers.CommandQueues import ControllerQueue
+from Orion_client.helpers.helper import StringTypes
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele

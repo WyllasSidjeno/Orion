@@ -1,6 +1,6 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.Helpers.CommandQueues import ControllerQueue
+from Orion_client.helpers.CommandQueues import ControllerQueue
 from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
     SideBar, Hud
 
