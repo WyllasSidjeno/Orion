@@ -145,7 +145,6 @@ class Controller(IController):
     def handle_left_click(self, pos, new_tags_list):
         """Gère les interactions de la vue du jeu lors d'un clic gauche sur
         le canvas."""
-        print(new_tags_list)
         self.look_for_etoile_window_interactions(new_tags_list)
 
         self.look_for_ship_interactions(new_tags_list, pos)
@@ -239,10 +238,7 @@ class ServerController:
             actions_temp.append(new_action)
         for action in act_player:
             new_action = (self.username, *action)
-            print(new_action)
             actions_temp.append(new_action)
-
-        print(actions_temp)
 
         url = self.url_serveur + "/boucler_sur_jeu"
         params = {"nom": self.username,
