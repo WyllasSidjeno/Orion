@@ -70,12 +70,8 @@ class Controller(IController):
         self.lobby_controller.view.destroy()
         self.lobby_controller = None
 
-        self.view = GameView(self.username)
-        self.view.register_command_queue(self.view_controller_queue)
-
-        self.view.initialize(self.model, self.username,
-                             self.model.joueurs[self.username].id)
-        # TOdo : Remove initialize ?
+        self.view = GameView(self.view_controller_queue, self.username,
+                             self.model)
 
         self.server_controller = ServerController(self.username,
                                                   self.urlserveur,
@@ -110,7 +106,8 @@ class Controller(IController):
         le canvas."""
         if self.previous_selection:
             if self.model.is_type(self.previous_selection, "reconnaissance"):
-                if self.model.is_type(new_tags_list, StringTypes.ETOILE.value) \
+                if self.model.is_type(new_tags_list,
+                                      StringTypes.ETOILE.value) \
                         and not self.model.is_owner(new_tags_list):
                     ship_info = {"id": self.previous_selection[1],
                                  "type": self.previous_selection[3]
@@ -181,6 +178,7 @@ class Controller(IController):
     def handle_ship_construct_request(self, *args):
         """Gère la demande de construction d'un vaisseau."""
         self.controller_server_joueur.construct_ship_request(*args)
+
     def cancel_previous_selection(self):
         """Annule la selection précédente."""
         self.previous_selection = None
@@ -221,7 +219,8 @@ class ServerController:
     def update_actions(self, frame: int, actionsmodel, actionplayer, model):
         """Met à jour les actions du modèle
         :param frame: la frame actuelle
-        :param actions: les actions à envoyer au serveur
+        :param actionsmodel: les actions du modèle
+        :param actionplayer: les actions du joueur
         :param model: le modèle de la partie
         actions du joueur
         :return: les actions à faire
