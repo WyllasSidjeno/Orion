@@ -430,6 +430,10 @@ class GameCanvas(Canvas):
         self.xview_moveto(x)
         self.yview_moveto(y)
 
+    def drag(self, event):
+        """Déplace le canvas de jeu en fonction de la position de la souris
+        :param event: L'événement de la souris"""
+        self.scan_dragto(event.x, event.y, gain=1)
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
         self.xview_scroll(-1 * int(event.delta / 120), "units")

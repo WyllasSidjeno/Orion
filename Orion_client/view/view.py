@@ -74,6 +74,8 @@ class GameView(Frame):
         self.canvas.bind("<Button-1>", self.on_game_click)
         self.canvas.bind("<Button-3>", self.on_game_click)
 
+        self.canvas.bind("<B1-Motion>", self.canvas.drag)
+
     def refresh(self, mod):
         """Refresh la vue du jeu."""
         self.canvas.refresh(mod)
@@ -104,6 +106,7 @@ class GameView(Frame):
         les fenetres demandés au clic. De plus,
         elle envoie les commandes au controller pour traiter les clics.
         """
+        self.canvas.scan_mark(event.x, event.y)
         if self.canvas.etoile_window.is_shown:
             self.canvas.etoile_window.hide()
 
