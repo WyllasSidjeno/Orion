@@ -70,8 +70,7 @@ class Controller(IController):
         self.lobby_controller.view.destroy()
         self.lobby_controller = None
 
-        self.view = GameView(self.view_controller_queue, self.username,
-                             self.model)
+        self.view = GameView(self.view_controller_queue, self.username)
 
         self.server_controller = ServerController(self.username,
                                                   self.urlserveur,

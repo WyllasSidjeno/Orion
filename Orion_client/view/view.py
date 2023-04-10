@@ -9,7 +9,7 @@ class GameView(Frame):
     id: str
     command_queue: ControllerQueue
 
-    def __init__(self, command_queue: ControllerQueue, username, mod):
+    def __init__(self, command_queue: ControllerQueue, username):
         super().__init__()
         """Représente la queue de commandes du jeu."""
         self.config(bg=hexDark, bd=2, relief="solid",
@@ -24,7 +24,7 @@ class GameView(Frame):
 
         self.hud = Hud(self)
         """Représente la barre du haut de la vue du jeu."""
-        self.side_bar = SideBar(self, mod)
+        self.side_bar = SideBar(self)
         """Représente la barre de droite de la vue du jeu."""
         self.canvas = GameCanvas(self, self.scrollX, self.scrollY, username)
         """Représente le canvas de la vue du jeu."""

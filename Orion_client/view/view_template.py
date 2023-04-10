@@ -486,7 +486,7 @@ class GameCanvas(Canvas):
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
 
-    def __init__(self, master, mod):
+    def __init__(self, master):
         """Initialise la sidebar"""
         super().__init__(master)
         self.configure(bg=hexDark, bd=1,
@@ -608,14 +608,16 @@ class Minimap(Canvas):
                                  wormhole.porte_a.y * self.y_ratio - 2,
                                  wormhole.porte_a.x * self.x_ratio + 2,
                                  wormhole.porte_a.y * self.y_ratio + 2,
-                                 fill="purple", tags=StringTypes.TROUDEVERS,
+                                 fill="purple",
+                                 tags=StringTypes.TROUDEVERS.value,
                                  outline=hexSpaceBlack)
 
                 self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                                  wormhole.porte_b.y * self.y_ratio - 2,
                                  wormhole.porte_b.x * self.x_ratio + 2,
                                  wormhole.porte_b.y * self.y_ratio + 2,
-                                 fill="purple", tags=StringTypes.TROUDEVERS,
+                                 fill="purple",
+                                 tags=StringTypes.TROUDEVERS.value,
                                  outline=hexSpaceBlack)
 
     def on_resize(self, _):
