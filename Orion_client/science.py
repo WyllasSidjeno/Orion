@@ -1,9 +1,7 @@
 """Module qui contient la classe Science et Science Tree"""
 import tkinter as tk
-from Orion_client.helper import AlwaysInt
+from Orion_client.helpers.helper import AlwaysInt
 
-
-# from __future__ import annotations
 
 class ArbreScience:
     """Classe qui contient l'arbre de science"""
@@ -69,7 +67,7 @@ class Controller:
         """Affiche les sciences"""
         for i, science in enumerate(data.sciences):
             prix = data.sciences.get(science)[1]
-            data =
+
             if self.science_acquises(f"{science}", data):
                 con_frame = self.science_debloquer()
                 lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#0A6522") #green
@@ -116,7 +114,6 @@ class Controller:
     def buy_science(self, event):
         """Achete la science"""
         self.choixTemporaire.split(" ")[0]
-        self.data.sciences.get(self.choixTemporaire.split(" ")[0])[1] = True
         print(self.choixTemporaire.split(" ")[0])
 
     def on_click_select(self, event):
@@ -125,7 +122,6 @@ class Controller:
         button : annuler"""
 
         self.choixTemporaire = event.widget.cget("text")
-        self.data = self.data
 
         buyScience = tk.Frame(self.root, bg="#2f3136", highlightbackground="#F7CE25", highlightthickness=2)
         buyLabel = tk.Label(buyScience, text="Buy science?", fg="#F7CE25", bg="#2f3136", font=("Arial", 10))
