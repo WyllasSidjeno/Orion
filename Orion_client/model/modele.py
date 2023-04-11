@@ -527,7 +527,8 @@ class Joueur(IJoueur):
 
         """passer a travers les etoiles"""
         for p in self.etoiles_controlees:
-            tot_population += p.population
+            if p.transit:
+                tot_population += p.population
 
         """Consommation de nourriture par tick (server % 30)"""
         print(self.nom, "population du joueur avant calcul: ", tot_population)
@@ -544,7 +545,9 @@ class Joueur(IJoueur):
             c.population += math.floor(nourriture_apres_conso)
             if c.population <= 0:
                 c.population = 0
-
+            if not c.transit:
+                c.population = AlwaysInt(c.population *.90)
+            """tester que la reduction par pourcentage permet une conquete facile"""
 class AI(Joueur):
     """Classe de l'AI.
     L'AI est le personnage non-joueur qui joue le jeu.
