@@ -7,11 +7,12 @@ from __future__ import annotations
 from ast import literal_eval
 from random import randrange, choice
 
-from Orion_client.helpers.CommandQueues import ModelQueue, JoueurQueue
+
 from Orion_client.interface import IModel, IJoueur
+from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
+from Orion_client.helpers.helper import AlwaysInt, StringTypes, get_prochain_id
 from Orion_client.model.building import *
-from Orion_client.helpers.helper import get_prochain_id, AlwaysInt, \
-    StringTypes
+
 from Orion_client.model import ships
 from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
@@ -180,6 +181,9 @@ class Modele(IModel):
                 funct(*args)
 
             del self.log[cadre]
+
+        for i in self.etoiles:
+            i.tick()
 
         for i in self.joueurs:
             self.joueurs[i].tick()
@@ -496,6 +500,9 @@ class Joueur(IJoueur):
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
+        for etoile in self.etoiles_controlees:
+            etoile.tick()
+
         for type_ship in self.flotte.keys():
             for ship in self.flotte[type_ship]:
                 self.flotte[type_ship][ship].tick()
