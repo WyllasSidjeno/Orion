@@ -15,6 +15,7 @@ from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from Orion_client.model.ships import Ship, Flotte
 from Orion_client.model.space_object import TrouDeVers, Etoile
+import math
 
 
 class Modele:
@@ -325,10 +326,6 @@ class Joueur:
         self.etoiles_controlees: list = [etoile_mere]
         """Liste des etoiles controlees par le joueur."""
         self.consommation_energie_joueur = AlwaysInt(10)
-        """Consommation de l'energie du joueur."""
-        self.energie = AlwaysInt(10000)
-        # Todo : A changer pour que l'energie soit
-        #  pas dupliqué dans ressource @ Romain & Julien-Karl
         """Ressources totales du joueur."""
 
         self.local_queue = local_queue
@@ -337,7 +334,6 @@ class Joueur:
         self.ressources = Ressource(metal=100, beton=100, energie=100,
                                     nourriture=100, population=0,
                                     science=0)
-        self.etoile_mere = etoile_mere
         """L'etoile mere du joueur."""
         self.etoile_mere.couleur = couleur
         self.etoile_mere.proprietaire = self.nom
@@ -430,7 +426,7 @@ class Joueur:
         # Todo: Ajouter les variables bool docked et int consommation
         #  dans le modele vaisseau (2e sprint)
 
-        self.ressources["Energie"] -= AlwaysInt(
+        self.ressources["energie"] -= AlwaysInt(
             (
                     conso_vaisseaux + conso_structures +
                     self.consommation_energie_joueur))
@@ -481,6 +477,7 @@ class Joueur:
                 self.flotte[type_ship][ship].tick()
 
         self.ressources_cumul()
+        self.increment_pop()
 
     def ressources_cumul(self):
         for e in self.etoiles_controlees:
@@ -499,6 +496,35 @@ class Joueur:
                             planet_res[key] = planet_res[key] * b.output[key]
 
                 self.ressources += planet_res
+
+    def increment_pop(self):
+        tot_population: float = 0
+        nourriture_total = 0
+        pop_cx: float
+
+        for p in self.etoiles_controlees:
+            tot_population += p.population
+        #nourriture_total = self.ressources["nourriture"]
+
+        #self.ressources["nourriture"] -= tot_population
+        """Consommation de nourriture par tour"""
+        print(self.nom , "population du joueur avant calcul: ",tot_population)
+
+        self.ressources["nourriture"] -= (tot_population / 1000)
+        print(self.nom , "population du joueur après calcul: ",tot_population)
+
+        """Coéfficient de croissance ou décroissance"""
+        pop_cx = self.ressources["nourriture"] / tot_population
+        #/ len(self.etoiles_controlees)
+
+        #if pop_cx > 1:
+        for c in self.etoiles_controlees:
+            c.population = math.ceil(c.population * pop_cx)
+        print(self.nom, pop_cx)
+        #print(self.nom, self.ressources["nourriture"])
+
+
+
 
 
 class AI(Joueur):

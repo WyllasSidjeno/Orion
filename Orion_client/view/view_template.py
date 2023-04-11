@@ -151,7 +151,7 @@ class EtoileWindow(Frame):
     def refresh(self, model):
         """Rafraichit la fenetre"""
         star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
-        self.population_label.config(text=star.population.nb_humains)
+        self.population_label.config(text=star.population)
         self.stockpile_boolean_label.config(
             text="Oui" if star.transit else "Non")
 

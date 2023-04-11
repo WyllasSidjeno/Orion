@@ -82,7 +82,7 @@ class Ship(ABC):
         damage -= self.defense_strength
         self.resistance -= damage
         if self.resistance <= 0:
-            self.local_queue.add("ship_destroyed", self.id)
+            self.local_queue.add(f"joueurs[]ship_destroyed", self.id)
 
     def target_change(self, new_target_pos: tuple[int, int] | None,
                       target=None) -> None:
