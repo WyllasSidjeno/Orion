@@ -10,7 +10,7 @@ from random import seed
 from Orion_client.helpers.helper import StringTypes
 from Orion_client.helpers.CommandQueues import ControllerQueue, \
     ModelQueue, JoueurQueue
-from Orion_client.Interface import IController
+from Orion_client.interface import IController
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.modele import Modele
 

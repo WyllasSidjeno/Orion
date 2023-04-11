@@ -7,7 +7,8 @@ from __future__ import annotations
 from ast import literal_eval
 from random import randrange, choice
 
-from Orion_client.Interface import IModel, IJoueur
+
+from Orion_client.interface import IModel, IJoueur
 from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
 from Orion_client.helpers.helper import AlwaysInt, StringTypes, get_prochain_id
 from Orion_client.model.building import *
