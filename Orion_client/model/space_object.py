@@ -1,7 +1,7 @@
 import random
 
-from Orion_client.helper import get_prochain_id, AlwaysInt
-from Orion_client.model.building import Building, PowerPlant, ConcreteFactory
+from Orion_client.Helpers.helper import get_prochain_id, AlwaysInt
+from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from random import randrange
 
@@ -92,12 +92,10 @@ class Etoile:
         #TODO: retire le champ population du constructeur de Ressources.
         self.resistance = 100
         self.buildinglist: list[Building] = []
-        self.couleur = "grey"
-        self.population = randrange(1000, 1500, 1)
-        #self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
+        self.couleur = "white"
+        self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
 
-        self.needs_refresh: bool = True
-
+        self.needs_refresh: bool = False
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""

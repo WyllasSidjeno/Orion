@@ -7,7 +7,10 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.helper import CommandQueue, StringTypes
+from Orion_client.Helpers.helper import StringTypes
+from Orion_client.Helpers.CommandQueues import ControllerQueue, \
+    ModelQueue, JoueurQueue
+from Orion_client.Interface import IController
 from Orion_client.view.view import GameView, LobbyView
 from Orion_client.model.modele import Modele
 
@@ -18,19 +21,19 @@ from pstats import Stats
 from typing import Callable
 
 
-class Controller:
+class Controller(IController):
     """Controller de l'application, incluant la connection au serveur"""
     server_controller: ServerController
     model: Modele
-    view_controller_queue: CommandQueue
-    controller_server_queue: CommandQueue
-    model_controller_queue: CommandQueue
+    view_controller_queue: ControllerQueue
+    controller_server_model: ModelQueue
+    controller_server_joueur: JoueurQueue
     view: GameView
     id: str
     previous_selection: list[str] | None
 
     def __init__(self):
-        from helper import get_random_username
+        from Orion_client.Helpers.helper import get_random_username
         """Initialisation du controller"""
         self.frame = 0
         """La frame actuelle du jeu"""
@@ -59,8 +62,7 @@ class Controller:
         for i in joueurs:
             listejoueurs.append(i[0])
 
-        self.view_controller_queue = CommandQueue()
-        self.model_controller_queue = CommandQueue()
+        self.view_controller_queue = ControllerQueue()
         self.model = Modele(listejoueurs, self.username)
 
         self.id = self.model.joueurs[self.username].id
@@ -68,29 +70,33 @@ class Controller:
         self.lobby_controller.view.destroy()
         self.lobby_controller = None
 
-        self.view = GameView(self.username)
-        self.view.register_command_queue(self.view_controller_queue)
-
-        self.view.initialize(self.model, self.username,
-                             self.model.joueurs[self.username].id)
-        # TOdo : Remove initialize ?
+        self.view = GameView(self.view_controller_queue, self.username)
 
         self.server_controller = ServerController(self.username,
                                                   self.urlserveur,
                                                   self.pause_game,
                                                   self.unpause_game)
 
-        self.controller_server_queue = CommandQueue()
+        self.controller_server_model = ModelQueue()
+        self.controller_server_joueur = JoueurQueue()
+
+        self.view.update()
+
+        self.view.canvas.move_to_with_model_coords(
+            self.model.joueurs[self.username].etoile_mere.x
+            , self.model.joueurs[self.username].etoile_mere.y)
+
         self.tick()
 
     def tick(self) -> None:
         """Loop de l'application"""
         start_time = time.perf_counter()
-        self.view_controller_queue.execute(self)
-        self.model_controller_queue.execute(self)
+
+        self.execute_commands(self.view_controller_queue)
 
         self.server_controller.update_actions(self.frame,
-                                              self.controller_server_queue,
+                                              self.controller_server_model,
+                                              self.controller_server_joueur,
                                               self.model)
         if not self.pause:
             self.model.tick(self.frame)
@@ -105,7 +111,8 @@ class Controller:
         le canvas."""
         if self.previous_selection:
             if self.model.is_type(self.previous_selection, "reconnaissance"):
-                if self.model.is_type(new_tags_list, StringTypes.ETOILE.value) \
+                if self.model.is_type(new_tags_list,
+                                      StringTypes.ETOILE.value) \
                         and not self.model.is_owner(new_tags_list):
                     ship_info = {"id": self.previous_selection[1],
                                  "type": self.previous_selection[3]
@@ -113,9 +120,9 @@ class Controller:
                     target_info = {"id": new_tags_list[1],
                                    "type": new_tags_list[0],
                                    "pos": pos}
-                    self.controller_server_queue.add("model",
-                                                     "target_change_request",
-                                                     ship_info, target_info)
+                    self.controller_server_model.target_change_request(
+                        ship_info, target_info)
+
             elif self.model.is_type(self.previous_selection, "militaire"):
                 if self.model.is_type(
                         new_tags_list, [StringTypes.ETOILE_OCCUPEE.value,
@@ -130,10 +137,9 @@ class Controller:
                                    "pos": pos
                                    }
 
-                    self.controller_server_queue.add("model",
-                                                     "target_change_request",
-                                                     ship_info,
-                                                     target_info)
+                    self.controller_server_model.target_change_request(
+                        ship_info, target_info)
+
             self.previous_selection = None
 
     def handle_left_click(self, pos, new_tags_list):
@@ -149,7 +155,6 @@ class Controller:
         if self.model.is_owner_and_is_type(tags_list,
                                            StringTypes.ETOILE_OCCUPEE.value):
             self.view.canvas.etoile_window.show(tags_list[1])
-            print(tags_list[1])
 
     def look_for_ship_interactions(self, tags_list: list[str],
                                    pos: tuple[int, int]):
@@ -169,21 +174,14 @@ class Controller:
 
             target_info = {"pos": pos}
 
-            self.controller_server_queue.add("model",
-                                             "target_change_request",
-                                             ship_info, target_info)
+            self.controller_server_model.target_change_request(
+                ship_info, target_info)
 
             self.previous_selection = None
 
-    def handle_model_to_server_queue(self, command: str, user: str, *args):
-        """Gère les commandes du modèle vers le serveur."""
-        self.controller_server_queue.add(user, command, *args)
-
     def handle_ship_construct_request(self, *args):
         """Gère la demande de construction d'un vaisseau."""
-        self.controller_server_queue.add(self.username,
-                                         "construct_ship_request",
-                                         *args)
+        self.controller_server_joueur.construct_ship_request(*args)
 
     def cancel_previous_selection(self):
         """Annule la selection précédente."""
@@ -222,18 +220,26 @@ class ServerController:
         self.unpause_game = unpause_game
         """La fonction à appeler pour mettre le jeu en cours"""
 
-    def update_actions(self, frame: int, actions, model):
+    def update_actions(self, frame: int, actionsmodel, actionplayer, model):
         """Met à jour les actions du modèle
         :param frame: la frame actuelle
-        :param actions: les actions à envoyer au serveur
+        :param actionsmodel: les actions du modèle
+        :param actionplayer: les actions du joueur
         :param model: le modèle de la partie
         actions du joueur
         :return: les actions à faire
         """
-        if actions:
-            actions_temp = actions.get_all()
-        else:
-            actions_temp = None
+        act_player = actionplayer.get_all()
+        act_model = actionsmodel.get_all()
+
+        actions_temp = []
+        for action in act_model:
+            new_action = ("model", *action)
+            actions_temp.append(new_action)
+        for action in act_player:
+            new_action = (self.username, *action)
+            actions_temp.append(new_action)
+
         url = self.url_serveur + "/boucler_sur_jeu"
         params = {"nom": self.username,
                   "cadrejeu": frame,

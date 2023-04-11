@@ -1,11 +1,16 @@
 from __future__ import annotations
 import random
+import time
 from functools import partial
 from tkinter import Frame, Label, Canvas, Scrollbar, Button, Menu, Text, END, \
-    Entry
+    Entry, Tk
+from PIL import Image
 from typing import TYPE_CHECKING
 
-from Orion_client.helper import CommandQueue, StringTypes
+from PIL import ImageTk
+
+from Orion_client.Helpers.CommandQueues import ControllerQueue
+from Orion_client.Helpers.helper import StringTypes
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
@@ -18,12 +23,13 @@ hexDark: str = "#2f3136"
 hexSpaceBlack: str = "#23272a"
 """Pour l'espace, on utilise un noir plus sombre"""
 
+
 class EtoileWindow(Frame):
     star_id: int | None
 
-    def __init__(self, proprietaire: str):
+    def __init__(self, master, proprietaire: str):
         """Initialise la fenetre"""
-        super().__init__(bg=hexDarkGrey, bd=1, relief="solid",
+        super().__init__(master, bg=hexDarkGrey, bd=1, relief="solid",
                          width=500, height=500)
 
         self.is_shown: bool = False
@@ -37,6 +43,7 @@ class EtoileWindow(Frame):
         self.proprietaire_label = Label(self.header_frame, bg=hexDarkGrey,
                                         fg="white", font=("Arial", 15))
         """Label contenant le nom du proprietaire de la planete"""
+        self.proprietaire_label["text"] = proprietaire
 
         self.population_canvas = Canvas(self.header_frame, bg=hexDarkGrey,
                                         width=51, height=51,
@@ -72,7 +79,6 @@ class EtoileWindow(Frame):
 
         self.ressource_grid = Frame(self.side_frame, bg=hexDarkGrey)
         """Frame contenant les ressources de la planete"""
-
 
         self.ressource_label = Label(self.side_frame, text="Rendement :",
                                      bg=hexDarkGrey, fg="white",
@@ -140,67 +146,48 @@ class EtoileWindow(Frame):
         self.construct_ship_menu = ConstructShipMenu(self.side_frame)
 
         self.construct_ship_button.bind("<Button-1>",
-                                        self.show_construct_menu)
-        self.bind("<Button-1>", self.construct_ship_menu.hide)
+                                        self.show_construct_ship_menu)
 
         self.building_list = []
 
         for i in range(8):
             self.building_list.append(BuildingWindow(self.batiment_grid))
 
-    def refresh(self, model):
-        """Rafraichit la fenetre"""
-        star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
-        self.population_label.config(text=star.population)
-        self.stockpile_boolean_label.config(
-            text="Oui" if star.transit else "Non")
-
-        for i in range(star.taille):
-            self.building_list[i].grid(row=i // 3, column=i % 3)
-            self.building_list[i].reinitialize()
-
-        output = star.output.__dict__()
-        self.energie_value_label.config(text=output["energie"])
-        self.metal_value_label.config(text=output["metal"])
-        self.beton_value_label.config(text=output["beton"])
-        self.nourriture_value_label.config(text=output["nourriture"])
-        self.science_value_label.config(text=output["science"])
-
-        self.nom_label.config(text=star.name)
-
-
-
-    def hide(self) -> None:
-        """Cache la fenetre"""
-        self.construct_ship_menu.current_star_id = None
-        self.star_id = None
-        self.place_forget()
-        self.is_shown = False
-
-    def show(self, star_id: int) -> None:
-        """Affiche la fenetre"""
-        self.star_id = star_id
-        self.construct_ship_menu.current_planet_id = star_id
-        self.place(relx=0.5, rely=0.5, anchor="center")
-        self.is_shown = True
-
-    def show_construct_menu(self, event) -> None:
-        """Affiche le menu de construction de vaisseau"""
-        self.construct_ship_menu.show(event, self.star_id)
-
-    def show_buildings(self, max_building: int) -> None:
-        """Affiche les bâtiments de la planete"""
-        for i in range(max_building):
-            self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
-                                       pady=5)
-
-    def initialize(self) -> None:
-        """Place les widgets dans la fenetre"""
         self.place_header()
         self.place_main()
         self.place_side_bar()
-        for i in self.building_list:
-            i.initialize()
+
+
+        self.last_visual_move = time.time()
+
+        self.header_frame.bind("<Button-1>", self.start_move)
+        self.header_frame.bind("<ButtonRelease-1>", self.stop_move)
+        self.header_frame.bind("<B1-Motion>", self.do_move)
+
+
+    def start_move(self, event) -> None:
+        """Démarre le déplacement de la fenetre
+        """
+        self.x = self.master.winfo_pointerx() - self.master.winfo_rootx()
+        self.y = self.master.winfo_pointery() - self.master.winfo_rooty()
+
+    def stop_move(self, event) -> None:
+        """Arrête le déplacement de la fenetre
+        """
+        self.x = None
+        self.y = None
+
+    def do_move(self, event) -> None:
+        """Déplace la fenetre en suivant la souris
+        """
+        if self.x is not None and self.y is not None:
+            x = self.master.winfo_pointerx() - self.x - self.master.winfo_rootx()
+            y = self.master.winfo_pointery() - self.y - self.master.winfo_rooty()
+            self.place(x=x, y=y)
+
+
+
+
 
     def place_header(self) -> None:
         """Crée le header de la fenetre, la ou les informations identifiante
@@ -212,8 +199,6 @@ class EtoileWindow(Frame):
 
         self.population_canvas.place(anchor="center", relx=0.85, rely=0.45)
         self.population_label.place(anchor="center", relx=0.5, rely=0.5)
-
-        # Anchor choices for tkinter are : n, ne, e, se, s, sw, w, nw, or center.
 
         self.nom_label.place(anchor="w", relx=0.02, rely=0.7)
 
@@ -248,7 +233,7 @@ class EtoileWindow(Frame):
 
         self.ressource_grid.place(relx=0.1, rely=0.1,
                                   relwidth=0.8, relheight=0.4)
-        self.ressource_grid.columnconfigure(0 , weight=1)
+        self.ressource_grid.columnconfigure(0, weight=1)
         self.ressource_grid.columnconfigure(1, weight=1)
         self.ressource_grid.rowconfigure(0, weight=1)
         self.ressource_grid.rowconfigure(1, weight=1)
@@ -284,15 +269,58 @@ class EtoileWindow(Frame):
         self.construct_ship_button.place(anchor="center", relx=0.5,
                                          rely=0.9)
 
+    def refresh(self, model):
+        """Rafraichit la fenetre"""
+        star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
+        self.population_label.config(text=star.population.nb_humains)
+        self.stockpile_boolean_label.config(
+            text="Oui" if star.transit else "Non")
+
+        for i in range(star.taille):
+            self.building_list[i].grid(row=i // 3, column=i % 3)
+            self.building_list[i].reinitialize()
+
+        output = star.output.__dict__()
+        self.energie_value_label.config(text=output["energie"])
+        self.metal_value_label.config(text=output["metal"])
+        self.beton_value_label.config(text=output["beton"])
+        self.nourriture_value_label.config(text=output["nourriture"])
+        self.science_value_label.config(text=output["science"])
+
+        self.nom_label.config(text=star.name)
+
+    def hide(self) -> None:
+        """Cache la fenetre"""
+        self.construct_ship_menu.current_star_id = None
+        self.star_id = None
+        self.place_forget()
+        self.is_shown = False
+
+    def show(self, star_id: int) -> None:
+        """Affiche la fenetre"""
+        self.star_id = star_id
+        self.construct_ship_menu.current_planet_id = star_id
+        self.place(relx=0.5, rely=0.5, anchor="center")
+        self.is_shown = True
+
+    def show_construct_ship_menu(self, event) -> None:
+        """Affiche le menu de construction de vaisseau"""
+        self.construct_ship_menu.show(event, self.star_id)
+
+    def show_buildings(self, max_building: int) -> None:
+        """Affiche les bâtiments de la planete"""
+        for i in range(max_building):
+            self.building_list[i].show(row=i // 3, column=i % 3, padx=5,
+                                       pady=5)
+
 
 class BuildingWindow(Frame):
     name_label: Label
     level_label: Label
     upgrade_canvas: Canvas
 
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         """Crée la fenetre d'un bâtiment
-        :param master: Frame parent
         """
         super().__init__(master)
 
@@ -311,10 +339,6 @@ class BuildingWindow(Frame):
         self.upgrade_canvas = Canvas(self, bg=hexDark, width=20, height=20,
                                      bd=0, highlightthickness=0)
         """Canvas contenant le bouton d'amélioration du bâtiment"""
-
-    def initialize(self):
-        """Crée le layout du bâtiment window"""
-        # todo : self place les widgets ?
 
         self.name_label.place(anchor="center", relx=0.45, rely=0.2)
 
@@ -345,17 +369,15 @@ class GameCanvas(Canvas):
     pas des menus ou des fenetres ou de l'information
     """
     username: str
-    command_queue: CommandQueue
+    command_queue: ControllerQueue
 
     def __init__(self, master, scroll_x: Scrollbar,
-                 scroll_y: Scrollbar, proprietaire: str):
+                 scroll_y: Scrollbar, proprietaire):
         """Initialise le canvas de jeu
-        :param master: Le Frame parent
         :param scroll_x: La scrollbar horizontale
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
-        self.proprietaire = proprietaire
         self.configure(bg=hexSpaceBlack, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scroll_x.set,
@@ -365,28 +387,28 @@ class GameCanvas(Canvas):
         scroll_y.config(command=self.yview)
 
         self.configure(scrollregion=(0, 0, 9000, 9000))
+        self.generate_background(9000)
+
         self.ship_view = ShipViewGenerator()
 
-        self.etoile_window = EtoileWindow(self.proprietaire)
+        self.etoile_window = EtoileWindow(master, proprietaire)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.etoile_window.hide()
 
-    def initialize(self, mod: Modele):
-        """Initialise le canvas de jeu avec les données du model
-        lors de sa création
-        :param mod: Le model"""
-        # mod mandatory because of background dependancy
-        self.generate_background(mod.largeur, mod.hauteur,
-                                 len(mod.etoiles) * 50)
-        for i in range(len(mod.etoiles)):
-            self.generate_etoile(mod.etoiles[i], StringTypes.ETOILE.value)
+        self.photo_cache = {
+            "white": Image.open("assets/planet/star_white01.png"),
+            "blue": Image.open("assets/planet/star_blue01.png"),
+            "red": Image.open("assets/planet/star_red01.png"),
+            "yellow": Image.open("assets/planet/star_yellow01.png"),
+            "orange": Image.open("assets/planet/star_orange01.png"),
+        }
 
-        owned_stars = self.get_player_stars(mod)
-        # todo : Colors
-        for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i],
-                                 StringTypes.ETOILE_OCCUPEE.value)
-        self.generate_trou_de_vers(mod.trou_de_vers)
+        self.cache = []
+
+        self.mouseOverView = MouseOverView(master)
+
+        self.tag_bind(StringTypes.ETOILE.value, "<Enter>", self.mouseOverView.show)
+        self.tag_bind(StringTypes.ETOILE.value, "<Leave>", self.mouseOverView.hide)
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
@@ -395,23 +417,24 @@ class GameCanvas(Canvas):
         #  delete but only move it with a move or coords function
         if self.etoile_window.star_id is not None:
             self.etoile_window.refresh(mod)
-
         self.delete(StringTypes.TROUDEVERS.value)
-        self.delete(StringTypes.ETOILE_OCCUPEE.value)
 
-        owned_stars = self.get_player_stars(mod)
-        for i in range(len(owned_stars)):
-            self.generate_etoile(owned_stars[i],
-                                 StringTypes.ETOILE_OCCUPEE.value)
+        stars = mod.get_player_stars() + mod.etoiles
 
-        for i in range(len(mod.etoiles)):
-            if mod.etoiles[i].needs_refresh:
-                self.delete(mod.etoiles[i].id)
-                self.generate_etoile(mod.etoiles[i], StringTypes.ETOILE.value)
-                mod.etoiles[i].needs_refresh = False
+        for star in stars:
+            if star.id not in self.cache or star.needs_refresh:
+                if star.needs_refresh:
+                    self.delete(star.id)
+                if star.proprietaire != '':
+                    tags = StringTypes.ETOILE_OCCUPEE.value
+                else:
+                    tags = StringTypes.ETOILE.value
+                self.generate_etoile(star, tags)
+                self.cache.append(star.id)
 
-        self.generate_trou_de_vers(mod.trou_de_vers)  # TODO : To fix
+        self.generate_trou_de_vers(mod.trou_de_vers)
 
+        # todo : Could be optimized.
         for joueur in mod.joueurs.values():
             if joueur.recently_lost_ships_id:
                 for ship_id in joueur.recently_lost_ships_id:
@@ -441,9 +464,32 @@ class GameCanvas(Canvas):
         :param x: La position x en 0.0 - 1.0
         :param y: La position y en 0.0 - 1.0
         """
+
+        """ Bouge le canvas vers la position du clic sur la minimap."""
         self.xview_moveto(x)
         self.yview_moveto(y)
 
+    def move_to_with_model_coords(self, x: float, y: float) -> None:
+        """Déplace le canvas de jeu à une position donnée
+        :param x: La position x en 0.0 - 1.0
+        :param y: La position y en 0.0 - 1.0
+        """
+
+        """ Bouge le canvas vers la position du clic sur la minimap."""
+        canvas_width = self.winfo_width()
+        canvas_height = self.winfo_height()
+
+        x_view = (x- canvas_width/2) / (9000)
+        y_view = (y- canvas_height/2) / (9000)
+
+        self.xview_moveto(x_view)
+        self.yview_moveto(y_view)
+
+
+    def drag(self, event):
+        """Déplace le canvas de jeu en fonction de la position de la souris
+        :param event: L'événement de la souris"""
+        self.scan_dragto(event.x, event.y, gain=1)
     def horizontal_scroll(self, event):
         """Effectue un scroll horizontal sur le canvas."""
         self.xview_scroll(-1 * int(event.delta / 120), "units")
@@ -452,13 +498,12 @@ class GameCanvas(Canvas):
         """Effectue un scroll vertical sur le canvas."""
         self.yview_scroll(-1 * int(event.delta / 120), "units")
 
-    def generate_background(self, width: int, height: int, n: int):
-        """ Genère un background de n étoiles de tailles aléatoires
-        :param width: La largeur du background
-        :param height: La hauteur du background
+    def generate_background(self, n: int):
+        """Genère un background de n étoiles de tailles aléatoires
         :param n: Le nombre d'étoiles à générer"""
+        self.update_idletasks()
         for i in range(n):
-            x, y = random.randrange(int(width)), random.randrange(int(height))
+            x, y = random.randrange(9000), random.randrange(9000)
             size = random.randrange(3) + 1
             col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
 
@@ -469,15 +514,22 @@ class GameCanvas(Canvas):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
-        size = star.taille * 2  # Legacy JM
-        self.create_oval(star.x - size, star.y - size,
-                         star.x + size, star.y + size,
-                         fill=star.couleur,
-                         tags=(tag, star.id, star.proprietaire))
+        photo = self.photo_cache[star.couleur]
+
+        photo = photo.resize((star.taille * 12, star.taille * 12),
+                             Image.ANTIALIAS)
+
+        photo = ImageTk.PhotoImage(photo)
+
+        self.cache.append(photo)
+
+        self.create_image(star.x, star.y, image=photo,
+                          tags=(tag,
+                                star.id,
+                                star.proprietaire))
 
     def generate_trou_de_vers(self, trou_de_vers: list[TrouDeVers]):
         """Créé deux portes de trou de vers sur le canvas. """
-
         for wormhole in trou_de_vers:
             self.generate_porte_de_vers(wormhole.porte_a, wormhole.id)
             self.generate_porte_de_vers(wormhole.porte_b, wormhole.id)
@@ -487,25 +539,14 @@ class GameCanvas(Canvas):
         self.create_oval(porte.x - porte.pulse, porte.y - porte.pulse,
                          porte.x + porte.pulse, porte.y + porte.pulse,
                          fill="purple",
-                         tags=(StringTypes.TROUDEVERS.value
-                               , porte.id, parent_id))
-
-    @staticmethod
-    def get_player_stars(mod: Modele):
-        """Récupère les étoiles contrôlées par le joueur
-        :param mod: Le model
-        :return: Une liste d'étoiles"""
-        stars = []
-        for star in mod.joueurs.keys():
-            for j in mod.joueurs[star].etoiles_controlees:
-                stars.append(j)
-        return stars
+                         tags=(StringTypes.TROUDEVERS.value,
+                               porte.id, parent_id))
 
 
 class SideBar(Frame):
     """ Représente la sidebar du jeu."""
 
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         """Initialise la sidebar"""
         super().__init__(master)
         self.configure(bg=hexDark, bd=1,
@@ -539,12 +580,8 @@ class SideBar(Frame):
         for i in range(3):
             self.grid_rowconfigure(i, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_propagate(False)
 
-    def initialize(self, mod):
-        """Initialise la sidebar avec les données du model
-        lors de sa création
-        :param mod: Le model"""
+        self.grid_propagate(False)
 
         self.planet_frame.grid(row=0, column=0, sticky="nsew")
         self.planet_frame.grid_propagate(False)
@@ -565,21 +602,14 @@ class SideBar(Frame):
 
         self.armada_label.grid(row=0, column=0, sticky="nsew")
 
-        self.minimap_frame.grid_rowconfigure(0, weight=1)
-        self.minimap_frame.grid_rowconfigure(1, weight=3)
-        self.minimap_frame.grid_rowconfigure(2, weight=1)
-
+        self.minimap_frame.grid_rowconfigure(0, weight=1, minsize=40)
         self.minimap_frame.grid_columnconfigure(0, weight=1)
-        self.minimap_frame.grid_columnconfigure(1, weight=2)
-        self.minimap_frame.grid_columnconfigure(2, weight=1)
+        self.minimap_frame.grid_rowconfigure(1, weight=4)
+        self.minimap_frame.grid_rowconfigure(2, weight=1, minsize=20)
 
-        self.minimap_frame.grid_propagate(False)
-
-        self.minimap_label.grid(row=0, column=1, sticky="nsew")
-        self.minimap.grid(row=1, column=1, sticky="nsew")
-        self.minimap_frame.grid_propagate(False)
-
-        self.minimap.initialize(mod)
+        self.minimap_label.grid(row=0, column=0, sticky="nsew")
+        self.minimap.grid(row=1, column=0, sticky="nsew")
+        self.minimap.grid_propagate(False)
 
     def refresh(self, mod):
         """Rafraichit la sidebar avec les données du model
@@ -595,22 +625,21 @@ class Minimap(Canvas):
     old_x_ratio: float
     old_y_ratio: float
 
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         """Initialise la minimap"""
         super().__init__(master, bg=hexDark, bd=1,
                          relief="solid", highlightthickness=0)
-
         self.propagate(False)
+        self.after_id: None or int = None
 
-    def initialize(self, mod: Modele):
-        """Initialise la minimap avec les données du model"""
-        self.update_idletasks()
-        size = min(self.winfo_width(), self.winfo_height())
-        self.config(width=size, height=size)
+        self.x_ratio = self.winfo_width() / 9000
+        self.y_ratio = self.winfo_height() / 9000
 
-        self.x_ratio = self.winfo_width() / mod.largeur
-        self.y_ratio = self.winfo_height() / mod.hauteur
+        self.bind("<Configure>", self.on_resize)
 
+    def refresh(self, mod: Modele):
+        """Rafraichit la minimap avec les données du model"""
+        self.delete("all")
         for star in mod.etoiles:
             self.create_oval(star.x * self.x_ratio - 2,
                              star.y * self.y_ratio - 2,
@@ -629,30 +658,30 @@ class Minimap(Canvas):
                                  tags="etoile_controlee",
                                  outline=hexSpaceBlack)
 
-        for wormhole in mod.trou_de_vers:
-            self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
-                             wormhole.porte_a.y * self.y_ratio - 2,
-                             wormhole.porte_a.x * self.x_ratio + 2,
-                             wormhole.porte_a.y * self.y_ratio + 2,
-                             fill="purple", tags=StringTypes.TROUDEVERS.value,
-                             outline=hexSpaceBlack)
+            for wormhole in mod.trou_de_vers:
+                self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
+                                 wormhole.porte_a.y * self.y_ratio - 2,
+                                 wormhole.porte_a.x * self.x_ratio + 2,
+                                 wormhole.porte_a.y * self.y_ratio + 2,
+                                 fill="purple",
+                                 tags=StringTypes.TROUDEVERS.value,
+                                 outline=hexSpaceBlack)
 
-            self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
-                             wormhole.porte_b.y * self.y_ratio - 2,
-                             wormhole.porte_b.x * self.x_ratio + 2,
-                             wormhole.porte_b.y * self.y_ratio + 2,
-                             fill="purple", tags=StringTypes.TROUDEVERS.value,
-                             outline=hexSpaceBlack)
-
-            self.bind("<Configure>", self.on_resize)
-
-    def refresh(self, mod: Modele):
-        """Rafraichit la minimap avec les données du model"""
-        pass
-        # todo : Refresh only what necessary or the whole thing ?
+                self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
+                                 wormhole.porte_b.y * self.y_ratio - 2,
+                                 wormhole.porte_b.x * self.x_ratio + 2,
+                                 wormhole.porte_b.y * self.y_ratio + 2,
+                                 fill="purple",
+                                 tags=StringTypes.TROUDEVERS.value,
+                                 outline=hexSpaceBlack)
 
     def on_resize(self, _):
-        """Gère le redimensionnement de la minimap"""
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)
+
+        self.after_id = self.after(100, self.do_resize)
+
+    def do_resize(self):
         width = self.winfo_width()
         height = self.winfo_height()
 
@@ -684,11 +713,6 @@ class Minimap(Canvas):
             self.create_oval(new_x1, new_y1, new_x2, new_y2,
                              fill=color, tags="etoile_controlee",
                              outline=hexSpaceBlack)
-
-        self.old_x_ratio = self.x_ratio
-        self.old_y_ratio = self.y_ratio
-        self.old_x_ratio = self.x_ratio
-        self.old_y_ratio = self.y_ratio
 
     def get_new_star_position(self, x1, y1, x2, y2):
         return x1 * self.x_ratio / self.old_x_ratio, \
@@ -816,7 +840,7 @@ class ConstructShipMenu(Menu):
     """Menu deroulant qui affiche la possibilite des constructions de vaisseaux
     """
     planet_id: str
-    command_queue: CommandQueue
+    command_queue: ControllerQueue
 
     def __init__(self, master: Frame):
         """Initialise le menu deroulant"""
@@ -828,15 +852,16 @@ class ConstructShipMenu(Menu):
                              command=partial(self.add_event_to_command_queue,
                                              i))
 
-    def register_command_queue(self, command_queue: CommandQueue):
+    def register_command_queue(self, command_queue: ControllerQueue):
         """Enregistre la file de commandes"""
         self.command_queue = command_queue
 
     def add_event_to_command_queue(self, i):
         """Ajoute un evenement de construction de vaisseau au
         view_controller_queue"""
-        self.command_queue.add("handle_ship_construct_request",
-                               self.planet_id, self.ship_types[i].lower())
+        self.command_queue. \
+            handle_ship_construct_request(self.planet_id,
+                                          self.ship_types[i].lower())
 
     def hide(self, _):
         """Cache le menu"""
@@ -849,7 +874,7 @@ class ConstructShipMenu(Menu):
 
 
 class Hud(Frame):
-    def __init__(self, master: Frame):
+    def __init__(self, master):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1, relief="solid")
 
@@ -906,7 +931,7 @@ class Hud(Frame):
         self.metal_text = "Metal : 0"
 
         self.metal_label = Label(metal_frame, text=self.metal_text,
-                                 bg="#a84632",fg="white",
+                                 bg="#a84632", fg="white",
                                  font=("Arial", self.text_size),
                                  width=self.ressource_width,
                                  height=self.ressource_height)
@@ -935,9 +960,7 @@ class Hud(Frame):
         self.energy_label.pack()
         self.food_label.pack()
 
-    def update_ressources(self, metal, beton, energie, nourriture,
-                          **kwargs):
-
+    def update_ressources(self, metal, beton, energie, nourriture):
         self.metal_text = "Metal: " + str(metal)
         self.beton_text = "Beton: " + str(beton)
         self.energy_text = "Energy: " + str(energie)
@@ -966,22 +989,27 @@ class ChatBox(Frame):
         self.chat_frame.grid_columnconfigure(0, weight=1)
         self.chat_frame.grid_rowconfigure(0, weight=1)
         self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
-                                relief="solid", height=10, width=50)
+                              relief="solid", height=10, width=50)
         self.chat_text.grid(row=0, column=0, sticky="nsew")
         self.chat_text.insert(END, "Bienvenue sur le chat !\n")
         self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
-    def send_message(self, event):
+
+    def send_message(self, _):
         message = self.chat_entry.get()
         self.chat_text.insert(END, message + "\n")
         self.chat_entry.delete(0, END)
 
 
 class MouseOverView(Frame):
-    def __init__(self):
-        super().__init__()
-        self.configure(bg=hexDark, bd=1, relief="solid")
+    def __init__(self, master):
+        super().__init__(master)
+        self.configure(bg=hexDark, bd=1, relief="solid",
+                       padx=25, pady=10,
+                       width=200, height=200)
+        self.visible = False
+
     def on_mouse_over(self, *args):
         dictlist = []
         for dict in args:
@@ -992,11 +1020,38 @@ class MouseOverView(Frame):
                               padx=25, pady=10)
             container.grid(row=i, column=0, sticky="nsew")
             title = Label(container, text=dictlist[i].pop("header"),
-                               bg=hexDark, fg="white", font=("Arial", 15),
-                               pady=2)
+                          bg=hexDark, fg="white", font=("Arial", 15),
+                          pady=2)
             title.grid(row=0, column=0, sticky="nsew")
             for j, (key, value) in enumerate(dictlist[i].items()):
                 label = Label(container, text=key + " : " + str(value),
                               bg=hexDark, fg="white")
-                label.grid(row=j+1, column=0, sticky="nsew")
+                label.grid(row=j + 1, column=0, sticky="nsew")
 
+    def hide(self, _):
+        self.lower()
+        self.visible = False
+
+    def show(self, event):
+        # Place under the mouse
+        self.visible = True
+        x = event.x
+        y = event.y
+        # Place it under the mouse
+        x = x - self.winfo_width() / 2
+        y = y + 20
+        self.place(x=x, y=y)
+        self.lift()
+
+
+if __name__ == "__main__":
+    root = Tk()
+    root.title("Game")
+    root.geometry("1280x720")
+    # chat box
+
+    mouse_over_view = MouseOverView(root)
+
+
+
+    root.mainloop()
