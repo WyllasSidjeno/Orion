@@ -114,4 +114,5 @@ class Etoile:
                 "name": self.name,
                 "owner": self.proprietaire,
                 "output": self.output,
-                "population": self.population.nb_humains}
+                "population": self.population
+                }
