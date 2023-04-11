@@ -87,14 +87,12 @@ class Etoile:
                                 energie=0,
                                 beton=random.randint(1, 10),
                                 nourriture=random.randint(1, 10),
-                                population=0,
                                 science=0)
         #TODO: retire le champ population du constructeur de Ressources.
         self.resistance = 100
         self.buildinglist: list[Building] = []
         self.couleur = "white"
-        self.population = Population(5000, 1000, 1) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
-
+        self.population = random.randint(100, 200) #Paramètres (nb humain, bouffe départ, pourcentage bonus)
         self.needs_refresh: bool = False
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup

@@ -304,6 +304,7 @@ class Modele(IModel):
         return stars
 
 
+
 class Joueur(IJoueur):
     """Classe du joueur.
     Le joueur est le personnage qui joue le jeu.
@@ -352,13 +353,14 @@ class Joueur(IJoueur):
         self.player_local_queue = JoueurQueue()
 
         self.ressources = Ressource(metal=100, beton=100, energie=100,
-                                    nourriture=100, population=0,
+                                    nourriture=100,
                                     science=0)
         """L'etoile mere du joueur."""
         self.etoile_mere.couleur = couleur
         self.etoile_mere.proprietaire = self.nom
 
         self.recently_lost_ships_id = []
+        self.cadre_consommation = 0
 
     def conquer_planet(self, etoile: Etoile):
         """Conquiert une etoile et lui établie les charactérisques
@@ -492,12 +494,15 @@ class Joueur(IJoueur):
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
+        self.cadre_consommation += 1
         for type_ship in self.flotte.keys():
             for ship in self.flotte[type_ship]:
                 self.flotte[type_ship][ship].tick()
 
         self.ressources_cumul()
-        self.increment_pop()
+
+        # if self.cadre_consommation % 60 == 0:
+        #     self.increment_pop()
 
     def ressources_cumul(self):
         for e in self.etoiles_controlees:
@@ -518,34 +523,28 @@ class Joueur(IJoueur):
                 self.ressources += planet_res
 
     def increment_pop(self):
-        tot_population: float = 0
-        nourriture_total = 0
-        pop_cx: float
+        tot_population: int = 0
+        nourriture_apres_conso: float = 0
 
+        """passer a travers les etoiles"""
         for p in self.etoiles_controlees:
             tot_population += p.population
-        #nourriture_total = self.ressources["nourriture"]
 
-        #self.ressources["nourriture"] -= tot_population
-        """Consommation de nourriture par tour"""
-        print(self.nom , "population du joueur avant calcul: ",tot_population)
+        """Consommation de nourriture par tick (server % 30)"""
+        print(self.nom, "population du joueur avant calcul: ", tot_population)
+        self.ressources["nourriture"] -= tot_population
 
-        self.ressources["nourriture"] -= (tot_population / 1000)
-        print(self.nom , "population du joueur après calcul: ",tot_population)
+        print("nourriture apres tick")
+        print(self.ressources["nourriture"])
 
-        """Coéfficient de croissance ou décroissance"""
-        pop_cx = self.ressources["nourriture"] / tot_population
-        #/ len(self.etoiles_controlees)
+        nourriture_apres_conso = self.ressources["nourriture"]
+        nourriture_apres_conso *= .15
+        nourriture_apres_conso /= len(self.etoiles_controlees)
 
-        #if pop_cx > 1:
         for c in self.etoiles_controlees:
-            c.population = math.ceil(c.population * pop_cx)
-        print(self.nom, pop_cx)
-        #print(self.nom, self.ressources["nourriture"])
-
-
-
-
+            c.population += math.floor(nourriture_apres_conso)
+            if c.population <= 0:
+                c.population = 0
 
 class AI(Joueur):
     """Classe de l'AI.

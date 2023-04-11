@@ -22,7 +22,6 @@ class Ressource(dict):
         self["beton"] = AlwaysInt(beton)
         self["energie"] = AlwaysInt(energie)
         self["nourriture"] = AlwaysInt(nourriture)
-        self["population"] = AlwaysInt(population)
         self["science"] = AlwaysInt(science)
 
     def __add__(self, other: Ressource | dict | Any) -> Ressource:
@@ -42,7 +41,6 @@ class Ressource(dict):
             beton=self["beton"] + other["beton"],
             energie=self["energie"] + other["energie"],
             nourriture=self["nourriture"] + other["nourriture"],
-            population=self["population"] + other["population"],
             science=self["science"] + other["science"]
         )
 
@@ -63,7 +61,6 @@ class Ressource(dict):
             beton=self["beton"] - other["beton"],
             energie=self["energie"] - other["energie"],
             nourriture=self["nourriture"] - other["nourriture"],
-            population=self["population"] - other["population"],
             science=self["science"] - other["science"]
         )
 
@@ -84,7 +81,6 @@ class Ressource(dict):
             beton=self["beton"] / other,
             energie=self["energie"] / other,
             nourriture=self["nourriture"] / other,
-            population=self["population"] / other,
             science=self["science"] / other
         )
 
@@ -107,7 +103,6 @@ class Ressource(dict):
             beton=self["beton"] * other,
             energie=self["energie"] * other,
             nourriture=self["nourriture"] * other,
-            population=self["population"] * other,
             science=self["science"] * other
         )
 
@@ -117,7 +112,6 @@ class Ressource(dict):
                f"beton : {self['beton']}, " \
                f"energie : {self['energie']}, " \
                f"nourriture : {self['nourriture']}, " \
-               f"population : {self['population']}, " \
                f"science : {self['science']}"
 
     def __dict__(self) -> dict:
