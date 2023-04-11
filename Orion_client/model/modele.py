@@ -181,6 +181,9 @@ class Modele(IModel):
 
             del self.log[cadre]
 
+        for i in self.etoiles:
+            i.tick()
+
         for i in self.joueurs:
             self.joueurs[i].tick()
 
@@ -496,6 +499,9 @@ class Joueur(IJoueur):
     def tick(self):
         """Fonction de jeu du joueur pour un tour.
         """
+        for etoile in self.etoiles_controlees:
+            etoile.tick()
+
         for type_ship in self.flotte.keys():
             for ship in self.flotte[type_ship]:
                 self.flotte[type_ship][ship].tick()

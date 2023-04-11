@@ -98,7 +98,8 @@ class Etoile:
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""
-        pass
+        if self.needs_refresh is True:
+            self.needs_refresh = False
 
     def attacked(self, damage: int) -> None:
         self.resistance -= damage

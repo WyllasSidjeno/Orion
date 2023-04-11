@@ -514,6 +514,7 @@ class GameCanvas(Canvas):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
+        print("star_generated")
         photo = self.photo_cache[star.couleur]
 
         photo = photo.resize((star.taille * 12, star.taille * 12),
