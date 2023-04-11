@@ -534,11 +534,12 @@ class Joueur(IJoueur):
     def increment_pop(self):
         tot_population: int = 0
         nourriture_apres_conso: float = 0
-
+        cpt_transit = 0
         """passer a travers les etoiles"""
         for p in self.etoiles_controlees:
             if p.transit:
                 tot_population += p.population
+                cpt_transit += 1
 
         """Consommation de nourriture par tick (server % 30)"""
         print(self.nom, "population du joueur avant calcul: ", tot_population)
@@ -549,14 +550,16 @@ class Joueur(IJoueur):
 
         nourriture_apres_conso = self.ressources["nourriture"]
         nourriture_apres_conso *= .15
-        nourriture_apres_conso /= len(self.etoiles_controlees)
+        nourriture_apres_conso /= cpt_transit
 
         for c in self.etoiles_controlees:
-            c.population += math.floor(nourriture_apres_conso)
+            if c.transit:
+                c.population += math.floor(nourriture_apres_conso)
+            else:
+                c.population = AlwaysInt(c.population * .90)
             if c.population <= 0:
                 c.population = 0
-            if not c.transit:
-                c.population = AlwaysInt(c.population *.90)
+
             """tester que la reduction par pourcentage permet une conquete facile"""
 class AI(Joueur):
     """Classe de l'AI.
