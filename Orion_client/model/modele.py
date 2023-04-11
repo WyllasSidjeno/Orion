@@ -492,8 +492,7 @@ class Joueur(IJoueur):
         getattr(self, funct)(*args)
 
     def tick(self):
-        """Fonction de jeu du joueur pour un tour.
-        """
+        """Fonction de jeu du joueur pour un tour."""
         self.cadre_consommation += 1
         for type_ship in self.flotte.keys():
             for ship in self.flotte[type_ship]:
@@ -501,8 +500,8 @@ class Joueur(IJoueur):
 
         self.ressources_cumul()
 
-        # if self.cadre_consommation % 60 == 0:
-        #     self.increment_pop()
+        if self.cadre_consommation % 60 == 0:
+            self.increment_pop()
 
     def ressources_cumul(self):
         for e in self.etoiles_controlees:
