@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from Orion_client.Interface import IModel, IJoueur, IController
+from Orion_client.interface import IModel, IJoueur, IController
 
 
 class CommandQueue:
