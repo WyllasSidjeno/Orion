@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from Orion_client.Helpers.helper import AlwaysInt
+from Orion_client.helpers.helper import AlwaysInt
 
 
 class Ressource(dict):

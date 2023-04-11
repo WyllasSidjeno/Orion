@@ -1,6 +1,6 @@
 import random
 
-from Orion_client.Helpers.helper import get_prochain_id, AlwaysInt
+from Orion_client.helpers.helper import get_prochain_id, AlwaysInt
 from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from random import randrange
@@ -105,6 +105,16 @@ class Etoile:
         if self.resistance <= 0:
             self.local_queue.add("change_planet_ownership", self.id, None,
                                  self.proprietaire)
+
+    def to_mouse_over_dict(self) -> dict:
+        """Retourne un dictionnaire contenant les informations
+        necessaires pour afficher les informations de l'etoile
+        dans la fenetre d'information."""
+        return {"header": "Etoile",
+                "name": self.name,
+                "owner": self.proprietaire,
+                "output": self.output,
+                "population": self.population.nb_humains}
 
 class Population:
     """ Population de la planète découverte

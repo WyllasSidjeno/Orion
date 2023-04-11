@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 
 from PIL import ImageTk
 
-from Orion_client.Helpers.CommandQueues import ControllerQueue
-from Orion_client.Helpers.helper import StringTypes
+from Orion_client.helpers.CommandQueues import ControllerQueue
+from Orion_client.helpers.helper import StringTypes
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
@@ -157,27 +157,23 @@ class EtoileWindow(Frame):
         self.place_main()
         self.place_side_bar()
 
-
-        self.last_visual_move = time.time()
-
         self.header_frame.bind("<Button-1>", self.start_move)
         self.header_frame.bind("<ButtonRelease-1>", self.stop_move)
         self.header_frame.bind("<B1-Motion>", self.do_move)
 
-
-    def start_move(self, event) -> None:
+    def start_move(self, _) -> None:
         """Démarre le déplacement de la fenetre
         """
         self.x = self.master.winfo_pointerx() - self.master.winfo_rootx()
         self.y = self.master.winfo_pointery() - self.master.winfo_rooty()
 
-    def stop_move(self, event) -> None:
+    def stop_move(self, _) -> None:
         """Arrête le déplacement de la fenetre
         """
         self.x = None
         self.y = None
 
-    def do_move(self, event) -> None:
+    def do_move(self, _) -> None:
         """Déplace la fenetre en suivant la souris
         """
         if self.x is not None and self.y is not None:
@@ -405,10 +401,12 @@ class GameCanvas(Canvas):
 
         self.cache = []
 
-        self.mouseOverView = MouseOverView(master)
+        self.mouseOverView = MouseOverView(self)
 
-        self.tag_bind(StringTypes.ETOILE.value, "<Enter>", self.mouseOverView.show)
-        self.tag_bind(StringTypes.ETOILE.value, "<Leave>", self.mouseOverView.hide)
+        self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
+                      self.mouseOverView.show)
+        self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
+                        self.mouseOverView.hide)
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
@@ -418,6 +416,11 @@ class GameCanvas(Canvas):
         if self.etoile_window.star_id is not None:
             self.etoile_window.refresh(mod)
         self.delete(StringTypes.TROUDEVERS.value)
+
+        if self.mouseOverView.visible:
+            item_tags = self.gettags("current")
+            object = mod.get_object(item_tags[1], item_tags[0])
+            self.mouseOverView.on_mouse_over(object.to_mouse_over_dict())
 
         stars = mod.get_player_stars() + mod.etoiles
 
@@ -484,7 +487,6 @@ class GameCanvas(Canvas):
 
         self.xview_moveto(x_view)
         self.yview_moveto(y_view)
-
 
     def drag(self, event):
         """Déplace le canvas de jeu en fonction de la position de la souris
@@ -1005,53 +1007,45 @@ class ChatBox(Frame):
 class MouseOverView(Frame):
     def __init__(self, master):
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1, relief="solid",
-                       padx=25, pady=10,
-                       width=200, height=200)
+        self.configure(bg=hexDark, bd=1, relief="solid")
         self.visible = False
+        self.updated = False
+        self.id = None
 
     def on_mouse_over(self, *args):
-        dictlist = []
-        for dict in args:
-            if dict is not None:
-                dictlist.append(dict)
-        for i in range(len(dictlist)):
-            container = Frame(self, bg=hexDark, bd=1, relief="solid",
-                              padx=25, pady=10)
-            container.grid(row=i, column=0, sticky="nsew")
-            title = Label(container, text=dictlist[i].pop("header"),
-                          bg=hexDark, fg="white", font=("Arial", 15),
-                          pady=2)
-            title.grid(row=0, column=0, sticky="nsew")
-            for j, (key, value) in enumerate(dictlist[i].items()):
-                label = Label(container, text=key + " : " + str(value),
-                              bg=hexDark, fg="white")
-                label.grid(row=j + 1, column=0, sticky="nsew")
+        if not self.updated:
+            dictlist = []
+            for dict in args:
+                if dict is not None:
+                    dictlist.append(dict)
+            for i in range(len(dictlist)):
+                container = Frame(self, bg=hexDark, bd=1, relief="solid",
+                                  pady=10)
+                # add a max size with :
+                container.grid(row=i, column=0, sticky="nsew")
+                title = Label(container, text=dictlist[i].pop("header"),
+                              bg=hexDark, fg="white", font=("Arial", 15),
+                              pady=2)
+                title.grid(row=0, column=0, sticky="nsew")
+                for j, (key, value) in enumerate(dictlist[i].items()):
+                    label = Label(container, text=key + " : " + str(value),
+                                  bg=hexDark, fg="white", font=("Arial", 10),
+                                  pady=2, wraplength=250)
+                    label.grid(row=j + 1, column=0, sticky="nsew")
+
+            self.updated = True
 
     def hide(self, _):
-        self.lower()
+        print("hide")
+        self.place_forget()
         self.visible = False
+        self.updated = False
 
     def show(self, event):
-        # Place under the mouse
+        print("show")
+        self.id = event.widget.find_withtag("current")[0]
         self.visible = True
+
         x = event.x
         y = event.y
-        # Place it under the mouse
-        x = x - self.winfo_width() / 2
-        y = y + 20
         self.place(x=x, y=y)
-        self.lift()
-
-
-if __name__ == "__main__":
-    root = Tk()
-    root.title("Game")
-    root.geometry("1280x720")
-    # chat box
-
-    mouse_over_view = MouseOverView(root)
-
-
-
-    root.mainloop()
