@@ -7,11 +7,11 @@ from __future__ import annotations
 from ast import literal_eval
 from random import randrange, choice
 
-from Orion_client.Helpers.CommandQueues import ModelQueue, JoueurQueue
 from Orion_client.Interface import IModel, IJoueur
+from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
+from Orion_client.helpers.helper import AlwaysInt, StringTypes, get_prochain_id
 from Orion_client.model.building import *
-from Orion_client.Helpers.helper import get_prochain_id, AlwaysInt, \
-    StringTypes
+
 from Orion_client.model import ships
 from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource

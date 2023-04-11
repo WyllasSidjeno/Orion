@@ -7,8 +7,8 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.Helpers.helper import StringTypes
-from Orion_client.Helpers.CommandQueues import ControllerQueue, \
+from Orion_client.helpers.helper import StringTypes
+from Orion_client.helpers.CommandQueues import ControllerQueue, \
     ModelQueue, JoueurQueue
 from Orion_client.Interface import IController
 from Orion_client.view.view import GameView, LobbyView
@@ -33,7 +33,7 @@ class Controller(IController):
     previous_selection: list[str] | None
 
     def __init__(self):
-        from Orion_client.Helpers.helper import get_random_username
+        from Orion_client.helpers.helper import get_random_username
         """Initialisation du controller"""
         self.frame = 0
         """La frame actuelle du jeu"""
