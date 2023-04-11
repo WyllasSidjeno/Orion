@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class QueueSubjectInterface:
     def execute_commands(self, command_queue):
         while not command_queue.is_empty():
