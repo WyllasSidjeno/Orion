@@ -1,9 +1,10 @@
+from abc import ABC
 from typing import Any, List
 
 from Orion_client.interface import IModel, IJoueur, IController
 
 
-class CommandQueue:
+class CommandQueue(ABC):
     def __init__(self) -> None:
         self.commands = []
 
@@ -73,6 +74,13 @@ class JoueurQueue(IJoueur, CommandQueue):
         :param ship_type: Le type de vaisseau.
         """
         self._add("remove_ship", ship_id, ship_type)
+
+    def construct_building_request(self, planet_id: str, type_building: str):
+        """Demande la construction d'un bâtiment.
+        :param planet_id: L'id de la planète.
+        :param type_building: Le type de bâtiment.
+        """
+        self._add("construct_building_request", planet_id, type_building)
 
 
 class ControllerQueue(IController, CommandQueue):
