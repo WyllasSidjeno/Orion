@@ -181,10 +181,6 @@ class EtoileWindow(Frame):
             y = self.master.winfo_pointery() - self.y - self.master.winfo_rooty()
             self.place(x=x, y=y)
 
-
-
-
-
     def place_header(self) -> None:
         """Crée le header de la fenetre, la ou les informations identifiante
         de la planete sont affichées
@@ -273,7 +269,7 @@ class EtoileWindow(Frame):
             text="Oui" if star.transit else "Non")
 
         for i in range(star.taille):
-            self.building_list[i].grid(row=i // 3, column=i % 3)
+            self.building_list[i].show(row=i // 3, column=i % 3)
             self.building_list[i].reinitialize()
 
         output = star.output.__dict__()
@@ -287,10 +283,13 @@ class EtoileWindow(Frame):
 
     def hide(self) -> None:
         """Cache la fenetre"""
+        self.place_forget()
+        for i in range(8):
+            if self.building_list[i].is_shown:
+                self.building_list[i].hide()
+        self.is_shown = False
         self.construct_ship_menu.current_star_id = None
         self.star_id = None
-        self.place_forget()
-        self.is_shown = False
 
     def show(self, star_id: int) -> None:
         """Affiche la fenetre"""
@@ -342,11 +341,15 @@ class BuildingWindow(Frame):
 
         self.upgrade_canvas.place(anchor="center", relx=0.2, rely=0.8)
 
+        self.is_shown = False
+
     def hide(self):
         self.grid_forget()
+        self.is_shown = False
 
     def show(self, **kwargs):
         self.grid(**kwargs)
+        self.is_shown = True
 
     def reinitialize(self):
         self.name_label.config(text="Libre")
