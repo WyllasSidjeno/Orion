@@ -379,14 +379,6 @@ class Joueur(IJoueur):
         etoile.need_refresh = False
         self.etoiles_controlees.append(etoile)
 
-    def action_from_server(self, funct: str, args: list):
-        """Fonction qui active une action du joueur reçue du serveur en
-        fonction de la fonction et des arguments envoyés.
-        :param funct: la fonction à activer
-        :param args: les arguments de la fonction
-        """
-        getattr(self, funct)(*args)
-
     def construct_ship(self, planet_id, type_ship):
         """
         Déclenche la construction d'un vaisseau sur une planète dépendant
