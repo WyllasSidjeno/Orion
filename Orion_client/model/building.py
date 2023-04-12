@@ -14,11 +14,9 @@ class Building(ABC):
     :param max_level: le niveau maximum du bâtiment
     :param description: la description du bâtiment
     """
-    building_cost: dict = {}  # todo: Ressource class
-    baseMul = 2
-
     def __init__(self, name: str, description: str, upgrade_cost: dict,
-                 output: RessourceMul, level: int, max_level: int, consumption: int):
+                 output: Ressource, level: int, max_level: int,
+                 consumption: int = 100):
         """Constructeur de la classe Building
         :param name: le nom du bâtiment
         :param description: la description du bâtiment
@@ -34,16 +32,16 @@ class Building(ABC):
         self.output = output
         self.level = level
         self.max_level = max_level
-        self.consumption = 100
+        self.consumption = consumption
 
     def __str__(self):
         return f"{self.name} (lvl {self.level})"
 
-    # Abstract method that must be implemented in subclasses called upgrade
     @abstractmethod
     def upgrade(self):
-        """Méthode permettant d'améliorer un bâtiment"""
-        raise NotImplementedError("Subclasses must implement upgrade method")
+        """Méthode permettant d'améliorer un bâtiment.
+        """
+        raise NotImplementedError
 
     @staticmethod
     def can_build(ressources: dict) -> bool:  # todo : Ressource
@@ -51,28 +49,26 @@ class Building(ABC):
         une mine.
         :return: True si le joueur peut construire une batiment, False sinon
         """
-        # todo : compare ressource ??
+        print("can_build not implemented")
+        print(ressources)
+        return True
 
     def can_afford(self, ressources: dict) -> bool: # todo : Ressource
         """Méthode permettant de savoir si le joueur peut acheter une mine.
         :return: True si le joueur peut acheter une batiment, False sinon
         """
-        # todo : compare ressource ??
-
+        raise NotImplementedError
 
 class Mine(Building):
     """Classe représentant une mine
     Cette classe contient les attributs et les méthodes communes à toutes les
     mines du jeu.
     """
-    building_cost: dict = {}  # todo: Ressource class
-
-
     def __init__(self):
         name = "Mine"
         description = "Une mine de fer extractant les ressources du sol"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(metal=super().baseMul, beton=1, energie=1, nourriture=1, population=1, science=1)
+        output: RessourceMul = RessourceMul(metal=2, beton=1, energie=1, nourriture=1, population=1, science=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -92,13 +88,11 @@ class Farm(Building):
     Cette classe contient les attributs et les méthodes communes à toutes les
     fermes du jeu.
     """
-    building_cost: dict = {}  # todo: Ressource class
-
     def __init__(self):
         name = "Ferme"
         description = "Une ferme produisant de la nourriture"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(metal=1, beton=1, energie=1, nourriture=super().baseMul, population=1, science=1)
+        output: RessourceMul = RessourceMul(metal=1, beton=1, energie=1, nourriture=2, population=1, science=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -118,13 +112,11 @@ class ConcreteFactory(Building):
     Cette classe contient les attributs et les méthodes communes à tout les
     building du jeu.
     """
-    building_cost: dict = {}  # todo: Ressource class
-
     def __init__(self):
         name = "Usine "
         description = "Une usine produisant du beton"
         upgrade_cost: dict = {}  # todo: Ressource class
-        output: RessourceMul = RessourceMul(metal=1, beton=super().baseMul, energie=1, nourriture=1, population=1, science=1)
+        output: RessourceMul = RessourceMul(metal=1, beton=2, energie=1, nourriture=1, population=1, science=1)
         level = 1
         max_level = 3
         consumption = 100
@@ -144,7 +136,6 @@ class PowerPlant(Building):
     Cette classe contient les attributs et les méthodes communes à toutes les
     centrales électriques du jeu.
     """
-    building_cost: dict = {}  # todo: Ressource class
 
     def __init__(self):
         name = "Centrale électrique"
