@@ -1,7 +1,7 @@
 from functools import partial
 from tkinter import Frame, Label, Canvas, Button, Menu
 
-from Orion_client.helpers.CommandQueues import ControllerQueue
+from Orion_client.helpers.CommandQueues import ControllerQueue, JoueurQueue
 from Orion_client.helpers.helper import StringTypes
 from Orion_client.view.view_common_ressources import *
 
@@ -132,6 +132,9 @@ class EtoileWindow(Frame):
 
         self.building_list = []
 
+        self.construct_building_menu = ConstructBuildingMenu(self.side_frame)
+
+
         for i in range(8):
             self.building_list.append(BuildingWindow(self.batiment_grid))
 
@@ -253,6 +256,8 @@ class EtoileWindow(Frame):
         for i in range(star.taille):
             self.building_list[i].show(row=i // 3, column=i % 3)
             self.building_list[i].reinitialize()
+            self.building_list[i].bind("<Button-1>",
+                                       lambda event, i=i: self.construct_building_menu.show(event, i))
 
         output = star.output.__dict__()
         self.energie_value_label.config(text=output["energie"])
@@ -379,3 +384,29 @@ class ConstructShipMenu(Menu):
         """Montre le menu a la position de la souris"""
         self.planet_id = planet_id
         self.post(event.x_root, event.y_root)
+
+
+class ConstructBuildingMenu(Menu):
+    planet_id: str
+    command_queue: JoueurQueue
+
+    def __init__(self, master: Frame):
+        """Initialise le menu deroulant"""
+        super().__init__(master, tearoff=0, bg=hexDarkGrey)
+        self.building_types = ["Mine", "Farm", "Concrete Factory",
+                               "Power Plant", "Research Center"]
+
+        self.add_command(label="Annuler", command=self.hide)
+        self.add_separator()
+        for i in range(len(self.building_types)):
+            self.add_command(label=self.building_types[i])
+
+    def hide(self):
+        """Cache le menu"""
+        self.unpost()
+
+    def show(self, event, planet_id):
+        """Montre le menu a la position de la souris"""
+        self.planet_id = planet_id
+        self.post(event.x_root, event.y_root)
+
