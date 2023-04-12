@@ -404,9 +404,14 @@ class GameCanvas(Canvas):
         self.mouseOverView = MouseOverView(self)
 
         self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
-                      self.mouseOverView.show)
+                      self.mouseOverViewShow)
+
+
+    def mouseOverViewShow(self, event):
+        self.mouseOverView = MouseOverView(self)
+        self.mouseOverView.show(event)
         self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
-                        self.mouseOverView.hide)
+                      self.mouseOverView.hide)
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
@@ -1037,16 +1042,23 @@ class MouseOverView(Frame):
             self.updated = True
 
     def hide(self, _):
-        print("hide")
-        self.place_forget()
         self.visible = False
         self.updated = False
+        self.destroy()
+
 
     def show(self, event):
-        print("show")
         self.id = event.widget.find_withtag("current")[0]
         self.visible = True
 
         x = event.x
         y = event.y
+
+        # If it gets out of the window, it will be placed on the left
+        if x + self.winfo_width() > event.widget.winfo_width():
+            x = event.widget.winfo_width() - self.winfo_width()
+        # If it gets out of the window, it will be placed on the top
+        if y + self.winfo_height() > event.widget.winfo_height():
+            y = event.widget.winfo_height() - self.winfo_height()
+            
         self.place(x=x, y=y)
