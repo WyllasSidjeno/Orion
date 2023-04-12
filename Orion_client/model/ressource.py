@@ -113,12 +113,17 @@ class Ressource(dict):
 
     def __str__(self) -> str:
         """Affiche les ressources"""
-        return f"metal : {self['metal']}, " \
-               f"beton : {self['beton']}, " \
-               f"energie : {self['energie']}, " \
-               f"nourriture : {self['nourriture']}, " \
-               f"population : {self['population']}, " \
-               f"science : {self['science']}"
+        string = ""
+        list_not_in = []
+        for key in self:
+            if self[key] is None:
+                list_not_in.append(key)
+
+        for key in self:
+            if key not in list_not_in:
+                string += f"{key} : {self[key]}, "
+        return string
+
 
     def __dict__(self) -> dict:
         """Retourne un dictionnaire de la ressource"""
