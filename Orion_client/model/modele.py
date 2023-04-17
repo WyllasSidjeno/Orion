@@ -438,25 +438,24 @@ class Joueur(IJoueur):
         """
         conso_structures: int = 0
         conso_vaisseaux: int = 0
-        # Consommation d'énergie des structures du joueur
+        """Consommation d'énergie des structures du joueur"""
         for e in self.etoiles_controlees:
             for b in e.buildinglist:
                 if isinstance(b, Building):
                     conso_structures += b.consumption
+                    print ("test energie")
 
-        # Consommation des vaisseaux de la flotte du joueur.
-        for key, value in self.flotte.items():
-            if isinstance(value, Ship):
-                value = [value]
-        # for vaisseau in value:
-        #  if not vaisseau.docked:
-        #        conso_vaisseaux += vaisseau.consommation
+        """Consommation des vaisseaux de la flotte du joueur."""
+        for typeVaisseau, dictVaisseau in self.flotte.items():
+            for idVaisseau, vaisseau in self.flotte[typeVaisseau].items():
+                if not vaisseau.docked:
+                    conso_vaisseaux += vaisseau.consommation
+
         # Todo: Ajouter les variables bool docked et int consommation
         #  dans le modele vaisseau (2e sprint)
 
         self.ressources["energie"] -= AlwaysInt(
-            (
-                    conso_vaisseaux + conso_structures +
+            (conso_vaisseaux + conso_structures +
                     self.consommation_energie_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
@@ -510,7 +509,7 @@ class Joueur(IJoueur):
                 self.flotte[type_ship][ship].tick()
 
         self.ressources_cumul()
-
+        self.deplete_energy()
         if self.cadre_consommation % 60 == 0:
             self.increment_pop()
             self.cadre_consommation = 0

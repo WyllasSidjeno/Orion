@@ -34,7 +34,7 @@ class Ship(ABC):
     def __init__(self, local_queue : ModelQueue, player_local_queue : JoueurQueue,
                  pos: tuple, vitesse: int,
                  resistance: int, owner: str, attack_strength: int = 0,
-                 defense_strength: int = 0, attack_range: int = 0, ):
+                 defense_strength: int = 0, attack_range: int = 0, consommation: int = 0):
         """Initialise un vaisseau.
         :param pos: Position du vaisseau
         :param vitesse: Vitesse du vaisseau
@@ -52,9 +52,9 @@ class Ship(ABC):
 
         self.local_queue = local_queue
         self.player_local_queue = player_local_queue
-
+        self.consommation: int = consommation
         self.nouveau: bool = True
-
+        self.docked: bool = False
         self.position: tuple = pos
         self.angle = 0
         self.position_cible: tuple | None = None
@@ -166,7 +166,7 @@ class Militaire(Ship):
         super().__init__(local_queue, player_local_queue,
                          pos=pos, vitesse=150, resistance=100, owner=owner,
                          attack_strength=30, defense_strength=10,
-                         attack_range=20)
+                         attack_range=20, consommation=20)
         self.is_currently_attacking = False
         self.is_set_to_attack = False
         self.cadence = 36
@@ -225,7 +225,7 @@ class Transportation(Ship):
                  local_queue, player_local_queue) -> None:
         """Initialise un vaisseau de transport."""
         super().__init__(local_queue, player_local_queue,
-                         pos=pos, vitesse=3, resistance=100, owner=owner)
+                         pos=pos, vitesse=3, resistance=100, owner=owner, consommation=5)
         self.position_depart = pos
         self.position_origin = self.position_depart
 
@@ -265,7 +265,7 @@ class Reconnaissance(Ship):
                  local_queue, player_local_queue) -> None:
         """Initialise un vaisseau de reconnaissance."""
         super().__init__(local_queue, player_local_queue,
-                         pos=pos, vitesse=3, resistance=100, owner=owner)
+                         pos=pos, vitesse=3, resistance=100, owner=owner, consommation=15)
 
     def tick(self) -> None:
         if self.position_cible:
@@ -288,5 +288,5 @@ class Flotte(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self["militaire"]: dict[str, Militaire] = {}
-        self["transportation"]: dict[str, Militaire] = {}
-        self["reconnaissance"]: dict[str, Militaire] = {}
+        self["transportation"]: dict[str, Transportation] = {}
+        self["reconnaissance"]: dict[str, Reconnaissance] = {}
