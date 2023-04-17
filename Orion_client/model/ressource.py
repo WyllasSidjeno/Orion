@@ -120,12 +120,6 @@ class Ressource(dict):
         return string
 
 
-
-    def __dict__(self) -> dict:
-        """Retourne un dictionnaire de la ressource"""
-        return self
-
-
 class RessourceMul(Ressource):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
