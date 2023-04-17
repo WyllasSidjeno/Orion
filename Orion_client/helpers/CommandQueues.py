@@ -112,6 +112,7 @@ class ControllerQueue(IController, CommandQueue):
         """
         self._add("handle_ship_construct_request", *args)
 
+
     def handle_building_construct_request(self, planet, type_building):
         """Gère la demande de construction d'un bâtiment.
         :param planet: La planète.

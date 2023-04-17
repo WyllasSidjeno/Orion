@@ -188,7 +188,6 @@ class Controller(IController):
         self.controller_server_joueur.construct_building_request(planete,
                                                                  type_building)
 
-
     def cancel_previous_selection(self):
         """Annule la selection précédente."""
         self.previous_selection = None
