@@ -84,9 +84,6 @@ class JoueurQueue(IJoueur, CommandQueue):
 
 
 class ControllerQueue(IController, CommandQueue):
-    def handle_building_construct_request(self, planet, building_type):
-        self._add("handle_building_construct_request", planet, building_type)
-
     def handle_right_click(self, pos, new_tags_list) -> None:
         """Gère le clic droit.
         :param pos: La position du clic.
@@ -116,3 +113,9 @@ class ControllerQueue(IController, CommandQueue):
         self._add("handle_ship_construct_request", *args)
 
 
+    def handle_building_construct_request(self, planet, type_building):
+        """Gère la demande de construction d'un bâtiment.
+        :param planet: La planète.
+        :param type_building: Le type de bâtiment.
+        """
+        self._add("handle_building_construct_request", planet, type_building)

@@ -48,6 +48,6 @@ class IController(ABC, QueueSubjectInterface):
         raise NotImplementedError
 
     @abstractmethod
-    def handle_building_construct_request(self, planet, building_type):
+    def handle_building_construct_request(self, planete, type_building):
         raise NotImplementedError
 
