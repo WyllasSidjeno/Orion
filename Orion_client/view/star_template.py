@@ -389,12 +389,11 @@ class ConstructShipMenu(Menu):
 
 class ConstructBuildingMenu(Menu):
     planet_id: str
-    command_queue: JoueurQueue
+    command_queue: ControllerQueue
 
-    def __init__(self, master: Frame, command_queue):
+    def __init__(self, master: Frame):
         """Initialise le menu deroulant"""
         super().__init__(master, tearoff=0, bg=hexDarkGrey)
-        self.command_queue = command_queue
         self.building_types = ["Mine", "Farm", "Concrete Factory",
                                "Power Plant", "Research Center"]
 
@@ -416,10 +415,10 @@ class ConstructBuildingMenu(Menu):
 
     def on_click(self, i):
         type = self.building_types[i].lower().replace(" ", "")
-        self.command_queue.construct_building_request(self.planet_id, type)
-        self.hide()
+        self.command_queue.handle_building_construct_request(self.planet_id,
+                                                                type)
 
-    def register_command_queue(self, command_queue: JoueurQueue):
+    def register_command_queue(self, command_queue: ControllerQueue):
         """Enregistre la file de commandes"""
         self.command_queue = command_queue
 
