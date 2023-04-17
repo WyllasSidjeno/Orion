@@ -23,7 +23,7 @@ class EtoileWindow(Frame):
         """Frame contenant les informations identifiantes de la planete"""
 
         self.proprietaire_label = Label(self.header_frame, bg=hexDarkGrey,
-                                        fg="white", font=("Arial", 15))
+                                        fg="white", font=("Fixedsys", 15))
         """Label contenant le nom du proprietaire de la planete"""
         self.proprietaire_label["text"] = proprietaire
 
@@ -35,12 +35,12 @@ class EtoileWindow(Frame):
         """Cercle de la population"""
         self.population_label = Label(self.population_canvas,
                                       bg="dark green", fg="white",
-                                      font=("Arial", 8))
+                                      font=("Fixedsys", 8))
         """Label contenant la population"""
 
         self.nom_label = Label(self.header_frame,
                                bg=hexDarkGrey, fg="white",
-                               font=("Arial", 20))
+                               font=("Fixedsys", 20))
         """Label contenant le nom de la planete"""
 
         # # # La main frame
@@ -49,7 +49,7 @@ class EtoileWindow(Frame):
         """Frame contenant les batiments de la planete"""
         self.batiment_label = Label(self.main_frame, text="Colonies",
                                     bg=hexDarkGrey, fg="white",
-                                    font=("Arial", 13))
+                                    font=("Fixedsys", 13))
         """Label contenant le nom du header du menu de batiment"""
 
         self.batiment_grid = Frame(self.main_frame, bg=hexDarkGrey)
@@ -64,67 +64,67 @@ class EtoileWindow(Frame):
 
         self.ressource_label = Label(self.side_frame, text="Rendement :",
                                      bg=hexDarkGrey, fg="white",
-                                     font=("Arial", 13))
+                                     font=("Fixedsys", 13))
         """Label contenant le nom du header du menu de ressource"""
 
         self.energie_label = Label(self.ressource_grid, text="energie :",
                                    bg=hexDarkGrey, fg="white",
-                                   font=("Arial", 10))
+                                   font=("Fixedsys", 10))
         self.energie_value_label = Label(self.ressource_grid, text="0",
                                          bg=hexDarkGrey, fg="white",
-                                         font=("Arial", 10))
+                                         font=("Fixedsys", 10))
 
         self.metal_label = Label(self.ressource_grid, text="Métal :",
                                  bg=hexDarkGrey, fg="white",
-                                 font=("Arial", 10))
+                                 font=("Fixedsys", 10))
         self.metal_value_label = Label(self.ressource_grid, text="0",
                                        bg=hexDarkGrey, fg="white",
-                                       font=("Arial", 10))
+                                       font=("Fixedsys", 10))
 
         self.beton_label = Label(self.ressource_grid, text="Béton :",
                                  bg=hexDarkGrey, fg="white",
-                                 font=("Arial", 10))
+                                 font=("Fixedsys", 10))
         self.beton_value_label = Label(self.ressource_grid, text="0",
                                        bg=hexDarkGrey, fg="white",
-                                       font=("Arial", 10))
+                                       font=("Fixedsys", 10))
 
         self.nourriture_label = Label(self.ressource_grid, text="Nourriture :",
                                       bg=hexDarkGrey, fg="white",
-                                      font=("Arial", 10))
+                                      font=("Fixedsys", 10))
         self.nourriture_value_label = Label(self.ressource_grid, text="0",
                                             bg=hexDarkGrey, fg="white",
-                                            font=("Arial", 10))
+                                            font=("Fixedsys", 10))
 
         self.science_label = Label(self.ressource_grid, text="Science :",
                                    bg=hexDarkGrey, fg="white",
-                                   font=("Arial", 10))
+                                   font=("Fixedsys", 10))
         self.science_value_label = Label(self.ressource_grid, text="0",
                                          bg=hexDarkGrey, fg="white",
-                                         font=("Arial", 10))
+                                         font=("Fixedsys", 10))
 
         self.line = Frame(self.side_frame, bg="white", bd=1, relief="solid")
 
         self.other_label = Label(self.side_frame, text="Autre",
                                  bg=hexDarkGrey, fg="white",
-                                 font=("Arial", 13))
+                                 font=("Fixedsys", 13))
         """Label contenant le nom du header du menu d'information"""
 
         self.stockpile_connection_label = Label(self.side_frame,
                                                 text="Connecté au "
                                                      "stockage :",
                                                 bg=hexDarkGrey, fg="white",
-                                                font=("Arial", 10))
+                                                font=("Fixedsys", 10))
         """Label contenant le nom du header du menu d'information"""
         self.stockpile_boolean_label = Label(self.side_frame,
                                              text="Non",
                                              bg=hexDarkGrey, fg="white",
-                                             font=("Arial", 10))
+                                             font=("Fixedsys", 10))
         """Label contenant le nom du header du menu d'information"""
 
         self.construct_ship_button = Button(self.side_frame,
                                             text="Construire un vaisseau",
                                             bg=hexDarkGrey, fg="white",
-                                            font=("Arial", 10))
+                                            font=("Fixedsys", 10))
         self.construct_ship_menu = ConstructShipMenu(self.side_frame)
 
         self.construct_ship_button.bind("<Button-1>",
@@ -318,11 +318,11 @@ class BuildingWindow(Frame):
                     width=75, height=75)
 
         self.name_label = Label(self, text="Libre", bg=hexDark,
-                                fg="white", font=("Arial", 10))
+                                fg="white", font=("Fixedsys", 10))
         """Label contenant le nom du bâtiment"""
 
         self.level_label = Label(self, text="", bg=hexDark,
-                                 fg="white", font=("Arial", 10))
+                                 fg="white", font=("Fixedsys", 10))
         """Label contenant le niveau du bâtiment"""
 
         self.upgrade_canvas = Canvas(self, bg=hexDark, width=20, height=20,

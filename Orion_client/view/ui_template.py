@@ -229,14 +229,14 @@ class SideBar(Frame):
 
         self.planet_label = Label(self.planet_frame, text="Planet",
                                   bg=hexDark, fg="white",
-                                  font=("Arial", 20))
+                                  font=("Fixedsys", 20))
 
         self.armada_frame = Frame(self, bg=hexDark, bd=1,
                                   relief="solid")
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.armada_label = Label(self.armada_frame, text="Armada",
                                   bg=hexDark, fg="white",
-                                  font=("Arial", 20))
+                                  font=("Fixedsys", 20))
         """Représente le label de la vue du jeu contenant les informations"""
 
         self.minimap_frame = Frame(self, bg=hexDark, bd=1,
@@ -244,7 +244,7 @@ class SideBar(Frame):
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.minimap_label = Label(self.minimap_frame, text="Minimap",
                                    bg=hexDark, fg="white",
-                                   font=("Arial", 20))
+                                   font=("Fixedsys", 20))
         """Représente le label de la vue du jeu contenant les informations"""
         self.minimap = Minimap(self.minimap_frame)
         """Représente le lbel de la vue du jeu contenant les informations"""
@@ -443,7 +443,7 @@ class Hud(Frame):
 
         self.ressource_height = 2
         self.ressource_width = 10
-        self.text_size = 15
+        self.text_size = 17
 
         self.food_text = "Food : 0"
         self.energy_text = "Energy : 0"
@@ -452,24 +452,24 @@ class Hud(Frame):
 
         self.metal_label = Label(metal_frame, text=self.metal_text,
                                  bg="#a84632", fg="white",
-                                 font=("Arial", self.text_size),
+                                 font=("Fixedsys", self.text_size),
                                  width=self.ressource_width,
                                  height=self.ressource_height)
 
         self.beton_label = Label(beton_frame, text=self.beton_text,
                                  bg="#364b8f", fg="white",
-                                 font=("Arial", self.text_size),
+                                 font=("Fixedsys", self.text_size),
                                  width=self.ressource_width,
                                  height=self.ressource_height)
 
         self.energy_label = Label(energy_frame, text=self.energy_text,
                                   bg="#adba59", fg="white",
-                                  font=("Arial", self.text_size),
+                                  font=("Fixedsys", self.text_size),
                                   width=self.ressource_width,
                                   height=self.ressource_height)
 
         self.food_label = Label(food_frame, text=self.food_text, bg="#3f9160",
-                                fg="white", font=("Arial", self.text_size),
+                                fg="white", font=("Fixedsys", self.text_size),
                                 width=self.ressource_width,
                                 height=self.ressource_height)
 
@@ -542,12 +542,12 @@ class MouseOverView(Frame):
                 # add a max size with :
                 container.grid(row=i, column=0, sticky="nsew")
                 title = Label(container, text=dictlist[i].pop("header"),
-                              bg=hexDark, fg="white", font=("Arial", 15),
+                              bg=hexDark, fg="white", font=("Fixedsys", 15),
                               pady=2)
                 title.grid(row=0, column=0, sticky="nsew")
                 for j, (key, value) in enumerate(dictlist[i].items()):
                     label = Label(container, text=key + " : " + str(value),
-                                  bg=hexDark, fg="white", font=("Arial", 10),
+                                  bg=hexDark, fg="white", font=("Fixedsys", 10),
                                   pady=2, wraplength=250)
                     label.grid(row=j + 1, column=0, sticky="nsew")
 

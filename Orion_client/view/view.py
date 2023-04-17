@@ -130,30 +130,30 @@ class LobbyView(Frame):
         super().__init__()
         self.config(bg=hexDark, bd=2,
                     relief="solid",
-                    width=600, height=480)
+                    width=620, height=480)
 
         self.connection_screen_label = Label(self,
                                              text='Orion - '
                                                   'Connection screen',
                                              bg=hexDark, fg="white",
-                                             font=("Arial", 30))
+                                             font=("Fixedsys", 30))
 
         self.game_state_label = Label(self, text="Game state:",
                                       bg=hexDark, fg="white",
-                                      font=("Arial", 15))
+                                      font=("Fixedsys", 15))
         self.game_state_label_value = Label(self, text="Not connected",
                                             bg=hexDark, fg="white",
-                                            font=("Arial", 10))
+                                            font=("Fixedsys", 10))
 
         self.player_name_label = Label(self, text="Joueur name: ",
                                        bg=hexDark, fg="white",
-                                       font=("Arial", 10))
+                                       font=("Fixedsys", 10))
         self.player_name_entry = Entry(self, width=30)
         self.player_name_entry.insert(0, username)
 
         self.url_serveur_label = Label(self, text="URL serveur: ",
                                        bg=hexDark, fg="white",
-                                       font=("Arial", 10))
+                                       font=("Fixedsys", 10))
         self.url_entry = Entry(self, width=30)
         self.url_entry.insert(0, url_serveur)
 
@@ -239,7 +239,7 @@ class LobbyView(Frame):
             for i in range(len(joueurs)):
                 Label(self.player_list, text=joueurs[i][0],
                       bg=hexDarkGrey, fg="white",
-                      font=("Arial", 10)).place(anchor="center",
+                      font=("Fixedsys", 10)).place(anchor="center",
                                                 relx=0.5, rely=0.15 + i * 0.2)
 
     def enable_restart_button(self):
