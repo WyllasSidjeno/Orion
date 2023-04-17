@@ -40,6 +40,11 @@ class CommandQueue(ABC):
 
 
 class ModelQueue(IModel, CommandQueue):
+    def receive_message(self, message: str) -> None:
+        """Reçoit un message.
+        :param message: Le message.
+        """
+        self._add("receive_message", message)
     def change_planet_ownership(self, planet_id: str,
                                 new_owner: None | str = None,
                                 old_owner: None | str = None) -> None:
@@ -119,3 +124,9 @@ class ControllerQueue(IController, CommandQueue):
         :param type_building: Le type de bâtiment.
         """
         self._add("handle_building_construct_request", planet, type_building)
+
+    def handle_message(self, message):
+        """Gère un message.
+        :param message: Le message.
+        """
+        self._add("handle_message", message)

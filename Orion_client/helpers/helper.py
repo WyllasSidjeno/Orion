@@ -137,3 +137,16 @@ class StringTypes(Enum):
                 cls.TROUDEVERS.value]
 
 
+class MessageManager:
+    def __init__(self):
+        self.messages: list[tuple[str, str]] = []
+        self.new_messages: int = 0
+
+    def add_message(self, message):
+        self.messages.append(message)
+        self.new_messages += 1
+
+    def get_new_messages(self):
+        messages = self.messages[-self.new_messages:]
+        self.new_messages = 0
+        return messages

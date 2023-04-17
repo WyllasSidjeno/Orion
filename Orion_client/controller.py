@@ -188,6 +188,11 @@ class Controller(IController):
         self.controller_server_joueur.construct_building_request(planete,
                                                                  type_building)
 
+    def handle_message(self, message):
+        """"Gère un message pris de la vue du jeu et le transmet au serveur."""
+        send = self.username + " : " + message
+        self.controller_server_model.receive_message(send)
+
     def cancel_previous_selection(self):
         """Annule la selection précédente."""
         self.previous_selection = None

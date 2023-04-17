@@ -68,6 +68,8 @@ class GameCanvas(Canvas):
 
         self.mouseOverView = MouseOverView(self)
 
+        self.focus_set()
+
         self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
                       self.mouse_over_view_show)
 
@@ -507,8 +509,9 @@ class Hud(Frame):
 
 
 class ChatBox(Frame):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, master, queue):
+        super().__init__(master)
+        self.queue = queue
         self.configure(bg=hexDark, bd=1, relief="solid", height=200, width=400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -519,15 +522,58 @@ class ChatBox(Frame):
         self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
                               relief="solid", height=10, width=50)
         self.chat_text.grid(row=0, column=0, sticky="nsew")
-        self.chat_text.insert(END, "Bienvenue sur le chat !\n")
+
+        self.chat_text.bind("<Button-1>", lambda _: "break")
+
         self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
+        self.chat_entry.bind("<Escape>", self.hide)
+
+        self.chat_text.bind("<B1-Motion>", self.follow_mouse_request)
+        self.chat_text.bind("<ButtonRelease-1>", self.follow_mouse)
+
+        self.event_id: int or None = None
 
     def send_message(self, _):
-        message = self.chat_entry.get()
-        self.chat_text.insert(END, message + "\n")
-        self.chat_entry.delete(0, END)
+        if self.chat_entry.get() != "":
+            self.queue.handle_message(self.chat_entry.get())
+            self.chat_entry.delete(0, "end")
+        else:
+            self.hide(None)
+
+    def show(self, _):
+        # Put it on top of its master content
+        self.place(in_=self.master, relwidth=.5, relheight=.5,
+                   relx=.5, rely=.5, anchor="center")
+        self.chat_entry.focus_set()
+
+    def hide(self, _):
+        # Put it back in its master content
+        self.place_forget()
+        self.master.focus_set()
+
+    def follow_mouse_request(self, event):
+        if self.event_id is not None:
+            self.after_cancel(self.event_id)
+            self.event_id = None
+        self.event_id = self.after(10, self.follow_mouse, event)
+
+    def follow_mouse(self, event):
+        if self.event_id is not None:
+            self.after_cancel(self.event_id)
+            self.event_id = None
+
+        self.place_configure(relx=event.x_root / self.master.winfo_width(),
+                             rely=event.y_root / self.master.winfo_height())
+
+    def refresh(self, model:Modele):
+        if model.message_manager.new_messages:
+            messages = model.message_manager.get_new_messages()
+            for message in messages:
+                self.chat_text.insert("end", message + "\n")
+
+
 
 
 class MouseOverView(Frame):
