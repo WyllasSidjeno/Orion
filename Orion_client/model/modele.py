@@ -168,6 +168,7 @@ class Modele(IModel):
                     for k in self.log[i]:
                         if k in self.log[j]:
                             self.log[j].remove(k)
+                            #todo : remove this mess
 
         self.cadre = cadre
         if cadre in self.log:
@@ -377,14 +378,6 @@ class Joueur(IJoueur):
         etoile.need_refresh = False
         self.etoiles_controlees.append(etoile)
 
-    def action_from_server(self, funct: str, args: list):
-        """Fonction qui active une action du joueur reçue du serveur en
-        fonction de la fonction et des arguments envoyés.
-        :param funct: la fonction à activer
-        :param args: les arguments de la fonction
-        """
-        getattr(self, funct)(*args)
-
     def construct_ship(self, planet_id, type_ship):
         """
         Déclenche la construction d'un vaisseau sur une planète dépendant
@@ -425,6 +418,15 @@ class Joueur(IJoueur):
 
         if has_enough_ressources:
             self.construct_ship(planet_id, type_ship)
+
+    def construct_building_request(self, planet_id: str, type_building: str):
+        """Fonction que est reçu du serveur depuis la vue du jeu.
+        Elle s'assure que la construction d'un vaisseau est possible et
+        la déclenche si elle l'est."""
+        # make a switch case
+        if type_building == "mine":
+            Mine.can_build(self.ressources)
+
 
     def deplete_energy(self):
         """

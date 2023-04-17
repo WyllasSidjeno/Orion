@@ -1,8 +1,9 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
 from Orion_client.helpers.CommandQueues import ControllerQueue
-from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    SideBar, Hud
+from Orion_client.view.ui_template import GameCanvas, SideBar, Hud
+
+from Orion_client.view.view_common_ressources import *
 
 
 class GameView(Frame):
@@ -32,6 +33,8 @@ class GameView(Frame):
         self.pack(fill="both", expand=True)
 
         self.canvas.etoile_window.construct_ship_menu.register_command_queue(
+            command_queue)
+        self.canvas.etoile_window.construct_building_menu.register_command_queue(
             command_queue)
 
         self.bind_game_requests()
