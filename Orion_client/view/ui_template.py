@@ -1,6 +1,6 @@
 from __future__ import annotations
 import random
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry
+from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Tk
 from PIL import Image
 from typing import TYPE_CHECKING
 
@@ -497,6 +497,48 @@ class Hud(Frame):
         self.energy_label.config(text=self.energy_text)
         self.food_label.config(text=self.food_text)
 
+class MiniGameWindow(Frame):
+
+    def __init__(self, master,  proprietaire: str):
+        super().__init__(master, bg=hexDarkGrey, bd=2, relief="solid",
+                         width=500, height=500)
+
+        self.is_shown: bool = False
+
+        self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
+                                         bd=1, relief="solid")
+        self.title_label = Label(self.header_frame, text="HEADER",
+                                        bg=hexDarkGrey, fg="white",
+                                        font=("Arial", 15))
+
+        self.main_frame: Frame = Frame(self, bg=hexDarkGrey,
+                                       bd=1, relief="solid")
+        self.minigame_label = Label(self.main_frame, text="MINIGAME",
+                                    bg=hexDarkGrey, fg="white",
+                                    font=("Arial", 13))
+
+        self.place_header()
+        self.place_main()
+
+    def show(self) -> None:
+        self.place(relx=0.5, rely=0.5, anchor="center")
+        self.is_shown = True
+
+    def hide(self) -> None:
+        """Cache la fenetre"""
+        self.place_forget()
+        self.is_shown = False
+
+    def place_header(self) -> None:
+        self.header_frame.place(relx=0, rely=0, relwidth=1, relheight=0.1)
+        self.title_label.place(anchor="center", relx=0.5, rely=0.5)
+
+    def place_main(self) -> None:
+        # Start with the main frame
+        self.main_frame.place(relx=0, rely=0.1, relwidth=1, relheight=0.9)
+        self.minigame_label.place(anchor="center", relx=0.5, rely=0.5)
+        #TODO: PLACE MINIGAMES HERE
+
 
 class ChatBox(Frame):
     def __init__(self):
@@ -688,5 +730,18 @@ class ShipViewGenerator:
                               fill=couleur,
                               tags=("vaisseau", ship_id, username, ship_type),
                               outline=hexSpaceBlack)
+
+
+if __name__ == '__main__':
+    root = Tk()
+    root.geometry("800x600")
+
+    minigamewindow = MiniGameWindow(root, "Bob")
+    minigamewindow.pack()
+
+    root.mainloop()
+
+
+
 
 
