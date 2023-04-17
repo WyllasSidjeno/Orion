@@ -1,0 +1,23 @@
+{
+  "science_0": {
+    "price": 4,
+    "dependencies": [],
+    "bonus": {
+      "vitesse_vaiseau": 15
+    }
+  },
+  "science_1": {
+    "price": 5,
+    "dependencies": [],
+    "bonus": {
+
+    }
+  },
+  "science_2": {
+    "price": 8,
+    "dependencies": [1],
+    "bonus": {
+
+    }
+  }
+}
