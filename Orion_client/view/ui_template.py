@@ -73,6 +73,10 @@ class GameCanvas(Canvas):
         self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
                       self.mouse_over_view_show)
 
+        self.view_pos = self.coords("current")
+        """La position de la caméra sur la scroll region du canvas de jeu."""
+
+
     def mouse_over_view_show(self, event):
         self.mouseOverView = MouseOverView(self)
         self.mouseOverView.show(event)
@@ -84,6 +88,13 @@ class GameCanvas(Canvas):
         :param mod: Le model"""
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with a move or coords function
+        x1 = self.canvasx(0)
+        y1 = self.canvasy(0)
+        x2 = self.canvasx(self.winfo_width())
+        y2 = self.canvasy(self.winfo_height())
+        self.view_pos = (x1, y1, x2, y2)
+
+
         if self.etoile_window.star_id is not None:
             self.etoile_window.refresh(mod)
         self.delete(StringTypes.TROUDEVERS.value)
@@ -309,6 +320,8 @@ class Minimap(Canvas):
 
         self.x_ratio = self.winfo_width() / 9000
         self.y_ratio = self.winfo_height() / 9000
+        self.user_square = self.create_rectangle(0, 0, 0, 0,
+                                                 fill="white", outline="white")
 
         self.bind("<Configure>", self.on_resize)
 
@@ -394,6 +407,18 @@ class Minimap(Canvas):
                y1 * self.y_ratio / self.old_y_ratio, \
                x2 * self.x_ratio / self.old_x_ratio, \
                y2 * self.y_ratio / self.old_y_ratio
+
+    def user_square_move(self, pos):
+        x1, y1, x2, y2 = pos
+        x1 *= self.x_ratio
+        y1 *= self.y_ratio
+        x2 *= self.x_ratio
+        y2 *= self.y_ratio
+
+        self.user_square = self.create_rectangle(x1, y1, x2, y2,
+                                                 outline="white")
+
+
 
 
 class Hud(Frame):
@@ -572,9 +597,6 @@ class ChatBox(Frame):
             messages = model.message_manager.get_new_messages()
             for message in messages:
                 self.chat_text.insert("end", message + "\n")
-
-
-
 
 class MouseOverView(Frame):
     def __init__(self, master):
