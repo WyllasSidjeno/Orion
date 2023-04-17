@@ -34,6 +34,8 @@ class GameView(Frame):
 
         self.canvas.etoile_window.construct_ship_menu.register_command_queue(
             command_queue)
+        self.canvas.etoile_window.construct_building_menu.register_command_queue(
+            command_queue)
 
         self.bind_game_requests()
 

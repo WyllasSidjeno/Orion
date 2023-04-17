@@ -168,6 +168,7 @@ class Modele(IModel):
                     for k in self.log[i]:
                         if k in self.log[j]:
                             self.log[j].remove(k)
+                            #todo : remove this mess
 
         self.cadre = cadre
         if cadre in self.log:
@@ -417,6 +418,15 @@ class Joueur(IJoueur):
 
         if has_enough_ressources:
             self.construct_ship(planet_id, type_ship)
+
+    def construct_building_request(self, planet_id: str, type_building: str):
+        """Fonction que est reçu du serveur depuis la vue du jeu.
+        Elle s'assure que la construction d'un vaisseau est possible et
+        la déclenche si elle l'est."""
+        # make a switch case
+        if type_building == "mine":
+            Mine.can_build(self.ressources)
+
 
     def deplete_energy(self):
         """
