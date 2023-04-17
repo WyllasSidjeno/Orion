@@ -107,7 +107,7 @@ class Controller:
                 lbl.bind("<Button-1>", self.on_click_select)
             lbl.grid(sticky='nsew')
 
-    def science_achetable(self, science, data):
+    def science_achetable(self, science: object, data: object) -> bool:
         """Si points suffisant, niveau suffisant et is_unlockable
          : Affiche la case d'une science bloquée
          Sinon : Affiche la case d'une science débloquée"""
@@ -118,7 +118,7 @@ class Controller:
         else:
             return False
 
-    def science_acquises(self, science, data):
+    def science_acquises(self, science: object, data: object) -> bool:
         """Verifie si la science est acquise"""
         if data.sciences.get(science)[2] == "available":
             return True
