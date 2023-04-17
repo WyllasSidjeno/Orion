@@ -18,6 +18,7 @@ from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from Orion_client.model.ships import Ship, Flotte
 from Orion_client.model.space_object import TrouDeVers, Etoile
+import math
 
 
 class Modele(IModel):
@@ -307,6 +308,7 @@ class Modele(IModel):
         return stars
 
 
+
 class Joueur(IJoueur):
     """Classe du joueur.
     Le joueur est le personnage qui joue le jeu.
@@ -348,10 +350,6 @@ class Joueur(IJoueur):
         self.etoiles_controlees: list = [etoile_mere]
         """Liste des etoiles controlees par le joueur."""
         self.consommation_energie_joueur = AlwaysInt(10)
-        """Consommation de l'energie du joueur."""
-        self.energie = AlwaysInt(10000)
-        # Todo : A changer pour que l'energie soit
-        #  pas dupliqué dans ressource @ Romain & Julien-Karl
         """Ressources totales du joueur."""
 
         self.local_queue = local_queue
@@ -359,14 +357,14 @@ class Joueur(IJoueur):
         self.player_local_queue = JoueurQueue()
 
         self.ressources = Ressource(metal=100, beton=100, energie=100,
-                                    nourriture=100, population=0,
+                                    nourriture=100,
                                     science=0)
-        self.etoile_mere = etoile_mere
         """L'etoile mere du joueur."""
         self.etoile_mere.couleur = couleur
         self.etoile_mere.proprietaire = self.nom
 
         self.recently_lost_ships_id = []
+        self.cadre_consommation = 0
 
     def conquer_planet(self, etoile: Etoile):
         """Conquiert une etoile et lui établie les charactérisques
@@ -446,7 +444,7 @@ class Joueur(IJoueur):
         # Todo: Ajouter les variables bool docked et int consommation
         #  dans le modele vaisseau (2e sprint)
 
-        self.ressources["Energie"] -= AlwaysInt(
+        self.ressources["energie"] -= AlwaysInt(
             (
                     conso_vaisseaux + conso_structures +
                     self.consommation_energie_joueur))
@@ -490,8 +488,10 @@ class Joueur(IJoueur):
         getattr(self, funct)(*args)
 
     def tick(self):
-        """Fonction de jeu du joueur pour un tour.
-        """
+
+        """Fonction de jeu du joueur pour un tour."""
+        self.cadre_consommation += 1
+     
         for etoile in self.etoiles_controlees:
             etoile.tick()
 
@@ -500,6 +500,10 @@ class Joueur(IJoueur):
                 self.flotte[type_ship][ship].tick()
 
         self.ressources_cumul()
+
+        if self.cadre_consommation % 60 == 0:
+            self.increment_pop()
+            self.cadre_consommation = 0
 
     def ressources_cumul(self):
         for e in self.etoiles_controlees:
@@ -519,7 +523,36 @@ class Joueur(IJoueur):
 
                 self.ressources += planet_res
 
+    def increment_pop(self):
+        tot_population: int = 0
+        nourriture_apres_conso: float = 0
+        cpt_transit = 0
+        """passer a travers les etoiles"""
+        for p in self.etoiles_controlees:
+            if p.transit:
+                tot_population += p.population
+                cpt_transit += 1
 
+        """Consommation de nourriture par tick (server % 30)"""
+        print(self.nom, "population du joueur avant calcul: ", tot_population)
+        self.ressources["nourriture"] -= tot_population
+
+        print("nourriture apres tick")
+        print(self.ressources["nourriture"])
+
+        nourriture_apres_conso = self.ressources["nourriture"]
+        nourriture_apres_conso *= .15
+        nourriture_apres_conso /= cpt_transit
+
+        for c in self.etoiles_controlees:
+            if c.transit:
+                c.population += math.floor(nourriture_apres_conso)
+            else:
+                c.population = AlwaysInt(c.population * .90)
+            if c.population <= 0:
+                c.population = 0
+
+            """tester que la reduction par pourcentage permet une conquete facile"""
 class AI(Joueur):
     """Classe de l'AI.
     L'AI est le personnage non-joueur qui joue le jeu.

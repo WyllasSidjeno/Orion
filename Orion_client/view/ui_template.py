@@ -16,6 +16,12 @@ if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
     from Orion_client.model.space_object import TrouDeVers, PorteDeVers
 
+hexDarkGrey: str = "#36393f"
+"""Couleur de fond des frames"""
+hexDark: str = "#2f3136"
+"""Couleur de fond de l'application"""
+hexSpaceBlack: str = "#23272a"
+"""Pour l'espace, on utilise un noir plus sombre"""
 
 class GameCanvas(Canvas):
     """ Représente le canvas de jeu, ce qui veux dire l'ensemble des

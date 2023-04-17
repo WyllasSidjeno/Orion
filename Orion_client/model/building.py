@@ -69,6 +69,7 @@ class Mine(Building):
         description = "Une mine de fer extractant les ressources du sol"
         upgrade_cost: dict = {}  # todo: Ressource class
         output: RessourceMul = RessourceMul(metal=2, beton=1, energie=1, nourriture=1, population=1, science=1)
+
         level = 1
         max_level = 3
         consumption = 100
@@ -93,6 +94,7 @@ class Farm(Building):
         description = "Une ferme produisant de la nourriture"
         upgrade_cost: dict = {}  # todo: Ressource class
         output: RessourceMul = RessourceMul(metal=1, beton=1, energie=1, nourriture=2, population=1, science=1)
+
         level = 1
         max_level = 3
         consumption = 100
@@ -117,6 +119,7 @@ class ConcreteFactory(Building):
         description = "Une usine produisant du beton"
         upgrade_cost: dict = {}  # todo: Ressource class
         output: RessourceMul = RessourceMul(metal=1, beton=2, energie=1, nourriture=1, population=1, science=1)
+
         level = 1
         max_level = 3
         consumption = 100
