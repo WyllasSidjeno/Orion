@@ -397,8 +397,8 @@ class Hud(Frame):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1, relief="solid")
 
-        for i in range(1):  # configure HUD columns
-            self.grid_columnconfigure(i)
+        self.grid_columnconfigure(0)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_propagate(False)
 
@@ -479,17 +479,21 @@ class Hud(Frame):
         self.energy_label.pack()
         self.food_label.pack()
 
-        #TODO: make the button to the right of the frame
         self.science_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
-        self.science_frame.grid(row=0, column=1, sticky="e")
-        self.science_frame.grid_columnconfigure(1, weight=1)
-        self.science_frame.rowconfigure(0, weight=1)
+        self.science_frame.grid(row=0, column=1, sticky="e", padx=10)
+        self.science_frame.grid_columnconfigure(0, weight=1)
+        self.science_frame.grid_rowconfigure(0, weight=1)
 
-        self.science_bouton = Button(self.science_frame, text="Science", highlightcolor="#F7CE25", highlightthickness=3,
-                                     bg="#0A6522", fg="#F7CE25", font=("Fixedsys", 17), width=10, height=2,
-                                     justify="right")
-        self.science_bouton.grid(row=0, column=1, sticky="e", padx=10, pady=2)
-        # self.science_bouton.pack(side="right",  padx=10, pady=2)
+        self.science_button = Button(self.science_frame, text="Science",
+                                        bg=hexDark, fg="white",
+                                        font=("Fixedsys", self.text_size),
+                                        width=self.ressource_width,
+                                        height=self.ressource_height)
+        self.science_button.grid(row=0, column=0, sticky="nes")
+
+
+
+
 
     def update_ressources(self, metal, beton, energie, nourriture):
         self.metal_text = "Metal: " + str(metal)
