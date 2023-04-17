@@ -1,6 +1,6 @@
 from __future__ import annotations
 import random
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry
+from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Button
 from PIL import Image
 from typing import TYPE_CHECKING
 
@@ -392,7 +392,6 @@ class Minimap(Canvas):
                x2 * self.x_ratio / self.old_x_ratio, \
                y2 * self.y_ratio / self.old_y_ratio
 
-
 class Hud(Frame):
     def __init__(self, master):
         super().__init__(master)
@@ -479,6 +478,18 @@ class Hud(Frame):
         self.beton_label.pack()
         self.energy_label.pack()
         self.food_label.pack()
+
+        #TODO: make the button to the right of the frame
+        self.science_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.science_frame.grid(row=0, column=1, sticky="e")
+        self.science_frame.grid_columnconfigure(1, weight=1)
+        self.science_frame.rowconfigure(0, weight=1)
+
+        self.science_bouton = Button(self.science_frame, text="Science", highlightcolor="#F7CE25", highlightthickness=3,
+                                     bg="#0A6522", fg="#F7CE25", font=("Fixedsys", 17), width=10, height=2,
+                                     justify="right")
+        self.science_bouton.grid(row=0, column=1, sticky="e", padx=10, pady=2)
+        # self.science_bouton.pack(side="right",  padx=10, pady=2)
 
     def update_ressources(self, metal, beton, energie, nourriture):
         self.metal_text = "Metal: " + str(metal)
