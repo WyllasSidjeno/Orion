@@ -113,6 +113,9 @@ class Ship(ABC):
     def is_close_enough(self) -> bool:
         """Retourne True si le vaisseau est assez proche de sa cible."""
         # If the target is close enough to attack or to move to attack
+        if self.cible is not None:
+            self.position_cible = self.cible.position
+
         if math.hypot(
                 self.position_cible[0] - self.position[0],
                 self.position_cible[1] - self.position[1]) \
@@ -174,9 +177,10 @@ class Militaire(Ship):
 
     def attack(self) -> None:
         """Fait attaquer le vaisseau."""
-        self.cible.attacked(self.attack_strength)
-        if self.cible.resistance <= 0:
-            self.target_change(None)
+        if self.cible is not None:
+            self.cible.attacked(self.attack_strength)
+            if self.cible.resistance <= 0:
+                self.target_change(None)
 
     def target_change(self, pos, target=None) -> None:
         """Change la position cible du vaisseau.
