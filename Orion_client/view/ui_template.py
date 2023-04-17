@@ -1,5 +1,6 @@
 from __future__ import annotations
 import random
+import tkinter
 from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Tk
 from PIL import Image
 from typing import TYPE_CHECKING
@@ -509,13 +510,13 @@ class MiniGameWindow(Frame):
                                          bd=1, relief="solid")
         self.title_label = Label(self.header_frame, text="HEADER",
                                         bg=hexDarkGrey, fg="white",
-                                        font=("Arial", 15))
+                                        font=("Fixedsys", 15))
 
         self.main_frame: Frame = Frame(self, bg=hexDarkGrey,
                                        bd=1, relief="solid")
         self.minigame_label = Label(self.main_frame, text="MINIGAME",
                                     bg=hexDarkGrey, fg="white",
-                                    font=("Arial", 13))
+                                    font=("Fixedsys", 13))
 
         self.place_header()
         self.place_main()
@@ -537,7 +538,41 @@ class MiniGameWindow(Frame):
         # Start with the main frame
         self.main_frame.place(relx=0, rely=0.1, relwidth=1, relheight=0.9)
         self.minigame_label.place(anchor="center", relx=0.5, rely=0.5)
-        #TODO: PLACE MINIGAMES HERE
+
+        minigame = Minigame(self.minigame_label)
+        minigame.game1()
+        minigame.pack()
+
+
+
+class Minigame(Frame):
+
+    def __init__(self, master, *args):
+        super().__init__(master, bg=hexDark, bd=1, relief="solid",
+                         width=400, height=350, *args)
+
+    def game1(self):
+        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4, relheight=0.15, anchor="center")
+
+        self.textLabel = Label(self.minigame_frame, text="123456",
+                               bg=hexDarkGrey, fg="white",
+                               font=("Fixedsys", 18))
+        self.textLabel.place(relx=0.5, rely=0.5, anchor="center")
+
+
+        self.input_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45, relheight=0.25, anchor="center")
+
+        self.input_text = Text(self.input_frame, height=1, width=10,
+                               bg=hexDarkGrey, fg="white", bd=1, relief="solid",
+                               font=("Fixedsys", 17))
+        self.input_text.place(relx=0.5, rely=0.3, anchor="center")
+
+        self.input_button = tkinter.Button(self.input_frame, text="input") #TODO: add command attribute to link input
+        self.input_button.place(relx=0.5, rely=0.75, anchor="center")
+
+
 
 
 class ChatBox(Frame):
