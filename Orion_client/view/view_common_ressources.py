@@ -1,7 +1,8 @@
 """
 Ce fichier contient les ressources communes à toutes les vues
 """
-# UI
+
+
 hexDarkGrey: str = "#36393f"
 """Couleur de fond des frames"""
 hexDark: str = "#2f3136"
@@ -9,19 +10,3 @@ hexDark: str = "#2f3136"
 hexSpaceBlack: str = "#23272a"
 """Pour l'espace, on utilise un noir plus sombre"""
 police: str = "FixedSys"
-
-# Sciences
-hexDarkGreen: str = "#0A6522"
-"""Couleur des sciences debloquer"""
-hexGreyGreen: str = "#444C38"
-"""Couleur des sciences bloquer"""
-hexYellowGreen: str = "#C7EA46"
-"""Couleur des sciences prochaines a debloquer"""
-hexGrey: str = "#2f3136"
-"""Couleur des borders des cases sciences"""
-hexBrightYellow: str = "#F7CE25"
-"""Couleur border buyScience"""
-hexBrightGreen: str = "#cbff00"
-"""Couleur bouton oui"""
-hexRed: str = "#ff5200"
-"""Couleur bouton annuler"""
