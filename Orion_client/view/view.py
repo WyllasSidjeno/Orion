@@ -85,8 +85,6 @@ class GameView(Frame):
         self.side_bar.refresh(mod)
 
         dict_ress = mod.joueurs[mod.controller_username].ressources
-
-        #dict_ress.pop("population")
         dict_ress.pop("science")
 
         self.hud.update_ressources(**dict_ress)

@@ -47,3 +47,7 @@ class IController(ABC, QueueSubjectInterface):
                                    pos: tuple[int, int]):
         raise NotImplementedError
 
+    @abstractmethod
+    def handle_building_construct_request(self, planet, building_type):
+        raise NotImplementedError
+

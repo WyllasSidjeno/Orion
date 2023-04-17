@@ -134,7 +134,6 @@ class EtoileWindow(Frame):
 
         self.construct_building_menu = ConstructBuildingMenu(self.side_frame)
 
-
         for i in range(8):
             self.building_list.append(BuildingWindow(self.batiment_grid))
 
@@ -253,12 +252,19 @@ class EtoileWindow(Frame):
         self.stockpile_boolean_label.config(
             text="Oui" if star.transit else "Non")
 
+        max_building = star.buildinglist.__len__()
+
         for i in range(star.taille):
             self.building_list[i].show(row=i // 3, column=i % 3)
             self.building_list[i].reinitialize()
-            self.building_list[i].bind("<Button-1>",
-                                       lambda event, i=i:
-                                       self.construct_building_menu.show(event, i))
+            if i < max_building:
+                self.building_list[i].show_building(star.buildinglist[i])
+
+            else:
+                self.building_list[i].bind("<Button-1>",
+                                           lambda event, i=i:
+                                           self.construct_building_menu.show(
+                                               event, i))
 
         output = star.output.__dict__()
         self.energie_value_label.config(text=output["energie"])
@@ -389,12 +395,11 @@ class ConstructShipMenu(Menu):
 
 class ConstructBuildingMenu(Menu):
     planet_id: str
-    command_queue: JoueurQueue
+    command_queue: ControllerQueue
 
-    def __init__(self, master: Frame, command_queue):
+    def __init__(self, master: Frame):
         """Initialise le menu deroulant"""
         super().__init__(master, tearoff=0, bg=hexDarkGrey)
-        self.command_queue = command_queue
         self.building_types = ["Mine", "Farm", "Concrete Factory",
                                "Power Plant", "Research Center"]
 
@@ -403,7 +408,6 @@ class ConstructBuildingMenu(Menu):
         for i in range(len(self.building_types)):
             self.add_command(label=self.building_types[i])
             self.entryconfig(i + 2, command=partial(self.on_click, i))
-
 
     def hide(self):
         """Cache le menu"""
@@ -416,10 +420,10 @@ class ConstructBuildingMenu(Menu):
 
     def on_click(self, i):
         type = self.building_types[i].lower().replace(" ", "")
-        self.command_queue.construct_building_request(self.planet_id, type)
+        self.command_queue.handle_building_construct_request(self.planet_id,
+                                                             type)
         self.hide()
 
-    def register_command_queue(self, command_queue: JoueurQueue):
+    def register_command_queue(self, command_queue: ControllerQueue):
         """Enregistre la file de commandes"""
         self.command_queue = command_queue
-

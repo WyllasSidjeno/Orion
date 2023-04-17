@@ -183,6 +183,11 @@ class Controller(IController):
         """Gère la demande de construction d'un vaisseau."""
         self.controller_server_joueur.construct_ship_request(*args)
 
+    def handle_building_construct_request(self, planet, building_type):
+        """Gère la demande de construction d'un vaisseau."""
+        self.controller_server_joueur.construct_building_request(planet,
+                                                                 building_type)
+
     def cancel_previous_selection(self):
         """Annule la selection précédente."""
         self.previous_selection = None
