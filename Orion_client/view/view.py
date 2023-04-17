@@ -1,7 +1,7 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
 from Orion_client.helpers.CommandQueues import ControllerQueue
-from Orion_client.view.ui_template import GameCanvas, SideBar, Hud
+from Orion_client.view.ui_template import GameCanvas, SideBar, Hud, ChatBox
 
 from Orion_client.view.view_common_ressources import *
 
@@ -30,6 +30,8 @@ class GameView(Frame):
         self.canvas = GameCanvas(self, self.scrollX, self.scrollY, username)
         """Représente le canvas de la vue du jeu."""
 
+        self.chat = ChatBox(self, command_queue)
+
         self.pack(fill="both", expand=True)
 
         self.canvas.etoile_window.construct_ship_menu.register_command_queue(
@@ -40,10 +42,12 @@ class GameView(Frame):
         self.bind_game_requests()
 
         self.canvas.etoile_window.proprietaire_label.config(text=username)
-        # todo : Add a function to update the username in the view because
-        #  encapsulation is important
 
         self.configure_grid()
+
+        self.focus_set()
+
+        self.bind("<Return>", self.chat.show)
 
     def configure_grid(self):
         """Configures la grid de la vue principale du jeu."""
@@ -88,6 +92,9 @@ class GameView(Frame):
         dict_ress.pop("science")
 
         self.hud.update_ressources(**dict_ress)
+        self.chat.refresh(mod)
+
+        self.side_bar.minimap.user_square_move(self.canvas.view_pos)
 
     def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
