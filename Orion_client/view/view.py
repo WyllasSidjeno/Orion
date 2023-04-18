@@ -36,8 +36,8 @@ class GameView(Frame):
 
         self.canvas.etoile_window.construct_ship_menu.register_command_queue(
             command_queue)
-        self.canvas.etoile_window.construct_building_menu.register_command_queue(
-            command_queue)
+        self.canvas.etoile_window. \
+            construct_building_menu.register_command_queue(command_queue)
 
         self.bind_game_requests()
 
@@ -247,7 +247,8 @@ class LobbyView(Frame):
                 Label(self.player_list, text=joueurs[i][0],
                       bg=hexDarkGrey, fg="white",
                       font=("Fixedsys", 10)).place(anchor="center",
-                                                relx=0.5, rely=0.15 + i * 0.2)
+                                                   relx=0.5,
+                                                   rely=0.15 + i * 0.2)
 
     def enable_restart_button(self):
         self.restart_button.config(state="normal")

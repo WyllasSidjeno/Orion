@@ -256,7 +256,6 @@ class Reconnaissance(Ship):
     :ivar resistance: La resistance du vaisseau.
     :ivar resistance_max: La resistance maximale du vaisseau.
 
-    :ivar log: Le log du vaisseau.
     :ivar nouveau: Si le vaisseau est nouveau.
 
     :ivar position: La position du vaisseau.

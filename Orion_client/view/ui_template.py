@@ -1,7 +1,8 @@
 from __future__ import annotations
 import random
 
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Button, Tk
+from tkinter import Frame, Label, Canvas, Scrollbar, \
+    Text, END, Entry, Button, Tk
 
 from PIL import Image
 from typing import TYPE_CHECKING
@@ -18,12 +19,6 @@ if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
     from Orion_client.model.space_object import TrouDeVers, PorteDeVers
 
-hexDarkGrey: str = "#36393f"
-"""Couleur de fond des frames"""
-hexDark: str = "#2f3136"
-"""Couleur de fond de l'application"""
-hexSpaceBlack: str = "#23272a"
-"""Pour l'espace, on utilise un noir plus sombre"""
 
 class GameCanvas(Canvas):
     """ Représente le canvas de jeu, ce qui veux dire l'ensemble des
@@ -58,11 +53,11 @@ class GameCanvas(Canvas):
         self.etoile_window.hide()
 
         self.photo_cache = {
-            "white": Image.open("assets/planet/star_white01.png"),
-            "blue": Image.open("assets/planet/star_blue01.png"),
-            "red": Image.open("assets/planet/star_red01.png"),
-            "yellow": Image.open("assets/planet/star_yellow01.png"),
-            "orange": Image.open("assets/planet/star_orange01.png"),
+            "white": Image.open("assets/star/star_white.png"),
+            "blue": Image.open("assets/star/star_blue.png"),
+            "red": Image.open("assets/star/star_red.png"),
+            "yellow": Image.open("assets/star/star_yellow.png"),
+            "orange": Image.open("assets/star/star_orange.png"),
         }
 
         self.cache = []
@@ -76,7 +71,6 @@ class GameCanvas(Canvas):
 
         self.view_pos = self.coords("current")
         """La position de la caméra sur la scroll region du canvas de jeu."""
-
 
     def mouse_over_view_show(self, event):
         self.mouseOverView = MouseOverView(self)
@@ -94,7 +88,6 @@ class GameCanvas(Canvas):
         x2 = self.canvasx(self.winfo_width())
         y2 = self.canvasy(self.winfo_height())
         self.view_pos = (x1, y1, x2, y2)
-
 
         if self.etoile_window.star_id is not None:
             self.etoile_window.refresh(mod)
@@ -408,7 +401,7 @@ class Minimap(Canvas):
                y1 * self.y_ratio / self.old_y_ratio, \
                x2 * self.x_ratio / self.old_x_ratio, \
                y2 * self.y_ratio / self.old_y_ratio
-               
+
     def user_square_move(self, pos):
         x1, y1, x2, y2 = pos
         x1 *= self.x_ratio
@@ -418,6 +411,7 @@ class Minimap(Canvas):
 
         self.user_square = self.create_rectangle(x1, y1, x2, y2,
                                                  outline="white")
+
 
 class Hud(Frame):
     def __init__(self, master):
@@ -530,15 +524,11 @@ class Hud(Frame):
         self.science_frame.grid_rowconfigure(0, weight=1)
 
         self.science_button = Button(self.science_frame, text="Science",
-                                        bg=hexDark, fg="white",
-                                        font=("Fixedsys", self.text_size),
-                                        width=self.ressource_width,
-                                        height=self.ressource_height)
+                                     bg=hexDark, fg="white",
+                                     font=("Fixedsys", self.text_size),
+                                     width=self.ressource_width,
+                                     height=self.ressource_height)
         self.science_button.grid(row=0, column=0, sticky="nes")
-
-
-
-
 
     def update_ressources(self, metal, beton, energie, nourriture):
         self.metal_info.config(text=metal)
@@ -546,9 +536,10 @@ class Hud(Frame):
         self.energy_info.config(text=energie)
         self.food_info.config(text=nourriture)
 
+
 class MiniGameWindow(Frame):
 
-    def __init__(self, master,  proprietaire: str):
+    def __init__(self, master, proprietaire: str):
         super().__init__(master, bg=hexDarkGrey, bd=2, relief="solid",
                          width=500, height=500)
 
@@ -557,8 +548,8 @@ class MiniGameWindow(Frame):
         self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
                                          bd=1, relief="solid")
         self.title_label = Label(self.header_frame, text="HEADER",
-                                        bg=hexDarkGrey, fg="white",
-                                        font=("Fixedsys", 15))
+                                 bg=hexDarkGrey, fg="white",
+                                 font=("Fixedsys", 15))
 
         self.main_frame: Frame = Frame(self, bg=hexDarkGrey,
                                        bd=1, relief="solid")
@@ -589,10 +580,8 @@ class MiniGameWindow(Frame):
 
         minigame = Minigame(self.minigame_label)
 
-
         minigame.game1()
         minigame.pack()
-
 
 
 class Minigame(Frame):
@@ -601,44 +590,42 @@ class Minigame(Frame):
         super().__init__(master, bg=hexDark, bd=1, relief="solid",
                          width=400, height=350, *args)
 
-    def game1(self): #remember the number
+    def game1(self):  # remember the number
         self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
-        self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4, relheight=0.15, anchor="center")
+        self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4,
+                                  relheight=0.15, anchor="center")
 
         self.answerLabel = Label(self.minigame_frame, text="123456",
-                               bg=hexDarkGrey, fg="white",
-                               font=("Fixedsys", 18))
+                                 bg=hexDarkGrey, fg="white",
+                                 font=("Fixedsys", 18))
         self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
 
-
         self.input_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
-        self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45, relheight=0.25, anchor="center")
+        self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45,
+                               relheight=0.25, anchor="center")
 
         self.input_text = Text(self.input_frame, height=1, width=10,
-                               bg=hexDarkGrey, fg="white", bd=1, relief="solid",
+                               bg=hexDarkGrey, fg="white", bd=1,
+                               relief="solid",
                                font=("Fixedsys", 17))
         self.input_text.place(relx=0.5, rely=0.3, anchor="center")
 
-        self.input_button = Button(self.input_frame, text="input") #TODO: add command attribute to link input
+        self.input_button = Button(self.input_frame,
+                                   text="input")  # TODO: add command
+        # attribute to link input
         self.input_button.place(relx=0.5, rely=0.75, anchor="center")
 
-    def game2(self): #simon says
+    def game2(self):  # simon says
         self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
         self.minigame_frame.place(relx=0.5, rely=0.5, anchor="center")
 
-        #for i in range(9):
+        # for i in range(9):
 
-    def game3(self): #target practice
+    def game3(self):  # target practice
         print("")
 
-    def game4(self): #solo pong
+    def game4(self):  # solo pong
         print("")
-
-
-
-
-
-
 
 
 class ChatBox(Frame):
@@ -671,7 +658,7 @@ class ChatBox(Frame):
     def send_message(self, _):
         if self.chat_entry.get() != "":
             self.queue.handle_message(self.chat_entry.get())
-            self.chat_entry.delete(0, "end")
+            self.chat_entry.delete(0, END)
         else:
             self.hide(None)
 
@@ -700,11 +687,12 @@ class ChatBox(Frame):
         self.place_configure(relx=event.x_root / self.master.winfo_width(),
                              rely=event.y_root / self.master.winfo_height())
 
-    def refresh(self, model:Modele):
+    def refresh(self, model: Modele):
         if model.message_manager.new_messages:
             messages = model.message_manager.get_new_messages()
             for message in messages:
-                self.chat_text.insert("end", message + "\n")
+                self.chat_text.insert(END, message + "\n")
+
 
 class MouseOverView(Frame):
     def __init__(self, master):
@@ -717,9 +705,9 @@ class MouseOverView(Frame):
     def on_mouse_over(self, *args):
         if not self.updated:
             dictlist = []
-            for dict in args:
-                if dict is not None:
-                    dictlist.append(dict)
+            for dicto in args:
+                if dicto is not None:
+                    dictlist.append(dicto)
             for i in range(len(dictlist)):
                 container = Frame(self, bg=hexDark, bd=1, relief="solid",
                                   pady=10)
@@ -882,8 +870,3 @@ if __name__ == '__main__':
     minigamewindow.pack()
 
     root.mainloop()
-
-
-
-
-

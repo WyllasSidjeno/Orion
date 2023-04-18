@@ -64,7 +64,11 @@ class Modele(IModel):
                            star_name_csv)
         self.creer_joueurs(joueurs, star_name_csv)
         self.creer_ias()
+
     def receive_message(self, message):
+        """Reçoit un message du serveur et l'ajoute à la queue des messages.
+        :param message: Le message reçu
+        """
         self.message_manager.add_message(message)
 
     def change_planet_ownership(self, planet_id: str,
@@ -174,7 +178,7 @@ class Modele(IModel):
                     for k in self.log[i]:
                         if k in self.log[j]:
                             self.log[j].remove(k)
-                            #todo : remove this mess
+                            # todo : remove this mess
 
         self.cadre = cadre
         if cadre in self.log:
@@ -204,7 +208,6 @@ class Modele(IModel):
         for i in self.joueurs:
             self.joueurs[i].execute_commands(self.joueurs[i].local_queue)
 
-
     def ajouter_actions(self, actionsrecues: list, frame: int):
         """Ajoute les actions reçues dans la liste des actions à faire
          si et seulement si le cadre est plus petit que le cadre courant.
@@ -232,20 +235,24 @@ class Modele(IModel):
             y2 = randrange(10, self.hauteur - 10)
             self.trou_de_vers.append(TrouDeVers(x1, y1, x2, y2))
 
-    def creer_etoiles(self, nb_etoiles: int, planet_name_csv):
+    def creer_etoiles(self, nb_etoiles: int, star_name_csv):
         """Crée des étoiles, d'une certaine couleur dépendant du joueur.
-        :param nb_etoiles: le nombre d'étoiles à créer
+        :param nb_etoiles: le nombre d'étoiles à créer.
+        :param star_name_csv: le nom du fichier csv contenant
+        les noms des étoiles.
         """
         bordure = 10
         self.etoiles = [
             Etoile(randrange(self.largeur - (2 * bordure)) + bordure,
                    randrange(self.hauteur - (2 * bordure)) + bordure,
-                   self.local_queue, planet_name_csv)
+                   self.local_queue, star_name_csv)
             for _ in range(nb_etoiles)]
 
-    def creer_joueurs(self, joueurs: list, planet_name_csv):
+    def creer_joueurs(self, joueurs: list, star_name_csv):
         """Créé les joueurs et leur attribue une etoile mère.
         :param joueurs: la liste des joueurs à créer
+        :param star_name_csv: le nom du fichier csv contenant
+        les noms des étoiles.
         """
         couleurs = ["red", "blue", "yellow", "orange"]
         etoiles_occupee = []
@@ -265,7 +272,7 @@ class Modele(IModel):
                 self.etoiles.append(
                     Etoile(randrange(etoile.x - 500, etoile.x + 500),
                            randrange(etoile.y - 500, etoile.y + 500),
-                           self.local_queue, planet_name_csv)
+                           self.local_queue, star_name_csv)
                 )
 
     def creer_ias(self, ias: int = 0):
@@ -306,13 +313,13 @@ class Modele(IModel):
 
     def get_player_stars(self):
         """Récupère les étoiles contrôlées par le joueur
-        :param mod: Le model
         :return: Une liste d'étoiles"""
         stars = []
         for star in self.joueurs.keys():
             for j in self.joueurs[star].etoiles_controlees:
                 stars.append(j)
         return stars
+
 
 class Joueur(IJoueur):
     """Classe du joueur.
@@ -459,9 +466,11 @@ class Joueur(IJoueur):
         # Todo: Ajouter les variables bool docked et int consommation
         #  dans le modele vaisseau (2e sprint)
 
-        self.ressources["energie"] -= AlwaysInt(
-            (conso_vaisseaux + conso_structures +
-                    self.consommation_energie_joueur))
+        self.ressources["energie"] -= AlwaysInt((
+                conso_vaisseaux + conso_structures +
+                self.consommation_energie_joueur
+            )
+        )
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.
@@ -540,7 +549,6 @@ class Joueur(IJoueur):
 
     def increment_pop(self):
         tot_population: int = 0
-        nourriture_apres_conso: float = 0
         cpt_transit = 0
         """passer a travers les etoiles"""
         for p in self.etoiles_controlees:
@@ -563,7 +571,10 @@ class Joueur(IJoueur):
             if c.population <= 0:
                 c.population = 0
 
-            """tester que la reduction par pourcentage permet une conquete facile"""
+            # TODO : tester que la reduction par pourcentage permet une
+            #  conquete facile
+
+
 class AI(Joueur):
     """Classe de l'AI.
     L'AI est le personnage non-joueur qui joue le jeu.

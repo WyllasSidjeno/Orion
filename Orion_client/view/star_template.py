@@ -1,13 +1,15 @@
 from functools import partial
 from tkinter import Frame, Label, Canvas, Button, Menu
 
-from Orion_client.helpers.CommandQueues import ControllerQueue, JoueurQueue
+from Orion_client.helpers.CommandQueues import ControllerQueue
 from Orion_client.helpers.helper import StringTypes
 from Orion_client.view.view_common_ressources import *
 
 
 class EtoileWindow(Frame):
     star_id: int | None
+    x: int | None
+    y: int | None
 
     def __init__(self, master, proprietaire: str):
         """Initialise la fenetre"""
@@ -161,8 +163,12 @@ class EtoileWindow(Frame):
         """Déplace la fenetre en suivant la souris
         """
         if self.x is not None and self.y is not None:
-            x = self.master.winfo_pointerx() - self.x - self.master.winfo_rootx()
-            y = self.master.winfo_pointery() - self.y - self.master.winfo_rooty()
+            x = self.master.winfo_pointerx() - self.x \
+                - self.master.winfo_rootx()
+
+            y = self.master.winfo_pointery() - self.y \
+                - self.master.winfo_rooty()
+
             self.place(x=x, y=y)
 
     def place_header(self) -> None:
@@ -262,7 +268,7 @@ class EtoileWindow(Frame):
 
             else:
                 self.building_list[i].bind("<Button-1>",
-                                           lambda event, i=i:
+                                           lambda event:
                                            self.construct_building_menu.show(
                                                event, self.star_id))
 
@@ -419,9 +425,9 @@ class ConstructBuildingMenu(Menu):
         self.post(event.x_root, event.y_root)
 
     def on_click(self, i):
-        type = self.building_types[i].lower().replace(" ", "")
+        current_type = self.building_types[i].lower().replace(" ", "")
         self.command_queue.handle_building_construct_request(self.planet_id,
-                                                             type, i)
+                                                             current_type, i)
         self.hide()
 
     def register_command_queue(self, command_queue: ControllerQueue):

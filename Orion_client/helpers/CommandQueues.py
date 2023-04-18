@@ -124,6 +124,7 @@ class ControllerQueue(IController, CommandQueue):
         """Gère la demande de construction d'un bâtiment.
         :param planet: La planète.
         :param type_building: Le type de bâtiment.
+        :param i: La position dans la liste de bâtiments.
         """
         self._add("handle_building_construct_request", planet, type_building)
 

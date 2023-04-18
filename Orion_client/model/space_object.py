@@ -1,6 +1,6 @@
 import random
 
-from Orion_client.helpers.helper import get_prochain_id, AlwaysInt
+from Orion_client.helpers.helper import get_prochain_id
 from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from random import randrange
@@ -40,11 +40,11 @@ class PorteDeVers:
 
     def __init__(self, hole_id: str, x: int, y: int, taille: int) -> None:
         """Constructeur de la classe PorteDeVers.
-        :param parent_id: l'id du trou de vers auquel la porte de vers appartient
-        :param x: coordonnee x du centre de la porte
-        :param y: coordonnee y du centre de la porte
-        :param couleur: la couleur de la porte
-        :param taille: la taille de la porte
+        :param hole_id: l'id du trou de vers auquel la porte de vers
+        appartient
+        :param x: coordonnee x de la porte de vers
+        :param y: coordonnee y de la porte de vers
+        :param taille: taille de la porte de vers
         """
         self.parent_id = hole_id
         self.id = get_prochain_id()
@@ -68,7 +68,6 @@ class Etoile:
 
     def __init__(self, x: int, y: int, local_queue, planet_name_csv) -> None:
         """Constructeur de la classe Etoile.
-        :param parent: le modele auquel l'etoile appartient
         :param x: coordonnee x de l'etoile
         :param y: coordonnee y de l'etoile
         """
@@ -76,7 +75,7 @@ class Etoile:
         self.log = []
         self.transit: bool = False
         self.id: str = get_prochain_id()
-        # Is a csv file with planet names
+        # Is a csv file with star names
         self.name = random.choice(planet_name_csv)
         self.proprietaire: str = ""
         self.x = x
@@ -93,6 +92,7 @@ class Etoile:
         self.couleur = "white"
         self.population = random.randint(100, 200)
         self.needs_refresh: bool = False
+
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""
