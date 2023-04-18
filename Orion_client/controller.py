@@ -183,10 +183,11 @@ class Controller(IController):
         """Gère la demande de construction d'un vaisseau."""
         self.controller_server_joueur.construct_ship_request(*args)
 
-    def handle_building_construct_request(self, planete, type_building):
+    def handle_building_construct_request(self, planete, type_building, i):
         """Gère la demande de construction d'un vaisseau."""
-        self.controller_server_joueur.construct_building_request(planete,
-                                                                 type_building)
+        self.controller_server_joueur.construct_building_request(
+            planete, type_building, i
+        )
 
     def handle_message(self, message):
         """"Gère un message pris de la vue du jeu et le transmet au serveur."""

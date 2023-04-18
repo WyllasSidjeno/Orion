@@ -421,7 +421,7 @@ class ConstructBuildingMenu(Menu):
     def on_click(self, i):
         type = self.building_types[i].lower().replace(" ", "")
         self.command_queue.handle_building_construct_request(self.planet_id,
-                                                             type)
+                                                             type, i)
         self.hide()
 
     def register_command_queue(self, command_queue: ControllerQueue):
