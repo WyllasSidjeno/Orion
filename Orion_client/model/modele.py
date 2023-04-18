@@ -344,7 +344,7 @@ class Joueur(IJoueur):
         self.nom = nom
         self.etoile_mere = etoile_mere
         self.etoile_mere.transit = True
-        self.etoile_mere.buildinglist = [Farm(), Mine()]
+        self.etoile_mere.buildinglist = [Farm(), Mine(), PowerPlant()]
         self.etoile_mere.proprietaire = self.nom
         """Le nom du joueur."""
         self.is_controller_owner = controller_owner == nom
@@ -423,14 +423,16 @@ class Joueur(IJoueur):
         if has_enough_ressources:
             self.construct_ship(planet_id, type_ship)
 
-    def construct_building_request(self, planet_id: str, type_building: str,
+    def construct_building_request(self, etoile_id: str, type_building: str,
                                    list_position: int):
         """Fonction que est reçu du serveur depuis la vue du jeu.
         Elle s'assure que la construction d'un vaisseau est possible et
         la déclenche si elle l'est."""
         # make a switch case
+        etoile = self.get_etoile_by_id(etoile_id)
         if type_building == "mine":
-            Mine.can_build(self.ressources)
+            Mine.build_request(self.ressources, etoile.buildinglist,
+                               list_position)
 
     def deplete_energy(self):
         """
@@ -518,15 +520,16 @@ class Joueur(IJoueur):
             self.cadre_consommation = 0
 
     def ressources_cumul(self):
+        """Fonction pour cumuler les ressources du joueur"""
         for e in self.etoiles_controlees:
             if e.transit:
-                planet_res: Ressource = {}
+                planet_res: Ressource = Ressource()
                 for key in e.output:
                     planet_res[key] = e.output[key]
 
                 for b in e.buildinglist:
                     if isinstance(b, PowerPlant):
-                        planet_res += b.output
+                        planet_res = planet_res + b.output
                     elif isinstance(b, ResearchCenter):
                         continue
                     else:
