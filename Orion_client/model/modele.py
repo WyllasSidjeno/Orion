@@ -546,11 +546,7 @@ class Joueur(IJoueur):
                 cpt_transit += 1
 
         """Consommation de nourriture par tick (server % 30)"""
-        print(self.nom, "population du joueur avant calcul: ", tot_population)
         self.ressources["nourriture"] -= tot_population
-
-        print("nourriture apres tick")
-        print(self.ressources["nourriture"])
 
         nourriture_apres_conso = self.ressources["nourriture"]
         nourriture_apres_conso *= .15
