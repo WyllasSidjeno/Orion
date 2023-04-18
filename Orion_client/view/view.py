@@ -1,43 +1,53 @@
 from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 
-from Orion_client.helper import LogHelper
-from Orion_client.view.view_template import hexDark, hexDarkGrey, GameCanvas, \
-    SideBar, ShipViewGenerator
+from Orion_client.helpers.CommandQueues import ControllerQueue
+from Orion_client.view.ui_template import GameCanvas, SideBar, Hud, ChatBox
+
+from Orion_client.view.view_common_ressources import *
 
 
 class GameView(Frame):
-    nom: str
     id: str
+    command_queue: ControllerQueue
 
-    def __init__(self):
+    def __init__(self, command_queue: ControllerQueue, username):
         super().__init__()
-
-        self.log = LogHelper()
-        """Module assistant pour les logs."""
-
+        """Représente la queue de commandes du jeu."""
         self.config(bg=hexDark, bd=2, relief="solid",
                     width=1280, height=720)
 
-        self.top_bar = Frame(self, bg=hexDark, bd=1, relief="solid")
-        """Représente la barre du haut de la vue du jeu."""
-
-        self.side_bar = SideBar(self)
-        """Représente la barre de droite de la vue du jeu."""
+        self.command_queue = command_queue
 
         self.scrollX = Scrollbar(self, orient="horizontal")
         """Représente la scrollbar horizontale de la vue du jeu."""
         self.scrollY = Scrollbar(self, orient="vertical")
         """""Représente la scrollbar verticale de la vue du jeu."""
 
-        self.canvas = GameCanvas(self, self.scrollX, self.scrollY)
+        self.hud = Hud(self)
+        """Représente la barre du haut de la vue du jeu."""
+        self.side_bar = SideBar(self)
+        """Représente la barre de droite de la vue du jeu."""
+        self.canvas = GameCanvas(self, self.scrollX, self.scrollY, username)
         """Représente le canvas de la vue du jeu."""
 
-        self.previous_selection: list[str] | None = None
-        """Représente la sélection précédente de l'utilisateur dans la vue."""
+        self.chat = ChatBox(self, command_queue)
 
         self.pack(fill="both", expand=True)
 
-        """Générateur de vue de vaisseau semi-statique pour le canvas."""
+        self.canvas.etoile_window.construct_ship_menu.register_command_queue(
+            command_queue)
+        self.canvas.etoile_window.construct_building_menu.register_command_queue(
+            command_queue)
+
+        self.bind_game_requests()
+
+        self.canvas.etoile_window.proprietaire_label.config(text=username)
+
+        self.configure_grid()
+
+        self.focus_set()
+
+        self.bind("<Return>", self.chat.show)
 
     def configure_grid(self):
         """Configures la grid de la vue principale du jeu."""
@@ -49,7 +59,7 @@ class GameView(Frame):
             self.grid_rowconfigure(i, weight=1,
                                    minsize=50 if i == 0 else None)
 
-        self.top_bar.grid(row=0, column=0, columnspan=10, sticky="nsew")
+        self.hud.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
         self.side_bar.grid_propagate(False)
         self.canvas.grid(row=1, column=1, columnspan=9, rowspan=9,
@@ -58,43 +68,35 @@ class GameView(Frame):
         self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
         self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
 
-    def initialize(self, mod, username: str, user_id: str):
-        """Initialise la vue du jeu apres son lancement et lors de la
-        reception du modele."""
-        self.nom = username
-        self.id = user_id
-
-        self.configure_grid()
-        self.canvas.initialize(mod)
-        self.side_bar.initialize(mod)
-        self.canvas.planet_window.initialize()
-
     def bind_game_requests(self):
         """Binds les fonctions de la vue du jeu aux evenements du canvas."""
         self.side_bar.minimap.bind("<Button-1>",
-                                   self.on_minimap_left_click)
+                                   self.on_minimap_click)
 
         self.canvas.bind("<MouseWheel>",
                          self.canvas.vertical_scroll)
         self.canvas.bind("<Control-MouseWheel>",
                          self.canvas.horizontal_scroll)
 
-        self.canvas.bind("<Button-1>", self.on_game_left_click)
-        self.canvas.bind("<Button-3>", self.on_game_right_click)
+        self.canvas.bind("<Button-1>", self.on_game_click)
+        self.canvas.bind("<Button-3>", self.on_game_click)
+
+        self.canvas.bind("<B1-Motion>", self.canvas.drag)
 
     def refresh(self, mod):
         """Refresh la vue du jeu."""
         self.canvas.refresh(mod)
         self.side_bar.refresh(mod)
 
-    def get_all_view_logs(self):
-        """Retourne tous les logs de la vue et des sous-vues."""
-        for i in self.canvas.get_all_view_logs():
-            self.log.add_log(i)
+        dict_ress = mod.joueurs[mod.controller_username].ressources
+        dict_ress.pop("science")
 
-        return self.log.get_and_clear()
+        self.hud.update_ressources(**dict_ress)
+        self.chat.refresh(mod)
 
-    def on_minimap_left_click(self, event) -> None:
+        self.side_bar.minimap.user_square_move(self.canvas.view_pos)
+
+    def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
         pctx = event.x / self.side_bar.minimap.winfo_width()
         """Percentage of the x coordinate on the minimap."""
@@ -108,79 +110,26 @@ class GameView(Frame):
 
         self.canvas.move_to((pctx - x), (pcty - y))
 
-    def on_game_left_click(self, event) -> None:
-        """ Gère les interactions de la vue du jeu lors d'un clic gauche."""
+    def on_game_click(self, event) -> None:
+        """Gère les clics sur le canvas.
+
+        Elle s'occupe de gérer les clics sur le canvas et d'afficher
+        les fenetres demandés au clic. De plus,
+        elle envoie les commandes au controller pour traiter les clics.
+        """
+        self.canvas.scan_mark(event.x, event.y)
+        if self.canvas.etoile_window.is_shown:
+            self.canvas.etoile_window.hide()
 
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         tags_list = []
         for tag in self.canvas.gettags("current"):
             tags_list.append(tag)
 
-        self.look_for_etoile_window_interactions(tags_list)
-
-        self.look_for_ship_interactions(tags_list, pos)
-
-    def look_for_etoile_window_interactions(self, tags_list: list[str]):
-        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
-        une etoile dans le canvas."""
-        print("etoile", tags_list)
-        if self.canvas.planet_window.is_shown:
-            self.canvas.planet_window.hide()
-        elif self.is_owner_and_is_type(tags_list, "etoile_occupee"):
-            self.canvas.planet_window.show(tags_list[1])
-
-    def look_for_ship_interactions(self, tags_list: list[str],
-                                   pos: tuple[int, int]):
-        """Gère les interactions de la vue du jeu lors d'un clic gauche sur
-        un vaisseau dans le canvas sur la selection actuelle et la selection
-        précédente."""
-        if self.is_owner_and_is_type(tags_list, "vaisseau"):
-            print("ship", tags_list[1])
-            if self.previous_selection is None:
-                print("previous selection is none")
-                self.previous_selection = tags_list
-        elif self.previous_selection is not None:
-            print("ship movement request")
-            self.log.add(self.nom, "move_ship", self.previous_selection[1]
-                         , pos)
-            self.previous_selection = None
-
-    def on_game_right_click(self, _):
-        """Gère les interactions de la vue du jeu lors d'un clic droit."""
-        if self.canvas.planet_window.is_shown:
-            self.canvas.planet_window.hide()
-        tags_list = []
-        for tag in self.canvas.gettags("current"):
-            tags_list.append(tag)
-
-        if self.previous_selection:
-            if self.is_type(self.previous_selection, "vaisseau"):
-                if self.is_type(tags_list, ["etoile_occupee", "etoile"]) \
-                        and not self.is_owner(tags_list):
-                    print("ship movement request to star")
-            self.previous_selection = None
-
-    def is_owner_and_is_type(self, tags_list: list[str],
-                             object_type: str | list[str]) -> bool:
-        """Retourne True si l'objet est de type object_type
-        et que l'utilisateur"""
-        return self.is_type(tags_list, object_type) \
-            and self.is_owner(tags_list)
-
-    @staticmethod
-    def is_type(tags_list: list, object_type: str | list[str]) -> bool:
-        """Retourne True si l'objet est de type object_type"""
-        if isinstance(object_type, list):
-            return any(tag in object_type for tag in tags_list)
-        return object_type in tags_list
-
-    def is_owner(self, tags_list) -> bool:
-        """Retourne True si l'objet appartient au joueur de cette vue."""
-        return self.id in tags_list or self.nom in tags_list
-
-    def cancel_previous_selection(self):
-        """Annule la selection précédente."""
-        self.previous_selection = None
+        if event.num == 3:
+            self.command_queue.handle_right_click(pos, tags_list)
+        elif event.num == 1:
+            self.command_queue.handle_left_click(pos, tags_list)
 
 
 class LobbyView(Frame):
@@ -188,30 +137,30 @@ class LobbyView(Frame):
         super().__init__()
         self.config(bg=hexDark, bd=2,
                     relief="solid",
-                    width=600, height=480)
+                    width=620, height=480)
 
         self.connection_screen_label = Label(self,
                                              text='Orion - '
                                                   'Connection screen',
                                              bg=hexDark, fg="white",
-                                             font=("Arial", 30))
+                                             font=("Fixedsys", 30))
 
         self.game_state_label = Label(self, text="Game state:",
                                       bg=hexDark, fg="white",
-                                      font=("Arial", 15))
+                                      font=("Fixedsys", 15))
         self.game_state_label_value = Label(self, text="Not connected",
                                             bg=hexDark, fg="white",
-                                            font=("Arial", 10))
+                                            font=("Fixedsys", 10))
 
         self.player_name_label = Label(self, text="Joueur name: ",
                                        bg=hexDark, fg="white",
-                                       font=("Arial", 10))
+                                       font=("Fixedsys", 10))
         self.player_name_entry = Entry(self, width=30)
         self.player_name_entry.insert(0, username)
 
         self.url_serveur_label = Label(self, text="URL serveur: ",
                                        bg=hexDark, fg="white",
-                                       font=("Arial", 10))
+                                       font=("Fixedsys", 10))
         self.url_entry = Entry(self, width=30)
         self.url_entry.insert(0, url_serveur)
 
@@ -297,7 +246,7 @@ class LobbyView(Frame):
             for i in range(len(joueurs)):
                 Label(self.player_list, text=joueurs[i][0],
                       bg=hexDarkGrey, fg="white",
-                      font=("Arial", 10)).place(anchor="center",
+                      font=("Fixedsys", 10)).place(anchor="center",
                                                 relx=0.5, rely=0.15 + i * 0.2)
 
     def enable_restart_button(self):
