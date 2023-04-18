@@ -1,6 +1,8 @@
 from __future__ import annotations
 import random
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Button
+
+from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Button, Tk
+
 from PIL import Image
 from typing import TYPE_CHECKING
 
@@ -22,7 +24,6 @@ hexDark: str = "#2f3136"
 """Couleur de fond de l'application"""
 hexSpaceBlack: str = "#23272a"
 """Pour l'espace, on utilise un noir plus sombre"""
-
 
 class GameCanvas(Canvas):
     """ Représente le canvas de jeu, ce qui veux dire l'ensemble des
@@ -545,6 +546,100 @@ class Hud(Frame):
         self.energy_info.config(text=energie)
         self.food_info.config(text=nourriture)
 
+class MiniGameWindow(Frame):
+
+    def __init__(self, master,  proprietaire: str):
+        super().__init__(master, bg=hexDarkGrey, bd=2, relief="solid",
+                         width=500, height=500)
+
+        self.is_shown: bool = False
+
+        self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
+                                         bd=1, relief="solid")
+        self.title_label = Label(self.header_frame, text="HEADER",
+                                        bg=hexDarkGrey, fg="white",
+                                        font=("Fixedsys", 15))
+
+        self.main_frame: Frame = Frame(self, bg=hexDarkGrey,
+                                       bd=1, relief="solid")
+        self.minigame_label = Label(self.main_frame, text="MINIGAME",
+                                    bg=hexDarkGrey, fg="white",
+                                    font=("Fixedsys", 13))
+
+        self.place_header()
+        self.place_main()
+
+    def show(self) -> None:
+        self.place(relx=0.5, rely=0.5, anchor="center")
+        self.is_shown = True
+
+    def hide(self) -> None:
+        """Cache la fenetre"""
+        self.place_forget()
+        self.is_shown = False
+
+    def place_header(self) -> None:
+        self.header_frame.place(relx=0, rely=0, relwidth=1, relheight=0.1)
+        self.title_label.place(anchor="center", relx=0.5, rely=0.5)
+
+    def place_main(self) -> None:
+        # Start with the main frame
+        self.main_frame.place(relx=0, rely=0.1, relwidth=1, relheight=0.9)
+        self.minigame_label.place(anchor="center", relx=0.5, rely=0.5)
+
+        minigame = Minigame(self.minigame_label)
+
+
+        minigame.game1()
+        minigame.pack()
+
+
+
+class Minigame(Frame):
+
+    def __init__(self, master, *args):
+        super().__init__(master, bg=hexDark, bd=1, relief="solid",
+                         width=400, height=350, *args)
+
+    def game1(self): #remember the number
+        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4, relheight=0.15, anchor="center")
+
+        self.answerLabel = Label(self.minigame_frame, text="123456",
+                               bg=hexDarkGrey, fg="white",
+                               font=("Fixedsys", 18))
+        self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
+
+
+        self.input_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45, relheight=0.25, anchor="center")
+
+        self.input_text = Text(self.input_frame, height=1, width=10,
+                               bg=hexDarkGrey, fg="white", bd=1, relief="solid",
+                               font=("Fixedsys", 17))
+        self.input_text.place(relx=0.5, rely=0.3, anchor="center")
+
+        self.input_button = Button(self.input_frame, text="input") #TODO: add command attribute to link input
+        self.input_button.place(relx=0.5, rely=0.75, anchor="center")
+
+    def game2(self): #simon says
+        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        #for i in range(9):
+
+    def game3(self): #target practice
+        print("")
+
+    def game4(self): #solo pong
+        print("")
+
+
+
+
+
+
+
 
 class ChatBox(Frame):
     def __init__(self, master, queue):
@@ -777,3 +872,18 @@ class ShipViewGenerator:
                               fill=couleur,
                               tags=("vaisseau", ship_id, username, ship_type),
                               outline=hexSpaceBlack)
+
+
+if __name__ == '__main__':
+    root = Tk()
+    root.geometry("800x600")
+
+    minigamewindow = MiniGameWindow(root, "Bob")
+    minigamewindow.pack()
+
+    root.mainloop()
+
+
+
+
+
