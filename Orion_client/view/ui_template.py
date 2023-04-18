@@ -1,6 +1,6 @@
 from __future__ import annotations
 import random
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry
+from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Button, Tk
 from PIL import Image
 from typing import TYPE_CHECKING
 
@@ -573,6 +573,8 @@ class MiniGameWindow(Frame):
         self.minigame_label.place(anchor="center", relx=0.5, rely=0.5)
 
         minigame = Minigame(self.minigame_label)
+
+
         minigame.game1()
         minigame.pack()
 
@@ -584,14 +586,14 @@ class Minigame(Frame):
         super().__init__(master, bg=hexDark, bd=1, relief="solid",
                          width=400, height=350, *args)
 
-    def game1(self):
+    def game1(self): #remember the number
         self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
         self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4, relheight=0.15, anchor="center")
 
-        self.textLabel = Label(self.minigame_frame, text="123456",
+        self.answerLabel = Label(self.minigame_frame, text="123456",
                                bg=hexDarkGrey, fg="white",
                                font=("Fixedsys", 18))
-        self.textLabel.place(relx=0.5, rely=0.5, anchor="center")
+        self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
 
 
         self.input_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
@@ -602,8 +604,24 @@ class Minigame(Frame):
                                font=("Fixedsys", 17))
         self.input_text.place(relx=0.5, rely=0.3, anchor="center")
 
-        self.input_button = tkinter.Button(self.input_frame, text="input") #TODO: add command attribute to link input
+        self.input_button = Button(self.input_frame, text="input") #TODO: add command attribute to link input
         self.input_button.place(relx=0.5, rely=0.75, anchor="center")
+
+    def game2(self): #simon says
+        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        #for i in range(9):
+
+    def game3(self): #target practice
+        print("")
+
+    def game4(self): #solo pong
+        print("")
+
+
+
+
 
 
 
