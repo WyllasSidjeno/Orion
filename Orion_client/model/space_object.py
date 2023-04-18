@@ -89,7 +89,7 @@ class Etoile:
                                 nourriture=random.randint(1, 10),
                                 science=0)
         self.resistance = 100
-        self.buildinglist: list[Building] = []
+        self.buildinglist: list[Building] or None = [None] * self.taille
         self.couleur = "white"
         self.population = random.randint(100, 200)
         self.needs_refresh: bool = False
