@@ -23,15 +23,15 @@ class ArbreScience(Frame):
     choix_temporaire: str
     buyscience: Frame
 
-    def __init__(self, master, width: int = 500, height: int = 250, **kwargs):
+    def __init__(self, master, **kwargs):
         """Constructeur de la classe"""
-        super().__init__(master, width=width, height=height, **kwargs,
-                         background=hexGrey)
-        self.grid_propagate(False)
+        super().__init__(master, **kwargs,
+                         background=hexGrey, pady=10, padx=10)
+        self.grid_propagate(True)
         self.science_points = 10
 
         self.title = Label(self, text="Arbre de science", bg=hexGrey,
-                           fg="white", font=("Arial", 20))
+                           fg="white", font=(police, 20))
 
         self.title.grid(row=0, column=0, sticky="nsew")
 
@@ -137,7 +137,6 @@ class ArbreScience(Frame):
 if __name__ == "__main__":
     root = Tk()
     root.title("Science tree")
-    root.geometry("800x600")
     arbre = ArbreScience(root)
     arbre.grid(row=0, column=0, sticky="nsew")
     root.mainloop()
