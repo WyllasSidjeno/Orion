@@ -119,8 +119,6 @@ class Ressource(dict):
                 string += f"{key} : {self[key]}, "
         return string
 
-
-
     def __dict__(self) -> dict:
         """Retourne un dictionnaire de la ressource"""
         return self

@@ -40,6 +40,12 @@ class CommandQueue(ABC):
 
 
 class ModelQueue(IModel, CommandQueue):
+    def receive_message(self, message: str) -> None:
+        """Reçoit un message.
+        :param message: Le message.
+        """
+        self._add("receive_message", message)
+
     def change_planet_ownership(self, planet_id: str,
                                 new_owner: None | str = None,
                                 old_owner: None | str = None) -> None:
@@ -49,7 +55,7 @@ class ModelQueue(IModel, CommandQueue):
         :param old_owner: L'ancien propriétaire.
         """
         self._add("change_planet_ownership", planet_id,
-                   new_owner, old_owner)
+                  new_owner, old_owner)
 
     def target_change_request(self, ship_informations: dict,
                               target: dict) -> None:
@@ -75,10 +81,12 @@ class JoueurQueue(IJoueur, CommandQueue):
         """
         self._add("remove_ship", ship_id, ship_type)
 
-    def construct_building_request(self, planet_id: str, type_building: str):
+    def construct_building_request(self, planet_id: str, type_building: str,
+                                   list_position: int):
         """Demande la construction d'un bâtiment.
         :param planet_id: L'id de la planète.
         :param type_building: Le type de bâtiment.
+        :param list_position: La position dans la liste.
         """
         self._add("construct_building_request", planet_id, type_building)
 
@@ -112,10 +120,15 @@ class ControllerQueue(IController, CommandQueue):
         """
         self._add("handle_ship_construct_request", *args)
 
-
-    def handle_building_construct_request(self, planet, type_building):
+    def handle_building_construct_request(self, planet, type_building, i):
         """Gère la demande de construction d'un bâtiment.
         :param planet: La planète.
         :param type_building: Le type de bâtiment.
         """
         self._add("handle_building_construct_request", planet, type_building)
+
+    def handle_message(self, message):
+        """Gère un message.
+        :param message: Le message.
+        """
+        self._add("handle_message", message)

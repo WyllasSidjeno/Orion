@@ -1,6 +1,22 @@
 """Module qui contient la classe Science et Science Tree"""
 import tkinter as tk
 from Orion_client.helpers.helper import AlwaysInt
+from Orion_client.view.view_common_ressources import *
+
+hexDarkGreen: str = "#0A6522"
+"""Couleur des sciences debloquer"""
+hexGreyGreen: str = "#444C38"
+"""Couleur des sciences bloquer"""
+hexYellowGreen: str = "#C7EA46"
+"""Couleur des sciences prochaines a debloquer"""
+hexGrey: str = "#2f3136"
+"""Couleur des borders des cases sciences"""
+hexBrightYellow: str = "#F7CE25"
+"""Couleur border buyScience"""
+hexBrightGreen: str = "#cbff00"
+"""Couleur bouton oui"""
+hexRed: str = "#ff5200"
+"""Couleur bouton annuler"""
 
 
 class ArbreScience:
@@ -54,6 +70,8 @@ class Controller:
         , 'science_5': [5, 11, "blocked"], 'science_6': [6, 13, "blocked"], 'science_7': [7, 15, "blocked"]}
 
     choixTemporaire: None
+    buyScience: tk.Frame
+    con_frame: tk.Frame
 
     def __init__(self):
         self.root = root
@@ -61,7 +79,7 @@ class Controller:
         self.sortedDict = sorted(self.sciences.items())
         self.maxRow = AlwaysInt(0)
         self.maxColumn = AlwaysInt(4)
-        self.root.config(bg="#36393f")
+        self.root.config(bg=hexDarkGrey)
 
     def show_science(self, data):
         """Affiche les sciences"""
@@ -69,27 +87,27 @@ class Controller:
             prix = data.sciences.get(science)[1]
 
             if self.science_acquises(f"{science}", data):
-                con_frame = self.science_debloquer()
-                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#0A6522") #green
+                self.con_frame = self.case_science_format()
+                lbl = tk.Label(self.con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg=hexDarkGreen)
             else:
-                con_frame = tk.Frame(self.root, bg="#2f3136", highlightbackground="black", highlightthickness=3)
-                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#444C38") #grey
+                self.con_frame = self.case_science_format()
+                lbl = tk.Label(self.con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg=hexGreyGreen)
 
             if self.science_achetable(f"{science}", data):
-                con_frame = tk.Frame(self.root, bg="#043927", highlightbackground="black", highlightthickness=3)
-                lbl = tk.Label(con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg="#C7EA46") #yellow
+                self.con_frame = self.case_science_format()
+                lbl = tk.Label(self.con_frame, text=f"{science} prix : {prix}", height=5, width=15, bg=hexYellowGreen)
 
             if i % self.maxColumn == 0 and i != 0:
                 self.maxRow += 1
 
-            setattr(self, f"{science}_{i}", con_frame.grid(row=self.maxRow, column=i % self.maxColumn, padx=2, pady=2))
+            setattr(self, f"{science}_{i}", self.con_frame.grid(row=self.maxRow, column=i % self.maxColumn, padx=2, pady=2))
             setattr(self, f"{science}_{i}", lbl.grid(row=self.maxRow, column=i % self.maxColumn, padx=2, pady=2))
 
             if self.science_achetable(f"{science}", data):
                 lbl.bind("<Button-1>", self.on_click_select)
             lbl.grid(sticky='nsew')
 
-    def science_achetable(self, science, data):
+    def science_achetable(self, science: object, data: object) -> bool:
         """Si points suffisant, niveau suffisant et is_unlockable
          : Affiche la case d'une science bloquée
          Sinon : Affiche la case d'une science débloquée"""
@@ -100,38 +118,40 @@ class Controller:
         else:
             return False
 
-    def science_acquises(self, science, data):
+    def science_acquises(self, science: object, data: object) -> bool:
         """Verifie si la science est acquise"""
         if data.sciences.get(science)[2] == "available":
             return True
         else:
             return False
-
-    def science_debloquer(self):
-        con_frame = tk.Frame(self.root, bg="#043927", highlightbackground="black", highlightthickness=3)
-        return con_frame
+    def case_science_format(self):
+        self.con_frame = tk.Frame(self.root, bg=hexGrey, highlightbackground="black", highlightthickness=3)
+        return self.con_frame
 
     def buy_science(self, event):
         """Achete la science"""
-        self.choixTemporaire.split(" ")[0]
+        # self.choixTemporaire.split(" ")[0]
         print(self.choixTemporaire.split(" ")[0])
 
     def on_click_select(self, event):
         """Affiche une fenetre pour acheter la science
         button : acheter
         button : annuler"""
+        # if buyScience is not None: destroy the last one
+        if hasattr(self, "buyScience"):
+            self.buyScience.destroy()
 
         self.choixTemporaire = event.widget.cget("text")
 
-        buyScience = tk.Frame(self.root, bg="#2f3136", highlightbackground="#F7CE25", highlightthickness=2)
-        buyLabel = tk.Label(buyScience, text="Buy science?", fg="#F7CE25", bg="#2f3136", font=("Arial", 10))
+        self.buyScience = tk.Frame(self.root, bg=hexDarkGrey, highlightbackground=hexBrightYellow, highlightthickness=2)
+        buyLabel = tk.Label(self.buyScience, text="Buy science?", fg=hexBrightYellow, bg=hexDarkGrey, font=("Arial", 10))
 
-        buyScience.place(relx=0.06, rely=0.65)
+        self.buyScience.place(relx=0.06, rely=0.65)
         buyLabel.place(relx=0.06, rely=0.65)
 
-        OuiBouton = tk.Button(buyScience, text="Oui", width=10, height=1, bg="#cbff00")
-        annulerBouton = tk.Button(buyScience, text="Annuler", width=10, height=1, bg="#ff5200",
-                                  command=buyScience.destroy)
+        OuiBouton = tk.Button(self.buyScience, text="Oui", width=10, height=1, bg=hexBrightGreen)
+        annulerBouton = tk.Button(self.buyScience, text="Annuler", width=10, height=1, bg=hexRed,
+                                  command=self.buyScience.destroy)
         OuiBouton.bind("<Button-1>", self.buy_science)
 
         OuiBouton.grid(row=1, column=0, sticky="nsew")
