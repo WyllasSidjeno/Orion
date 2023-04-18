@@ -423,14 +423,14 @@ class Joueur(IJoueur):
         if has_enough_ressources:
             self.construct_ship(planet_id, type_ship)
 
-    def construct_building_request(self, planet_id: str, type_building: str):
+    def construct_building_request(self, planet_id: str, type_building: str,
+                                   list_position: int):
         """Fonction que est reçu du serveur depuis la vue du jeu.
         Elle s'assure que la construction d'un vaisseau est possible et
         la déclenche si elle l'est."""
         # make a switch case
         if type_building == "mine":
             Mine.can_build(self.ressources)
-
 
     def deplete_energy(self):
         """
@@ -546,11 +546,7 @@ class Joueur(IJoueur):
                 cpt_transit += 1
 
         """Consommation de nourriture par tick (server % 30)"""
-        print(self.nom, "population du joueur avant calcul: ", tot_population)
         self.ressources["nourriture"] -= tot_population
-
-        print("nourriture apres tick")
-        print(self.ressources["nourriture"])
 
         nourriture_apres_conso = self.ressources["nourriture"]
         nourriture_apres_conso *= .15

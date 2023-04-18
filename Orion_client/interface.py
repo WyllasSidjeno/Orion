@@ -32,7 +32,8 @@ class IJoueur(ABC, QueueSubjectInterface):
     def remove_ship(self, ship_id: str, ship_type: str):
         raise NotImplementedError
 
-    def construct_building_request(self, planet_id: str, type_building: str):
+    def construct_building_request(self, planet_id: str, type_building: str,
+                                   list_position: int):
         raise NotImplementedError
 
 
@@ -51,7 +52,7 @@ class IController(ABC, QueueSubjectInterface):
         raise NotImplementedError
 
     @abstractmethod
-    def handle_building_construct_request(self, planete, type_building):
+    def handle_building_construct_request(self, planete, type_building, i):
         raise NotImplementedError
 
     def handle_message(self, message):
