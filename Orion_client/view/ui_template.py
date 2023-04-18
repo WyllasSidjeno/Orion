@@ -1,6 +1,6 @@
 from __future__ import annotations
 import random
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry
+from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Button
 from PIL import Image
 from typing import TYPE_CHECKING
 
@@ -407,7 +407,7 @@ class Minimap(Canvas):
                y1 * self.y_ratio / self.old_y_ratio, \
                x2 * self.x_ratio / self.old_x_ratio, \
                y2 * self.y_ratio / self.old_y_ratio
-
+               
     def user_square_move(self, pos):
         x1, y1, x2, y2 = pos
         x1 *= self.x_ratio
@@ -418,16 +418,13 @@ class Minimap(Canvas):
         self.user_square = self.create_rectangle(x1, y1, x2, y2,
                                                  outline="white")
 
-
-
-
 class Hud(Frame):
     def __init__(self, master):
         super().__init__(master)
         self.configure(bg=hexDark, bd=1, relief="solid")
 
-        for i in range(1):  # configure HUD columns
-            self.grid_columnconfigure(i)
+        self.grid_columnconfigure(0)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_propagate(False)
 
@@ -525,6 +522,22 @@ class Hud(Frame):
         self.beton_info.grid(row=1, column=0, sticky="new")
         self.energy_info.grid(row=1, column=0, sticky="new")
         self.food_info.grid(row=1, column=0, sticky="new")
+
+        self.science_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.science_frame.grid(row=0, column=1, sticky="e", padx=10)
+        self.science_frame.grid_columnconfigure(0, weight=1)
+        self.science_frame.grid_rowconfigure(0, weight=1)
+
+        self.science_button = Button(self.science_frame, text="Science",
+                                        bg=hexDark, fg="white",
+                                        font=("Fixedsys", self.text_size),
+                                        width=self.ressource_width,
+                                        height=self.ressource_height)
+        self.science_button.grid(row=0, column=0, sticky="nes")
+
+
+
+
 
     def update_ressources(self, metal, beton, energie, nourriture):
         self.metal_info.config(text=metal)
