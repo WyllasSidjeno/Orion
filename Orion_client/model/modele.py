@@ -10,7 +10,8 @@ from random import randrange, choice
 
 from Orion_client.interface import IModel, IJoueur
 from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
-from Orion_client.helpers.helper import AlwaysInt, StringTypes, get_prochain_id
+from Orion_client.helpers.helper import AlwaysInt, StringTypes, \
+    get_prochain_id, MessageManager
 from Orion_client.model.building import *
 
 from Orion_client.model import ships
@@ -34,7 +35,6 @@ class Modele(IModel):
     :ivar log: Le dictionnaire des logs
     :param joueurs: Les joueurs du jeu
     """
-
     def __init__(self, joueurs, username: str):
         """Initialise le modèle.
         :param joueurs: Les joueurs du jeu
@@ -52,6 +52,10 @@ class Modele(IModel):
         self.local_queue = ModelQueue()
         self.log: dict = {}
 
+        self.message_manager = MessageManager()
+        self.message_manager.add_message(f"Serveur : Bienvenue dans Orion, "
+                                         f"{self.controller_username} !")
+
         with open("assets/text/star.csv", "r") as planet_name_csv:
             planet_name_csv = planet_name_csv.read().split("\n")
 
@@ -60,6 +64,8 @@ class Modele(IModel):
                            planet_name_csv)
         self.creer_joueurs(joueurs, planet_name_csv)
         self.creer_ias()
+    def receive_message(self, message):
+        self.message_manager.add_message(message)
 
     def change_planet_ownership(self, planet_id: str,
                                 new_owner: None | str = None,
@@ -308,8 +314,6 @@ class Modele(IModel):
                 stars.append(j)
         return stars
 
-
-
 class Joueur(IJoueur):
     """Classe du joueur.
     Le joueur est le personnage qui joue le jeu.
@@ -438,25 +442,23 @@ class Joueur(IJoueur):
         """
         conso_structures: int = 0
         conso_vaisseaux: int = 0
-        # Consommation d'énergie des structures du joueur
+        """Consommation d'énergie des structures du joueur"""
         for e in self.etoiles_controlees:
             for b in e.buildinglist:
                 if isinstance(b, Building):
                     conso_structures += b.consumption
 
-        # Consommation des vaisseaux de la flotte du joueur.
-        for key, value in self.flotte.items():
-            if isinstance(value, Ship):
-                value = [value]
-        # for vaisseau in value:
-        #  if not vaisseau.docked:
-        #        conso_vaisseaux += vaisseau.consommation
+        """Consommation des vaisseaux de la flotte du joueur."""
+        for typeVaisseau, dictVaisseau in self.flotte.items():
+            for idVaisseau, vaisseau in self.flotte[typeVaisseau].items():
+                if not vaisseau.docked:
+                    conso_vaisseaux += vaisseau.consommation
+
         # Todo: Ajouter les variables bool docked et int consommation
         #  dans le modele vaisseau (2e sprint)
 
         self.ressources["energie"] -= AlwaysInt(
-            (
-                    conso_vaisseaux + conso_structures +
+            (conso_vaisseaux + conso_structures +
                     self.consommation_energie_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
@@ -510,7 +512,7 @@ class Joueur(IJoueur):
                 self.flotte[type_ship][ship].tick()
 
         self.ressources_cumul()
-
+        self.deplete_energy()
         if self.cadre_consommation % 60 == 0:
             self.increment_pop()
             self.cadre_consommation = 0

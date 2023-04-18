@@ -19,6 +19,9 @@ class IModel(ABC, QueueSubjectInterface):
     def target_change_request(self, ship_informations: dict, target: dict):
         raise NotImplementedError
 
+    def receive_message(self, message):
+        raise NotImplementedError
+
 
 class IJoueur(ABC, QueueSubjectInterface):
     @abstractmethod
@@ -49,5 +52,8 @@ class IController(ABC, QueueSubjectInterface):
 
     @abstractmethod
     def handle_building_construct_request(self, planete, type_building):
+        raise NotImplementedError
+
+    def handle_message(self, message):
         raise NotImplementedError
 

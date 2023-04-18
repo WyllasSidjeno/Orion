@@ -1,7 +1,6 @@
 from __future__ import annotations
 import random
-import tkinter
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Tk
+from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry
 from PIL import Image
 from typing import TYPE_CHECKING
 
@@ -68,8 +67,14 @@ class GameCanvas(Canvas):
 
         self.mouseOverView = MouseOverView(self)
 
+        self.focus_set()
+
         self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
                       self.mouse_over_view_show)
+
+        self.view_pos = self.coords("current")
+        """La position de la caméra sur la scroll region du canvas de jeu."""
+
 
     def mouse_over_view_show(self, event):
         self.mouseOverView = MouseOverView(self)
@@ -82,6 +87,13 @@ class GameCanvas(Canvas):
         :param mod: Le model"""
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with a move or coords function
+        x1 = self.canvasx(0)
+        y1 = self.canvasy(0)
+        x2 = self.canvasx(self.winfo_width())
+        y2 = self.canvasy(self.winfo_height())
+        self.view_pos = (x1, y1, x2, y2)
+
+
         if self.etoile_window.star_id is not None:
             self.etoile_window.refresh(mod)
         self.delete(StringTypes.TROUDEVERS.value)
@@ -151,8 +163,8 @@ class GameCanvas(Canvas):
         canvas_width = self.winfo_width()
         canvas_height = self.winfo_height()
 
-        x_view = (x - canvas_width/2) / 9000
-        y_view = (y - canvas_height/2) / 9000
+        x_view = (x - canvas_width / 2) / 9000
+        y_view = (y - canvas_height / 2) / 9000
 
         self.xview_moveto(x_view)
         self.yview_moveto(y_view)
@@ -230,14 +242,14 @@ class SideBar(Frame):
 
         self.planet_label = Label(self.planet_frame, text="Planet",
                                   bg=hexDark, fg="white",
-                                  font=("Fixedsys", 20))
+                                  font=(police, 20))
 
         self.armada_frame = Frame(self, bg=hexDark, bd=1,
                                   relief="solid")
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.armada_label = Label(self.armada_frame, text="Armada",
                                   bg=hexDark, fg="white",
-                                  font=("Fixedsys", 20))
+                                  font=(police, 20))
         """Représente le label de la vue du jeu contenant les informations"""
 
         self.minimap_frame = Frame(self, bg=hexDark, bd=1,
@@ -245,7 +257,7 @@ class SideBar(Frame):
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.minimap_label = Label(self.minimap_frame, text="Minimap",
                                    bg=hexDark, fg="white",
-                                   font=("Fixedsys", 20))
+                                   font=(police, 20))
         """Représente le label de la vue du jeu contenant les informations"""
         self.minimap = Minimap(self.minimap_frame)
         """Représente le lbel de la vue du jeu contenant les informations"""
@@ -307,6 +319,8 @@ class Minimap(Canvas):
 
         self.x_ratio = self.winfo_width() / 9000
         self.y_ratio = self.winfo_height() / 9000
+        self.user_square = self.create_rectangle(0, 0, 0, 0,
+                                                 fill="white", outline="white")
 
         self.bind("<Configure>", self.on_resize)
 
@@ -393,6 +407,18 @@ class Minimap(Canvas):
                x2 * self.x_ratio / self.old_x_ratio, \
                y2 * self.y_ratio / self.old_y_ratio
 
+    def user_square_move(self, pos):
+        x1, y1, x2, y2 = pos
+        x1 *= self.x_ratio
+        y1 *= self.y_ratio
+        x2 *= self.x_ratio
+        y2 *= self.y_ratio
+
+        self.user_square = self.create_rectangle(x1, y1, x2, y2,
+                                                 outline="white")
+
+
+
 
 class Hud(Frame):
     def __init__(self, master):
@@ -412,91 +438,98 @@ class Hud(Frame):
         self.ressource_frame.rowconfigure(0, weight=1)
 
         # FRAME ATTRIBUTES
-        self.padx = 10
-        self.pady = 0
-        self.border = 1  # binary value
+        padx = 10
+        border_size = 1
 
-        metal_frame = Frame(self.ressource_frame, bg="#a84632", bd=self.border,
-                            relief="solid",
-                            padx=10)
-        metal_frame.grid(row=0, column=0, sticky="ew", padx=self.padx,
-                         pady=self.pady)
+        metal_frame = Frame(self.ressource_frame, bg="#a84632",
+                            bd=border_size, relief="solid"
+                            )
+        metal_frame.grid(row=0, column=0, sticky="ew",
+                         padx=padx, pady=padx
+                         )
 
-        beton_frame = Frame(self.ressource_frame, bg="#364b8f", bd=self.border,
-                            relief="solid",
-                            padx=10)
-        beton_frame.grid(row=0, column=1, sticky="ew", padx=self.padx,
-                         pady=self.pady)
+        beton_frame = Frame(self.ressource_frame, bg="#364b8f",
+                            bd=border_size, relief="solid"
+                            )
+        beton_frame.grid(row=0, column=1, sticky="ew",
+                         padx=padx, pady=padx
+                         )
 
         energy_frame = Frame(self.ressource_frame, bg="#adba59",
-                             bd=self.border, relief="solid",
-                             padx=10)
-        energy_frame.grid(row=0, column=2, sticky="ew", padx=self.padx,
-                          pady=self.pady)
+                             bd=border_size, relief="solid"
+                             )
+        energy_frame.grid(row=0, column=2, sticky="ew",
+                          padx=padx, pady=padx
+                          )
 
-        food_frame = Frame(self.ressource_frame, bg="#3f9160", bd=self.border,
-                           relief="solid",
-                           padx=10)
-        food_frame.grid(row=0, column=3, sticky="ew", padx=self.padx,
-                        pady=self.pady)
+        food_frame = Frame(self.ressource_frame, bg="#3f9160",
+                           bd=border_size, relief="solid"
+                           )
+        food_frame.grid(row=0, column=3, sticky="ew",
+                        padx=padx, pady=padx
+                        )
 
-        # LABEL ATTRIBUTES
+        self.ressource_height = 1
+        self.ressource_width = 7
+        self.text_size = 16
 
-        self.ressource_height = 2
-        self.ressource_width = 10
-        self.text_size = 17
-
-        self.food_text = "Food : 0"
-        self.energy_text = "Energy : 0"
-        self.beton_text = "Beton : 0"
-        self.metal_text = "Metal : 0"
-
-        self.metal_label = Label(metal_frame, text=self.metal_text,
-                                 bg="#a84632", fg="white",
-                                 font=("Fixedsys", self.text_size),
-                                 width=self.ressource_width,
-                                 height=self.ressource_height)
-
-        self.beton_label = Label(beton_frame, text=self.beton_text,
-                                 bg="#364b8f", fg="white",
-                                 font=("Fixedsys", self.text_size),
-                                 width=self.ressource_width,
-                                 height=self.ressource_height)
-
-        self.energy_label = Label(energy_frame, text=self.energy_text,
-                                  bg="#adba59", fg="white",
-                                  font=("Fixedsys", self.text_size),
+        self.metal_header = Label(metal_frame, text="Metal", bg="#a84632",
+                                  height=self.ressource_height,
                                   width=self.ressource_width,
-                                  height=self.ressource_height)
+                                  font=(police, self.text_size)
+                                  )
+        self.beton_header = Label(beton_frame, text="Beton", bg="#364b8f",
+                                  height=self.ressource_height,
+                                  width=self.ressource_width,
+                                  font=(police, self.text_size)
+                                  )
+        self.energy_header = Label(energy_frame, text="Energy", bg="#adba59",
+                                   height=self.ressource_height,
+                                   width=self.ressource_width,
+                                   font=(police, self.text_size),
+                                   )
+        self.food_header = Label(food_frame, text="Food", bg="#3f9160",
+                                 height=self.ressource_height,
+                                 width=self.ressource_width,
+                                 font=(police, self.text_size)
+                                 )
 
-        self.food_label = Label(food_frame, text=self.food_text, bg="#3f9160",
-                                fg="white", font=("Fixedsys", self.text_size),
+        self.metal_info = Label(metal_frame, text="0", bg="#a84632",
+                                height=self.ressource_height,
                                 width=self.ressource_width,
-                                height=self.ressource_height)
+                                font=(police, self.text_size)
+                                )
+        self.beton_info = Label(beton_frame, text="0", bg="#364b8f",
+                                height=self.ressource_height,
+                                width=self.ressource_width,
+                                font=(police, self.text_size)
+                                )
+        self.energy_info = Label(energy_frame, text="0", bg="#adba59",
+                                 height=self.ressource_height,
+                                 width=self.ressource_width,
+                                 font=(police, self.text_size)
+                                 )
+        self.food_info = Label(food_frame, text="0", bg="#3f9160",
+                               height=self.ressource_height,
+                               width=self.ressource_width,
+                               font=(police, self.text_size)
+                               )
 
-        self.show()
+        self.metal_header.grid(row=0, column=0, sticky="ew")
+        self.beton_header.grid(row=0, column=0, sticky="ew")
+        self.energy_header.grid(row=0, column=0, sticky="ew")
+        self.food_header.grid(row=0, column=0, sticky="ew")
 
-        self.metal_label.pack()
-        self.beton_label.pack()
-        self.energy_label.pack()
-        self.food_label.pack()
+        self.metal_info.grid(row=1, column=0, sticky="new")
+        self.beton_info.grid(row=1, column=0, sticky="new")
+        self.energy_info.grid(row=1, column=0, sticky="new")
+        self.food_info.grid(row=1, column=0, sticky="new")
 
     def update_ressources(self, metal, beton, energie, nourriture):
-        self.metal_text = "Metal: " + str(metal)
-        self.beton_text = "Beton: " + str(beton)
-        self.energy_text = "Energy: " + str(energie)
-        self.food_text = "Food: " + str(nourriture)
-
-        self.metal_label.config(text=self.metal_text)
-        self.beton_label.config(text=self.beton_text)
-        self.energy_label.config(text=self.energy_text)
-        self.food_label.config(text=self.food_text)
-
-    def show(self):
-        self.metal_label.config(text=self.metal_text)
-        self.beton_label.config(text=self.beton_text)
-        self.energy_label.config(text=self.energy_text)
-        self.food_label.config(text=self.food_text)
+        self.metal_info.config(text=metal)
+        self.beton_info.config(text=beton)
+        self.energy_info.config(text=energie)
+        self.food_info.config(text=nourriture)
 
 class MiniGameWindow(Frame):
 
@@ -576,8 +609,9 @@ class Minigame(Frame):
 
 
 class ChatBox(Frame):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, master, queue):
+        super().__init__(master)
+        self.queue = queue
         self.configure(bg=hexDark, bd=1, relief="solid", height=200, width=400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -588,16 +622,56 @@ class ChatBox(Frame):
         self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
                               relief="solid", height=10, width=50)
         self.chat_text.grid(row=0, column=0, sticky="nsew")
-        self.chat_text.insert(END, "Bienvenue sur le chat !\n")
+
+        self.chat_text.bind("<Button-1>", lambda _: "break")
+
         self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
+        self.chat_entry.bind("<Escape>", self.hide)
+
+        self.chat_text.bind("<B1-Motion>", self.follow_mouse_request)
+        self.chat_text.bind("<ButtonRelease-1>", self.follow_mouse)
+
+        self.event_id: int or None = None
 
     def send_message(self, _):
-        message = self.chat_entry.get()
-        self.chat_text.insert(END, message + "\n")
-        self.chat_entry.delete(0, END)
+        if self.chat_entry.get() != "":
+            self.queue.handle_message(self.chat_entry.get())
+            self.chat_entry.delete(0, "end")
+        else:
+            self.hide(None)
 
+    def show(self, _):
+        # Put it on top of its master content
+        self.place(in_=self.master, relwidth=.5, relheight=.5,
+                   relx=.5, rely=.5, anchor="center")
+        self.chat_entry.focus_set()
+
+    def hide(self, _):
+        # Put it back in its master content
+        self.place_forget()
+        self.master.focus_set()
+
+    def follow_mouse_request(self, event):
+        if self.event_id is not None:
+            self.after_cancel(self.event_id)
+            self.event_id = None
+        self.event_id = self.after(10, self.follow_mouse, event)
+
+    def follow_mouse(self, event):
+        if self.event_id is not None:
+            self.after_cancel(self.event_id)
+            self.event_id = None
+
+        self.place_configure(relx=event.x_root / self.master.winfo_width(),
+                             rely=event.y_root / self.master.winfo_height())
+
+    def refresh(self, model:Modele):
+        if model.message_manager.new_messages:
+            messages = model.message_manager.get_new_messages()
+            for message in messages:
+                self.chat_text.insert("end", message + "\n")
 
 class MouseOverView(Frame):
     def __init__(self, master):
@@ -619,12 +693,12 @@ class MouseOverView(Frame):
                 # add a max size with :
                 container.grid(row=i, column=0, sticky="nsew")
                 title = Label(container, text=dictlist[i].pop("header"),
-                              bg=hexDark, fg="white", font=("Fixedsys", 15),
+                              bg=hexDark, fg="white", font=(police, 15),
                               pady=2)
                 title.grid(row=0, column=0, sticky="nsew")
                 for j, (key, value) in enumerate(dictlist[i].items()):
                     label = Label(container, text=key + " : " + str(value),
-                                  bg=hexDark, fg="white", font=("Fixedsys", 10),
+                                  bg=hexDark, fg="white", font=(police, 10),
                                   pady=2, wraplength=250)
                     label.grid(row=j + 1, column=0, sticky="nsew")
 
