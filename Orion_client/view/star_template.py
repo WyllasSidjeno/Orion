@@ -264,7 +264,7 @@ class EtoileWindow(Frame):
                 self.building_list[i].bind("<Button-1>",
                                            lambda event, i=i:
                                            self.construct_building_menu.show(
-                                               event, i))
+                                               event, self.star_id))
 
         output = star.output.__dict__()
         self.energie_value_label.config(text=output["energie"])

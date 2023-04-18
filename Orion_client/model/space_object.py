@@ -90,7 +90,7 @@ class Etoile:
                                 science=0)
         #TODO: retire le champ population du constructeur de Ressources.
         self.resistance = 100
-        self.buildinglist: list[Building] = []
+        self.buildinglist: list[Building] or None = [None] * self.taille
         self.couleur = "white"
         self.population = random.randint(100, 200)
         self.needs_refresh: bool = False

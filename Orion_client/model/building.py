@@ -14,7 +14,7 @@ class Building(ABC):
     :param max_level: le niveau maximum du bâtiment
     :param description: la description du bâtiment
     """
-    def __init__(self, name: str, description: str, upgrade_cost: dict,
+    def __init__(self, name: str, description: str, upgrade_cost: Ressource,
                  output: Ressource, level: int, max_level: int,
                  consumption: int = 100):
         """Constructeur de la classe Building
@@ -43,21 +43,7 @@ class Building(ABC):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def can_build(ressources: dict) -> bool:  # todo : Ressource
-        """Méthode statique permettant de savoir si le joueur peut construire
-        une mine.
-        :return: True si le joueur peut construire une batiment, False sinon
-        """
-        print("can_build not implemented")
-        print(ressources)
-        return True
 
-    def can_afford(self, ressources: dict) -> bool: # todo : Ressource
-        """Méthode permettant de savoir si le joueur peut acheter une mine.
-        :return: True si le joueur peut acheter une batiment, False sinon
-        """
-        raise NotImplementedError
 
 class Mine(Building):
     """Classe représentant une mine
@@ -67,9 +53,8 @@ class Mine(Building):
     def __init__(self):
         name = "Mine"
         description = "Une mine de fer extractant les ressources du sol"
-        upgrade_cost: dict = {}  # todo: Ressource class
+        upgrade_cost: Ressource = Ressource(metal=2000, beton=3000, energie=1000)
         output: RessourceMul = RessourceMul(metal=2, beton=1, energie=1, nourriture=1, population=1, science=1)
-
         level = 1
         max_level = 3
         consumption = 100
@@ -80,8 +65,24 @@ class Mine(Building):
         """Méthode permettant d'améliorer une mine.
         """
         self.level += 1
-        # todo : update ressource
-        self.output = self.output * 1.5 # todo : Ressource
+        self.output = self.output * 1.5
+
+    @staticmethod
+    def build_request(ressource_joueur: Ressource, list_building: list, pos: int) -> bool:
+        """Méthode permettant de savoir si le joueur peut acheter une mine.
+        :return: True si le joueur peut acheter une batiment, False sinon
+        """
+        build_cost: Ressource = Ressource(metal=2000, beton=3000, energie=1000)/2
+        can_afford = True
+        for key in ressource_joueur:
+            if ressource_joueur[key] <= build_cost[key]:
+                can_afford = False
+
+        if can_afford:
+            ressource_joueur - build_cost
+            list_building.insert(pos, Mine())
+
+        return can_afford
 
 
 class Farm(Building):
@@ -92,9 +93,8 @@ class Farm(Building):
     def __init__(self):
         name = "Ferme"
         description = "Une ferme produisant de la nourriture"
-        upgrade_cost: dict = {}  # todo: Ressource class
+        upgrade_cost: Ressource = Ressource(metal=1000, beton=1500, energie=2500)
         output: RessourceMul = RessourceMul(metal=1, beton=1, energie=1, nourriture=2, population=1, science=1)
-
         level = 1
         max_level = 3
         consumption = 100
@@ -108,6 +108,17 @@ class Farm(Building):
         # todo : update ressource
         self.output = self.output * 1.5  # todo : Ressource
 
+    @staticmethod
+    def can_afford(ressource_joueur: dict) -> bool: # todo : Ressource
+        """Méthode permettant de savoir si le joueur peut acheter une mine.
+        :return: True si le joueur peut acheter une batiment, False sinon
+        """
+        build_cost: Ressource = Ressource(metal=1000, beton=1500, energie=2500)/2
+        can_afford = True
+        for key in ressource_joueur:
+            if ressource_joueur[key] < build_cost[key]:
+                can_afford = False
+        return can_afford
 
 class ConcreteFactory(Building):
     """Classe représentant une usine à béton
@@ -117,7 +128,7 @@ class ConcreteFactory(Building):
     def __init__(self):
         name = "Usine "
         description = "Une usine produisant du beton"
-        upgrade_cost: dict = {}  # todo: Ressource class
+        upgrade_cost: Ressource = Ressource(metal=1000, beton=3000, energie=2000)
         output: RessourceMul = RessourceMul(metal=1, beton=2, energie=1, nourriture=1, population=1, science=1)
 
         level = 1
@@ -143,7 +154,7 @@ class PowerPlant(Building):
     def __init__(self):
         name = "Centrale électrique"
         description = "Une centrale électrique produisant de l'électricité"
-        upgrade_cost: dict = {}
+        upgrade_cost: Ressource = Ressource(metal=4000, beton=1000, energie=1000)
         output: Ressource = Ressource(energie=100)
         level = 1
         max_level = 3
