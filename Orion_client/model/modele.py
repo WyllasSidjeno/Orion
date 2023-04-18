@@ -56,13 +56,13 @@ class Modele(IModel):
         self.message_manager.add_message(f"Serveur : Bienvenue dans Orion, "
                                          f"{self.controller_username} !")
 
-        with open("assets/text/star.csv", "r") as planet_name_csv:
-            planet_name_csv = planet_name_csv.read().split("\n")
+        with open("data/text/star.csv", "r") as star_name_csv:
+            star_name_csv = star_name_csv.read().split("\n")
 
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
         self.creer_etoiles(int((self.hauteur * self.largeur) / 500000),
-                           planet_name_csv)
-        self.creer_joueurs(joueurs, planet_name_csv)
+                           star_name_csv)
+        self.creer_joueurs(joueurs, star_name_csv)
         self.creer_ias()
     def receive_message(self, message):
         self.message_manager.add_message(message)
