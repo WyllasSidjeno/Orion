@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-from tkinter import Frame, Label, Canvas, Text, END, Entry, Button, Tk, NW
-
-from PIL import Image
+from tkinter import Frame, Label, Canvas, Text, Entry, Button, Tk, NW
 from typing import TYPE_CHECKING
 
+from PIL import Image
 from PIL import ImageTk
 
 from Orion_client.helpers.CommandQueues import ControllerQueue
 from Orion_client.helpers.helper import StringTypes
-
-from Orion_client.view.view_common_ressources import *
 from Orion_client.view.star_template import EtoileWindow
+from Orion_client.view.view_common_ressources import *
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
@@ -31,6 +29,7 @@ class GameCanvas(Canvas):
         :param master: la fenetre principale
         :param proprietaire: le proprietaire du canvas de jeu
         """
+        backgroud_image: Image
         super().__init__(master)
         self.configure(bg=Color.spaceBlack.value, bd=1,
                        relief="solid", highlightthickness=0)
@@ -54,7 +53,6 @@ class GameCanvas(Canvas):
                 photo.thumbnail((50, 50), Image.ANTIALIAS)
             else:
                 photo.thumbnail((1000, 1000), Image.ANTIALIAS)
-
 
         self.cache = []
 
@@ -80,8 +78,7 @@ class GameCanvas(Canvas):
                       self.mouse_over_view.show)
 
         self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
-                        self.mouse_over_view.hide)
-
+                      self.mouse_over_view.hide)
 
     def mouse_drag(self, event):
         """Déplace le canvas de jeu en fonction de la souris"""
@@ -132,13 +129,13 @@ class GameCanvas(Canvas):
         for etoile in mod.get_etoiles_in_view(*self.bounding_box.__tuple__()):
             self.generate_etoile(etoile)
 
-        for porte in mod.get_porte_de_vers_in_view(*self.bounding_box.__tuple__()):
+        for porte in mod.get_porte_de_vers_in_view(
+                *self.bounding_box.__tuple__()):
             self.generate_porte_de_vers(porte)
 
         if self.mouse_over_view.visible:
             obj = mod.get_object(self.mouse_over_view.id)
             self.mouse_over_view.on_mouse_over(obj.to_mouse_over_dict())
-
 
     def generate_porte_de_vers(self, porte: PorteDeVers):
 
@@ -152,8 +149,7 @@ class GameCanvas(Canvas):
 
     def generate_etoile(self, star):
         """Créé une étoile sur le canvas.
-        :param star: L'étoile à créer
-        :param tag: Un tag de l'étoile"""
+        :param star: L'étoile à créer"""
         photo = self.photo_cache[star.couleur]
 
         photo = photo.resize((star.taille * 12, star.taille * 12),
@@ -164,7 +160,7 @@ class GameCanvas(Canvas):
         star_x = star.x - self.bounding_box.x
         star_y = star.y - self.bounding_box.y
         if star.proprietaire == "":
-            tag= StringTypes.ETOILE.value
+            tag = StringTypes.ETOILE.value
         else:
             tag = StringTypes.ETOILE_OCCUPEE.value
 
@@ -174,11 +170,9 @@ class GameCanvas(Canvas):
                                 star.proprietaire)
                           )
 
-
     def move_to(self, rel_x, rel_y):
         """Déplace le canvas à la position x et y
-        :param x: La position x
-        :param y: La position y"""
+        """
 
         x = rel_x * 9000
         y = rel_y * 9000
@@ -202,7 +196,7 @@ class GameCanvas(Canvas):
         :param event: L'événement"""
         background_image = self.photo_cache["background"]
         background_image = background_image.resize((event.width, event.height),
-                                                    Image.ANTIALIAS)
+                                                   Image.ANTIALIAS)
         self.background_image = ImageTk.PhotoImage(background_image)
 
         background = self.create_image(0, 0, anchor=NW,
@@ -692,6 +686,7 @@ class ChatBox(Frame):
 
 class MouseOverView(Frame):
     id: str or int
+
     def __init__(self, master):
         super().__init__(master)
         self.configure(bg=Color.dark.value, bd=1, relief="solid")
