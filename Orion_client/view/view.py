@@ -18,16 +18,11 @@ class GameView(Frame):
 
         self.command_queue = command_queue
 
-        self.scrollX = Scrollbar(self, orient="horizontal")
-        """Représente la scrollbar horizontale de la vue du jeu."""
-        self.scrollY = Scrollbar(self, orient="vertical")
-        """""Représente la scrollbar verticale de la vue du jeu."""
-
         self.hud = Hud(self)
         """Représente la barre du haut de la vue du jeu."""
         self.side_bar = SideBar(self)
         """Représente la barre de droite de la vue du jeu."""
-        self.canvas = GameCanvas(self, self.scrollX, self.scrollY, username)
+        self.canvas = GameCanvas(self, username)
         """Représente le canvas de la vue du jeu."""
 
         self.chat = ChatBox(self, command_queue)
@@ -67,23 +62,12 @@ class GameView(Frame):
         self.canvas.grid(row=1, column=1, columnspan=9, rowspan=9,
                          sticky="nsew")
 
-        self.scrollX.grid(row=9, column=1, columnspan=9, sticky="sew")
-        self.scrollY.grid(row=1, column=9, rowspan=9, sticky="nse")
-
     def bind_game_requests(self):
         """Binds les fonctions de la vue du jeu aux evenements du canvas."""
         self.side_bar.minimap.bind("<Button-1>",
                                    self.on_minimap_click)
-
-        self.canvas.bind("<MouseWheel>",
-                         self.canvas.vertical_scroll)
-        self.canvas.bind("<Control-MouseWheel>",
-                         self.canvas.horizontal_scroll)
-
         self.canvas.bind("<Button-1>", self.on_game_click)
         self.canvas.bind("<Button-3>", self.on_game_click)
-
-        self.canvas.bind("<B1-Motion>", self.canvas.drag)
 
     def refresh(self, mod):
         """Refresh la vue du jeu."""

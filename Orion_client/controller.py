@@ -82,9 +82,6 @@ class Controller(IController):
 
         self.view.update()
 
-        self.view.canvas.move_to_with_model_coords(
-            self.model.joueurs[self.username].etoile_mere.x
-            , self.model.joueurs[self.username].etoile_mere.y)
 
         self.tick()
 

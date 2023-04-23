@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from ast import literal_eval
 from random import randrange, choice
-
+from typing import Generator
 
 from Orion_client.interface import IModel, IJoueur
 from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
@@ -35,6 +35,7 @@ class Modele(IModel):
     :ivar log: Le dictionnaire des logs
     :param joueurs: Les joueurs du jeu
     """
+
     def __init__(self, joueurs, username: str):
         """Initialise le modèle.
         :param joueurs: Les joueurs du jeu
@@ -64,8 +65,37 @@ class Modele(IModel):
                            star_name_csv)
         self.creer_joueurs(joueurs, star_name_csv)
         self.creer_ias()
+
     def receive_message(self, message):
         self.message_manager.add_message(message)
+
+    def get_objects_in_view(self, x1, x2, y1, y2):
+        return {
+            "vaisseaux": self.get_vaisseau_in_view(x1, x2, y1, y2),
+            StringTypes.ETOILE.value: self.get_etoiles_in_view(x1, x2, y1, y2),
+            "trous_de_vers": self.get_porte_de_vers_in_view(x1, x2, y1, y2)
+        }
+
+    def get_etoiles_in_view(self, x1, y1, x2, y2) -> Generator[Etoile]:
+        for etoile in self.etoiles:
+            if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
+                yield etoile
+    def get_porte_de_vers_in_view(self, x1, x2, y1, y2):
+        return [
+            trou for trou in self.trou_de_vers
+            for porte in trou.portes
+            if x1 < porte.x < x2 and y1 < porte.y < y2
+        ]
+
+    def is_star_in_view(self, _id, x1, y1, x2, y2):
+        star = self.get_object(_id, StringTypes.ETOILE)
+        if star:
+
+            return x1 <= star.x <= x2 and y1 <= star.y <= y2
+        return False
+
+    def get_vaisseau_in_view(self, x1, x2, y1, y2):
+        return []
 
     def change_planet_ownership(self, planet_id: str,
                                 new_owner: None | str = None,
@@ -174,7 +204,7 @@ class Modele(IModel):
                     for k in self.log[i]:
                         if k in self.log[j]:
                             self.log[j].remove(k)
-                            #todo : remove this mess
+                            # todo : remove this mess
 
         self.cadre = cadre
         if cadre in self.log:
@@ -203,7 +233,6 @@ class Modele(IModel):
         self.execute_commands(self.local_queue)
         for i in self.joueurs:
             self.joueurs[i].execute_commands(self.joueurs[i].local_queue)
-
 
     def ajouter_actions(self, actionsrecues: list, frame: int):
         """Ajoute les actions reçues dans la liste des actions à faire
@@ -313,6 +342,7 @@ class Modele(IModel):
             for j in self.joueurs[star].etoiles_controlees:
                 stars.append(j)
         return stars
+
 
 class Joueur(IJoueur):
     """Classe du joueur.
@@ -461,7 +491,7 @@ class Joueur(IJoueur):
 
         self.ressources["energie"] -= AlwaysInt(
             (conso_vaisseaux + conso_structures +
-                    self.consommation_energie_joueur))
+             self.consommation_energie_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.
@@ -505,7 +535,7 @@ class Joueur(IJoueur):
 
         """Fonction de jeu du joueur pour un tour."""
         self.cadre_consommation += 1
-     
+
         for etoile in self.etoiles_controlees:
             etoile.tick()
 
@@ -564,6 +594,8 @@ class Joueur(IJoueur):
                 c.population = 0
 
             """tester que la reduction par pourcentage permet une conquete facile"""
+
+
 class AI(Joueur):
     """Classe de l'AI.
     L'AI est le personnage non-joueur qui joue le jeu.

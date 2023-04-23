@@ -21,15 +21,15 @@ class TrouDeVers:
         """
         self.id = get_prochain_id()
         taille = randrange(6, 20)
-        self.porte_a = PorteDeVers(self.id, x1, y1, taille)
-        self.porte_b = PorteDeVers(self.id, x2, y2, taille)
+        self.portes = [PorteDeVers(self.id, x1, y1, taille),
+                          PorteDeVers(self.id, x2, y2, taille)]
         self.liste_transit = []
 
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         aux deux portes de vers du trou de vers."""
-        self.porte_a.tick()
-        self.porte_b.tick()
+        for porte in self.portes:
+            porte.tick()
 
 
 class PorteDeVers:

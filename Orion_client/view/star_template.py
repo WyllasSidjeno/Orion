@@ -325,7 +325,8 @@ class BuildingWindow(Frame):
                                  fg="white", font=("Fixedsys", 10))
         """Label contenant le niveau du bâtiment"""
 
-        self.upgrade_canvas = Canvas(self, bg=Color.dark.value, width=20, height=20,
+        self.upgrade_canvas = Canvas(self, bg=Color.dark.value,
+                                     width=20, height=20,
                                      bd=0, highlightthickness=0)
         """Canvas contenant le bouton d'amélioration du bâtiment"""
 

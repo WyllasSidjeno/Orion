@@ -26,24 +26,18 @@ class GameCanvas(Canvas):
     """
     username: str
     command_queue: ControllerQueue
-
-    def __init__(self, master, scroll_x: Scrollbar,
-                 scroll_y: Scrollbar, proprietaire):
+    view_pos: tuple[int, int, int, int]
+    x: int
+    y: int
+    def __init__(self, master, proprietaire):
         """Initialise le canvas de jeu
         :param scroll_x: La scrollbar horizontale
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
-        self.configure(bg=Color.spaceBlack.value, bd=1,
-                       relief="solid", highlightthickness=0,
-                       xscrollcommand=scroll_x.set,
-                       yscrollcommand=scroll_y.set)
+        self.configure(bg=Color.brightGreen.value, bd=1,
+                       relief="solid", highlightthickness=0)
 
-        scroll_x.config(command=self.xview)
-        scroll_y.config(command=self.yview)
-
-        self.configure(scrollregion=(0, 0, 9000, 9000))
-        self.generate_background(9000)
 
         self.ship_view = ShipViewGenerator()
 
@@ -63,150 +57,112 @@ class GameCanvas(Canvas):
 
         self.mouseOverView = MouseOverView(self)
 
-        self.focus_set()
-
         self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
                       self.mouse_over_view_show)
 
-        self.view_pos = self.coords("current")
-        """La position de la caméra sur la scroll region du canvas de jeu."""
+        self.bind("<B1-Motion>", self.mouse_drag)
+        self.bind("<ButtonRelease-1>", self.on_mouse_stop_drag)
 
-    def mouse_over_view_show(self, event):
-        self.mouseOverView = MouseOverView(self)
-        self.mouseOverView.show(event)
-        self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
-                      self.mouseOverView.hide)
+        self.initial_x_move : int | None = None
+        self.initial_y_move: int | None = None
+
+        self.x1 = 0
+        self.y1 = 0
+        self.x2 = 0
+        self.y2 = 0
+
+        self.dx = 0
+        self.dy = 0
+
+    def mouse_drag(self, event):
+        """Déplace le canvas de jeu en fonction de la souris"""
+        if self.initial_x_move is None:
+            self.initial_x_move = event.x
+            self.initial_y_move = event.y
+
+        self.dx = event.x - self.initial_x_move
+        self.dy = event.y - self.initial_y_move
+
+    def on_mouse_stop_drag(self, event):
+        """Déplace le canvas de jeu en fonction de la souris"""
+        self.x = None
+        self.y = None
+
+        self.dx = 0
+        self.dy = 0
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with a move or coords function
-        x1 = self.canvasx(0)
-        y1 = self.canvasy(0)
-        x2 = self.canvasx(self.winfo_width())
-        y2 = self.canvasy(self.winfo_height())
-        self.view_pos = (x1, y1, x2, y2)
+        self.x1 += self.dx
+        self.y1 += self.dy
+        self.x2 = self.x1 + self.winfo_width()
+        self.y2 = self.y1 + self.winfo_height()
+
+        x_diff = self.x2 - self.x1
+        y_diff = self.y2 - self.y1
+
+        self.x1 = max(min(self.x1, 9000 - x_diff), 0)
+        self.y1 = max(min(self.y1, 9000 - y_diff), 0)
+        self.x2 = max(min(self.x2, 9000), 0)
+        self.y2 = max(min(self.y2, 9000), 0)
+
+        self.view_pos = (self.x1, self.y1, self.x2, self.y2)
+
+        # get all the tags
+        ids = self.find_withtag(StringTypes.ETOILE.value)
+        for id in ids:
+            obj = self.gettags(id)
+            if obj[0] == StringTypes.ETOILE.value:
+                if not mod.is_star_in_view(obj[1], *self.view_pos):
+                    print("delete")
+                    self.delete(id)
 
 
-        if self.etoile_window.star_id is not None:
-            self.etoile_window.refresh(mod)
-        self.delete(StringTypes.TROUDEVERS.value)
+        for etoile in mod.get_etoiles_in_view(*self.view_pos):
+            star_tkinter_id = self.find_withtag(etoile.id)
+            if not star_tkinter_id:
+                self.generate_etoile(etoile, StringTypes.ETOILE.value)
+            else:
+                self.update_star(etoile)
 
-        if self.mouseOverView.visible:
-            item_tags = self.gettags("current")
-            obj = mod.get_object(item_tags[1], item_tags[0])
-            self.mouseOverView.on_mouse_over(obj.to_mouse_over_dict())
 
-        stars = mod.get_player_stars() + mod.etoiles
 
-        for star in stars:
-            if star.id not in self.cache or star.needs_refresh:
-                if star.needs_refresh:
-                    self.delete(star.id)
-                if star.proprietaire != '':
-                    tags = StringTypes.ETOILE_OCCUPEE.value
-                else:
-                    tags = StringTypes.ETOILE.value
-                self.generate_etoile(star, tags)
-                self.cache.append(star.id)
-
-        self.generate_trou_de_vers(mod.trou_de_vers)
-
-        # todo : Could be optimized.
-        for joueur in mod.joueurs.values():
-            if joueur.recently_lost_ships_id:
-                for ship_id in joueur.recently_lost_ships_id:
-                    self.delete(ship_id)
-                joueur.recently_lost_ships_id = []
-
-            couleur = joueur.couleur
-            for ship_type in joueur.flotte.keys():
-                for ship_id in joueur.flotte[ship_type]:
-                    ship = joueur.flotte[ship_type][ship_id]
-                    if ship.nouveau:
-                        self.ship_view.generate_ship_view(self, ship.position,
-                                                          couleur,
-                                                          ship.id,
-                                                          joueur.nom,
-                                                          ship_type)
-                        ship.nouveau = False
-
-                    else:
-                        self.ship_view.move(self, ship.position, ship.id,
-                                            ship_type)
-
-        self.tag_raise("vaisseau")
-
-    def move_to(self, x: float, y: float) -> None:
-        """Déplace le canvas de jeu à une position donnée
-        :param x: La position x en 0.0 - 1.0
-        :param y: La position y en 0.0 - 1.0
-        """
-
-        """ Bouge le canvas vers la position du clic sur la minimap."""
-        self.xview_moveto(x)
-        self.yview_moveto(y)
-
-    def move_to_with_model_coords(self, x: float, y: float) -> None:
-        """Déplace le canvas de jeu à une position donnée
-        :param x: La position x en 0.0 - 1.0
-        :param y: La position y en 0.0 - 1.0
-        """
-
-        """ Bouge le canvas vers la position du clic sur la minimap."""
-        canvas_width = self.winfo_width()
-        canvas_height = self.winfo_height()
-
-        x_view = (x - canvas_width / 2) / 9000
-        y_view = (y - canvas_height / 2) / 9000
-
-        self.xview_moveto(x_view)
-        self.yview_moveto(y_view)
-
-    def drag(self, event):
-        """Déplace le canvas de jeu en fonction de la position de la souris
-        :param event: L'événement de la souris"""
-        self.scan_dragto(event.x, event.y, gain=1)
-
-    def horizontal_scroll(self, event):
-        """Effectue un scroll horizontal sur le canvas."""
-        self.xview_scroll(-1 * int(event.delta / 120), "units")
-
-    def vertical_scroll(self, event):
-        """Effectue un scroll vertical sur le canvas."""
-        self.yview_scroll(-1 * int(event.delta / 120), "units")
-
-    def generate_background(self, n: int):
-        """Genère un background de n étoiles de tailles aléatoires
-        :param n: Le nombre d'étoiles à générer"""
-        self.update_idletasks()
-        for i in range(n):
-            x, y = random.randrange(9000), random.randrange(9000)
-            size = random.randrange(3) + 1
-            col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
-
-            self.create_oval(x - size, y - size, x + size, y + size,
-                             fill=col, tags="background")
 
     def generate_etoile(self, star, tag: str):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
-        print("star_generated")
         photo = self.photo_cache[star.couleur]
 
         photo = photo.resize((star.taille * 12, star.taille * 12),
                              Image.ANTIALIAS)
-
         photo = ImageTk.PhotoImage(photo)
-
         self.cache.append(photo)
 
-        self.create_image(star.x, star.y, image=photo,
+        star_x = star.x - self.x1
+        star_y = star.y - self.y1
+
+        self.create_image(star_x, star_y, image=photo,
                           tags=(tag,
                                 star.id,
-                                star.proprietaire))
+                                star.proprietaire)
+                          )
+        print("generate_etoile")
+
+    def update_star(self, star):
+        """Met à jour une étoile sur le canvas.
+        :param star: L'étoile à mettre à jour
+        """
+        star_x = star.x - self.x1
+        star_y = star.y - self.y1
+
+        self.coords(star.id, star_x, star_y)
+        print("update_star")
+
+
 
     def generate_trou_de_vers(self, trou_de_vers: list[TrouDeVers]):
         """Créé deux portes de trou de vers sur le canvas. """
@@ -340,7 +296,7 @@ class Minimap(Canvas):
                                  tags="etoile_controlee",
                                  outline=Color.spaceBlack.value)
 
-            for wormhole in mod.trou_de_vers:
+            """for wormhole in mod.trou_de_vers:
                 self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
                                  wormhole.porte_a.y * self.y_ratio - 2,
                                  wormhole.porte_a.x * self.x_ratio + 2,
@@ -355,7 +311,7 @@ class Minimap(Canvas):
                                  wormhole.porte_b.y * self.y_ratio + 2,
                                  fill="purple",
                                  tags=StringTypes.TROUDEVERS.value,
-                                 outline=Color.spaceBlack.value)
+                                 outline=Color.spaceBlack.value)"""
 
     def on_resize(self, _):
         if self.after_id is not None:
