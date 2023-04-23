@@ -18,12 +18,6 @@ if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
     from Orion_client.model.space_object import TrouDeVers, PorteDeVers
 
-hexDarkGrey: str = "#36393f"
-"""Couleur de fond des frames"""
-hexDark: str = "#2f3136"
-"""Couleur de fond de l'application"""
-hexSpaceBlack: str = "#23272a"
-"""Pour l'espace, on utilise un noir plus sombre"""
 
 class GameCanvas(Canvas):
     """ Représente le canvas de jeu, ce qui veux dire l'ensemble des
@@ -40,7 +34,7 @@ class GameCanvas(Canvas):
         :param scroll_y: La scrollbar verticale
         """
         super().__init__(master)
-        self.configure(bg=hexSpaceBlack, bd=1,
+        self.configure(bg=Color.spaceBlack.value, bd=1,
                        relief="solid", highlightthickness=0,
                        xscrollcommand=scroll_x.set,
                        yscrollcommand=scroll_y.set)
@@ -76,7 +70,6 @@ class GameCanvas(Canvas):
 
         self.view_pos = self.coords("current")
         """La position de la caméra sur la scroll region du canvas de jeu."""
-
 
     def mouse_over_view_show(self, event):
         self.mouseOverView = MouseOverView(self)
@@ -236,29 +229,29 @@ class SideBar(Frame):
     def __init__(self, master):
         """Initialise la sidebar"""
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1,
+        self.configure(bg=Color.dark.value, bd=1,
                        relief="solid")
 
-        self.planet_frame = Frame(self, bg=hexDark, bd=1,
+        self.planet_frame = Frame(self, bg=Color.dark.value, bd=1,
                                   relief="solid")
 
         self.planet_label = Label(self.planet_frame, text="Planet",
-                                  bg=hexDark, fg="white",
+                                  bg=Color.dark.value, fg="white",
                                   font=(police, 20))
 
-        self.armada_frame = Frame(self, bg=hexDark, bd=1,
+        self.armada_frame = Frame(self, bg=Color.dark.value, bd=1,
                                   relief="solid")
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.armada_label = Label(self.armada_frame, text="Armada",
-                                  bg=hexDark, fg="white",
+                                  bg=Color.dark.value, fg="white",
                                   font=(police, 20))
         """Représente le label de la vue du jeu contenant les informations"""
 
-        self.minimap_frame = Frame(self, bg=hexDark, bd=1,
+        self.minimap_frame = Frame(self, bg=Color.dark.value, bd=1,
                                    relief="solid")
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.minimap_label = Label(self.minimap_frame, text="Minimap",
-                                   bg=hexDark, fg="white",
+                                   bg=Color.dark.value, fg="white",
                                    font=(police, 20))
         """Représente le label de la vue du jeu contenant les informations"""
         self.minimap = Minimap(self.minimap_frame)
@@ -314,7 +307,7 @@ class Minimap(Canvas):
 
     def __init__(self, master):
         """Initialise la minimap"""
-        super().__init__(master, bg=hexDark, bd=1,
+        super().__init__(master, bg=Color.dark.value, bd=1,
                          relief="solid", highlightthickness=0)
         self.propagate(False)
         self.after_id: None or int = None
@@ -335,7 +328,7 @@ class Minimap(Canvas):
                              star.x * self.x_ratio + 2,
                              star.y * self.y_ratio + 2,
                              fill="grey", tags=StringTypes.ETOILE.value,
-                             outline=hexSpaceBlack)
+                             outline=Color.spaceBlack.value)
 
         for key in mod.joueurs:
             for star in mod.joueurs[key].etoiles_controlees:
@@ -345,7 +338,7 @@ class Minimap(Canvas):
                                  star.y * self.y_ratio + 2,
                                  fill=mod.joueurs[key].couleur,
                                  tags="etoile_controlee",
-                                 outline=hexSpaceBlack)
+                                 outline=Color.spaceBlack.value)
 
             for wormhole in mod.trou_de_vers:
                 self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
@@ -354,7 +347,7 @@ class Minimap(Canvas):
                                  wormhole.porte_a.y * self.y_ratio + 2,
                                  fill="purple",
                                  tags=StringTypes.TROUDEVERS.value,
-                                 outline=hexSpaceBlack)
+                                 outline=Color.spaceBlack.value)
 
                 self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                                  wormhole.porte_b.y * self.y_ratio - 2,
@@ -362,7 +355,7 @@ class Minimap(Canvas):
                                  wormhole.porte_b.y * self.y_ratio + 2,
                                  fill="purple",
                                  tags=StringTypes.TROUDEVERS.value,
-                                 outline=hexSpaceBlack)
+                                 outline=Color.spaceBlack.value)
 
     def on_resize(self, _):
         if self.after_id is not None:
@@ -392,7 +385,8 @@ class Minimap(Canvas):
                     new_y2 = self.get_new_star_position(*self.coords(star))
                 self.delete(star)
                 self.create_oval(new_x1, new_y1, new_x2, new_y2,
-                                 fill=color, tags=tag, outline=hexSpaceBlack)
+                                 fill=color, tags=tag,
+                                 outline=Color.spaceBlack.value)
 
         for star in self.find_withtag("etoile_controlee"):
             new_x1, new_y1, \
@@ -401,7 +395,7 @@ class Minimap(Canvas):
             self.delete(star)
             self.create_oval(new_x1, new_y1, new_x2, new_y2,
                              fill=color, tags="etoile_controlee",
-                             outline=hexSpaceBlack)
+                             outline=Color.spaceBlack.value)
 
     def get_new_star_position(self, x1, y1, x2, y2):
         return x1 * self.x_ratio / self.old_x_ratio, \
@@ -422,14 +416,14 @@ class Minimap(Canvas):
 class Hud(Frame):
     def __init__(self, master):
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1, relief="solid")
+        self.configure(bg=Color.dark.value, bd=1, relief="solid")
 
         self.grid_columnconfigure(0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_propagate(False)
 
-        self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.ressource_frame = Frame(self, bg=Color.dark.value, bd=1, relief="solid")
         self.ressource_frame.grid(row=0, column=0, sticky="nsew")
 
         for i in range(4):  # separate ressources in 4 columns
@@ -524,13 +518,13 @@ class Hud(Frame):
         self.energy_info.grid(row=1, column=0, sticky="new")
         self.food_info.grid(row=1, column=0, sticky="new")
 
-        self.science_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.science_frame = Frame(self, bg=Color.dark.value, bd=1, relief="solid")
         self.science_frame.grid(row=0, column=1, sticky="e", padx=10)
         self.science_frame.grid_columnconfigure(0, weight=1)
         self.science_frame.grid_rowconfigure(0, weight=1)
 
         self.science_button = Button(self.science_frame, text="Science",
-                                        bg=hexDark, fg="white",
+                                        bg=Color.dark.value, fg="white",
                                         font=("Fixedsys", self.text_size),
                                         width=self.ressource_width,
                                         height=self.ressource_height)
@@ -549,21 +543,21 @@ class Hud(Frame):
 class MiniGameWindow(Frame):
 
     def __init__(self, master,  proprietaire: str):
-        super().__init__(master, bg=hexDarkGrey, bd=2, relief="solid",
+        super().__init__(master, bg=Color.darkGrey.value, bd=2, relief="solid",
                          width=500, height=500)
 
         self.is_shown: bool = False
 
-        self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
+        self.header_frame: Frame = Frame(self, bg=Color.darkGrey.value,
                                          bd=1, relief="solid")
         self.title_label = Label(self.header_frame, text="HEADER",
-                                        bg=hexDarkGrey, fg="white",
+                                        bg=Color.darkGrey.value, fg="white",
                                         font=("Fixedsys", 15))
 
-        self.main_frame: Frame = Frame(self, bg=hexDarkGrey,
+        self.main_frame: Frame = Frame(self, bg=Color.darkGrey.value,
                                        bd=1, relief="solid")
         self.minigame_label = Label(self.main_frame, text="MINIGAME",
-                                    bg=hexDarkGrey, fg="white",
+                                    bg=Color.darkGrey.value, fg="white",
                                     font=("Fixedsys", 13))
 
         self.place_header()
@@ -598,24 +592,24 @@ class MiniGameWindow(Frame):
 class Minigame(Frame):
 
     def __init__(self, master, *args):
-        super().__init__(master, bg=hexDark, bd=1, relief="solid",
+        super().__init__(master, bg=Color.dark.value, bd=1, relief="solid",
                          width=400, height=350, *args)
 
     def game1(self): #remember the number
-        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1, relief="solid")
         self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4, relheight=0.15, anchor="center")
 
         self.answerLabel = Label(self.minigame_frame, text="123456",
-                               bg=hexDarkGrey, fg="white",
+                               bg=Color.darkGrey.value, fg="white",
                                font=("Fixedsys", 18))
         self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
 
 
-        self.input_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.input_frame = Frame(self, bg=Color.darkGrey.value, bd=1, relief="solid")
         self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45, relheight=0.25, anchor="center")
 
         self.input_text = Text(self.input_frame, height=1, width=10,
-                               bg=hexDarkGrey, fg="white", bd=1, relief="solid",
+                               bg=Color.darkGrey.value, fg="white", bd=1, relief="solid",
                                font=("Fixedsys", 17))
         self.input_text.place(relx=0.5, rely=0.3, anchor="center")
 
@@ -623,7 +617,7 @@ class Minigame(Frame):
         self.input_button.place(relx=0.5, rely=0.75, anchor="center")
 
     def game2(self): #simon says
-        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1, relief="solid")
         self.minigame_frame.place(relx=0.5, rely=0.5, anchor="center")
 
         #for i in range(9):
@@ -645,20 +639,20 @@ class ChatBox(Frame):
     def __init__(self, master, queue):
         super().__init__(master)
         self.queue = queue
-        self.configure(bg=hexDark, bd=1, relief="solid", height=200, width=400)
+        self.configure(bg=Color.dark.value, bd=1, relief="solid", height=200, width=400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.chat_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.chat_frame = Frame(self, bg=Color.dark.value, bd=1, relief="solid")
         self.chat_frame.grid(row=0, column=0, sticky="nsew")
         self.chat_frame.grid_columnconfigure(0, weight=1)
         self.chat_frame.grid_rowconfigure(0, weight=1)
-        self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
+        self.chat_text = Text(self.chat_frame, bg=Color.dark.value, fg="white", bd=0,
                               relief="solid", height=10, width=50)
         self.chat_text.grid(row=0, column=0, sticky="nsew")
 
         self.chat_text.bind("<Button-1>", lambda _: "break")
 
-        self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
+        self.chat_entry = Entry(self, bg=Color.dark.value, fg="white", bd=-1, width=50)
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
         self.chat_entry.bind("<Escape>", self.hide)
@@ -709,7 +703,7 @@ class ChatBox(Frame):
 class MouseOverView(Frame):
     def __init__(self, master):
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1, relief="solid")
+        self.configure(bg=Color.dark.value, bd=1, relief="solid")
         self.visible = False
         self.updated = False
         self.id = None
@@ -721,17 +715,17 @@ class MouseOverView(Frame):
                 if dict is not None:
                     dictlist.append(dict)
             for i in range(len(dictlist)):
-                container = Frame(self, bg=hexDark, bd=1, relief="solid",
+                container = Frame(self, bg=Color.dark.value, bd=1, relief="solid",
                                   pady=10)
                 # add a max size with :
                 container.grid(row=i, column=0, sticky="nsew")
                 title = Label(container, text=dictlist[i].pop("header"),
-                              bg=hexDark, fg="white", font=(police, 15),
+                              bg=Color.dark.value, fg="white", font=(police, 15),
                               pady=2)
                 title.grid(row=0, column=0, sticky="nsew")
                 for j, (key, value) in enumerate(dictlist[i].items()):
                     label = Label(container, text=key + " : " + str(value),
-                                  bg=hexDark, fg="white", font=(police, 10),
+                                  bg=Color.dark.value, fg="white", font=(police, 10),
                                   pady=2, wraplength=250)
                     label.grid(row=j + 1, column=0, sticky="nsew")
 
@@ -843,7 +837,7 @@ class ShipViewGenerator:
                           pos[1] + self.settings["Reconnaissance"]["size"],
                           start=0, extent=180, fill=couleur,
                           tags=("vaisseau", ship_id, username, ship_type),
-                          outline=hexSpaceBlack)
+                          outline=Color.spaceBlack.value)
 
     def create_transportation(self, master: Canvas, pos: tuple, couleur: str,
                               ship_id: str, username: str, ship_type: str):
@@ -856,7 +850,7 @@ class ShipViewGenerator:
             pos[1] + self.settings["Transportation"]["size"],
             fill=couleur,
             tags=("vaisseau", ship_id, username, ship_type),
-            outline=hexSpaceBlack)
+            outline=Color.spaceBlack.value)
 
     def create_militaire(self, master: Canvas, pos: tuple, couleur: str,
                          ship_id: str, username: str, ship_type: str):
@@ -871,7 +865,7 @@ class ShipViewGenerator:
                               pos[1] + self.settings["Militaire"]["size"],
                               fill=couleur,
                               tags=("vaisseau", ship_id, username, ship_type),
-                              outline=hexSpaceBlack)
+                              outline=Color.spaceBlack.value)
 
 
 if __name__ == '__main__':

@@ -11,23 +11,23 @@ class EtoileWindow(Frame):
 
     def __init__(self, master, proprietaire: str):
         """Initialise la fenetre"""
-        super().__init__(master, bg=hexDarkGrey, bd=1, relief="solid",
+        super().__init__(master, bg=Color.darkGrey.value, bd=1, relief="solid",
                          width=500, height=500)
 
         self.is_shown: bool = False
         """Si la fenetre est affichee"""
 
         # # # Le Header
-        self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
+        self.header_frame: Frame = Frame(self, bg=Color.darkGrey.value,
                                          bd=1, relief="solid")
         """Frame contenant les informations identifiantes de la planete"""
 
-        self.proprietaire_label = Label(self.header_frame, bg=hexDarkGrey,
+        self.proprietaire_label = Label(self.header_frame, bg=Color.darkGrey.value,
                                         fg="white", font=("Fixedsys", 15))
         """Label contenant le nom du proprietaire de la planete"""
         self.proprietaire_label["text"] = proprietaire
 
-        self.population_canvas = Canvas(self.header_frame, bg=hexDarkGrey,
+        self.population_canvas = Canvas(self.header_frame, bg=Color.darkGrey.value,
                                         width=51, height=51,
                                         highlightthickness=0)
         """Canvas contenant le label de la population"""
@@ -39,91 +39,91 @@ class EtoileWindow(Frame):
         """Label contenant la population"""
 
         self.nom_label = Label(self.header_frame,
-                               bg=hexDarkGrey, fg="white",
+                               bg=Color.darkGrey.value, fg="white",
                                font=("Fixedsys", 20))
         """Label contenant le nom de la planete"""
 
         # # # La main frame
-        self.main_frame: Frame = Frame(self, bg=hexDarkGrey, bd=1,
+        self.main_frame: Frame = Frame(self, bg=Color.darkGrey.value, bd=1,
                                        relief="solid")
         """Frame contenant les batiments de la planete"""
         self.batiment_label = Label(self.main_frame, text="Colonies",
-                                    bg=hexDarkGrey, fg="white",
+                                    bg=Color.darkGrey.value, fg="white",
                                     font=("Fixedsys", 13))
         """Label contenant le nom du header du menu de batiment"""
 
-        self.batiment_grid = Frame(self.main_frame, bg=hexDarkGrey)
+        self.batiment_grid = Frame(self.main_frame, bg=Color.darkGrey.value)
         """Frame contenant les batiments de la planete"""
 
         # # # Side Frame
-        self.side_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.side_frame = Frame(self, bg=Color.darkGrey.value, bd=1, relief="solid")
         """Frame contenant les informations de production de la planete"""
 
-        self.ressource_grid = Frame(self.side_frame, bg=hexDarkGrey)
+        self.ressource_grid = Frame(self.side_frame, bg=Color.darkGrey.value)
         """Frame contenant les ressources de la planete"""
 
         self.ressource_label = Label(self.side_frame, text="Rendement :",
-                                     bg=hexDarkGrey, fg="white",
+                                     bg=Color.darkGrey.value, fg="white",
                                      font=("Fixedsys", 13))
         """Label contenant le nom du header du menu de ressource"""
 
         self.energie_label = Label(self.ressource_grid, text="energie :",
-                                   bg=hexDarkGrey, fg="white",
+                                   bg=Color.darkGrey.value, fg="white",
                                    font=("Fixedsys", 10))
         self.energie_value_label = Label(self.ressource_grid, text="0",
-                                         bg=hexDarkGrey, fg="white",
+                                         bg=Color.darkGrey.value, fg="white",
                                          font=("Fixedsys", 10))
 
         self.metal_label = Label(self.ressource_grid, text="Métal :",
-                                 bg=hexDarkGrey, fg="white",
+                                 bg=Color.darkGrey.value, fg="white",
                                  font=("Fixedsys", 10))
         self.metal_value_label = Label(self.ressource_grid, text="0",
-                                       bg=hexDarkGrey, fg="white",
+                                       bg=Color.darkGrey.value, fg="white",
                                        font=("Fixedsys", 10))
 
         self.beton_label = Label(self.ressource_grid, text="Béton :",
-                                 bg=hexDarkGrey, fg="white",
+                                 bg=Color.darkGrey.value, fg="white",
                                  font=("Fixedsys", 10))
         self.beton_value_label = Label(self.ressource_grid, text="0",
-                                       bg=hexDarkGrey, fg="white",
+                                       bg=Color.darkGrey.value, fg="white",
                                        font=("Fixedsys", 10))
 
         self.nourriture_label = Label(self.ressource_grid, text="Nourriture :",
-                                      bg=hexDarkGrey, fg="white",
+                                      bg=Color.darkGrey.value, fg="white",
                                       font=("Fixedsys", 10))
         self.nourriture_value_label = Label(self.ressource_grid, text="0",
-                                            bg=hexDarkGrey, fg="white",
+                                            bg=Color.darkGrey.value, fg="white",
                                             font=("Fixedsys", 10))
 
         self.science_label = Label(self.ressource_grid, text="Science :",
-                                   bg=hexDarkGrey, fg="white",
+                                   bg=Color.darkGrey.value, fg="white",
                                    font=("Fixedsys", 10))
         self.science_value_label = Label(self.ressource_grid, text="0",
-                                         bg=hexDarkGrey, fg="white",
+                                         bg=Color.darkGrey.value, fg="white",
                                          font=("Fixedsys", 10))
 
         self.line = Frame(self.side_frame, bg="white", bd=1, relief="solid")
 
         self.other_label = Label(self.side_frame, text="Autre",
-                                 bg=hexDarkGrey, fg="white",
+                                 bg=Color.darkGrey.value, fg="white",
                                  font=("Fixedsys", 13))
         """Label contenant le nom du header du menu d'information"""
 
         self.stockpile_connection_label = Label(self.side_frame,
                                                 text="Connecté au "
                                                      "stockage :",
-                                                bg=hexDarkGrey, fg="white",
+                                                bg=Color.darkGrey.value, fg="white",
                                                 font=("Fixedsys", 10))
         """Label contenant le nom du header du menu d'information"""
         self.stockpile_boolean_label = Label(self.side_frame,
                                              text="Non",
-                                             bg=hexDarkGrey, fg="white",
+                                             bg=Color.darkGrey.value, fg="white",
                                              font=("Fixedsys", 10))
         """Label contenant le nom du header du menu d'information"""
 
         self.construct_ship_button = Button(self.side_frame,
                                             text="Construire un vaisseau",
-                                            bg=hexDarkGrey, fg="white",
+                                            bg=Color.darkGrey.value, fg="white",
                                             font=("Fixedsys", 10))
         self.construct_ship_menu = ConstructShipMenu(self.side_frame)
 
@@ -313,19 +313,19 @@ class BuildingWindow(Frame):
         """
         super().__init__(master)
 
-        self.config(bg=hexDark, bd=2,
+        self.config(bg=Color.dark.value, bd=2,
                     relief="solid",
                     width=75, height=75)
 
-        self.name_label = Label(self, text="Libre", bg=hexDark,
+        self.name_label = Label(self, text="Libre", bg=Color.dark.value,
                                 fg="white", font=("Fixedsys", 10))
         """Label contenant le nom du bâtiment"""
 
-        self.level_label = Label(self, text="", bg=hexDark,
+        self.level_label = Label(self, text="", bg=Color.dark.value,
                                  fg="white", font=("Fixedsys", 10))
         """Label contenant le niveau du bâtiment"""
 
-        self.upgrade_canvas = Canvas(self, bg=hexDark, width=20, height=20,
+        self.upgrade_canvas = Canvas(self, bg=Color.dark.value, width=20, height=20,
                                      bd=0, highlightthickness=0)
         """Canvas contenant le bouton d'amélioration du bâtiment"""
 
@@ -364,7 +364,7 @@ class ConstructShipMenu(Menu):
 
     def __init__(self, master: Frame):
         """Initialise le menu deroulant"""
-        super().__init__(master, tearoff=0, bg=hexDarkGrey)
+        super().__init__(master, tearoff=0, bg=Color.darkGrey.value)
         self.ship_types = ["Reconnaissance", "Militaire", "Transportation"]
 
         for i in range(len(self.ship_types)):
@@ -399,7 +399,7 @@ class ConstructBuildingMenu(Menu):
 
     def __init__(self, master: Frame):
         """Initialise le menu deroulant"""
-        super().__init__(master, tearoff=0, bg=hexDarkGrey)
+        super().__init__(master, tearoff=0, bg=Color.darkGrey.value)
         self.building_types = ["Mine", "Farm", "Concrete Factory",
                                "Power Plant", "Research Center"]
 

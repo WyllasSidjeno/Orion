@@ -3,7 +3,7 @@ from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 from Orion_client.helpers.CommandQueues import ControllerQueue
 from Orion_client.view.ui_template import GameCanvas, SideBar, Hud, ChatBox
 
-from Orion_client.view.view_common_ressources import *
+from Orion_client.view.ui_template import Color, police
 
 
 class GameView(Frame):
@@ -13,7 +13,7 @@ class GameView(Frame):
     def __init__(self, command_queue: ControllerQueue, username):
         super().__init__()
         """Représente la queue de commandes du jeu."""
-        self.config(bg=hexDark, bd=2, relief="solid",
+        self.config(bg=Color.dark.value, bd=2, relief="solid",
                     width=1280, height=720)
 
         self.command_queue = command_queue
@@ -38,16 +38,19 @@ class GameView(Frame):
             command_queue)
         self.canvas.etoile_window.construct_building_menu.register_command_queue(
             command_queue)
+        # todo : à déplacer dans le constructeur de la fenêtre
 
-        self.bind_game_requests()
+        self.bind_game_requests()  # todo : à déplacer dans le constructeur de la fenêtre
 
-        self.canvas.etoile_window.proprietaire_label.config(text=username)
+        self.canvas.etoile_window.proprietaire_label.config(
+            text=username)  # todo : à déplacer dans le constructeur de la fenêtre
 
         self.configure_grid()
 
         self.focus_set()
 
-        self.bind("<Return>", self.chat.show)
+        self.bind("<Return>",
+                  self.chat.show)  # todo : à déplacer dans le constructeur de la fenêtre
 
     def configure_grid(self):
         """Configures la grid de la vue principale du jeu."""
@@ -61,7 +64,6 @@ class GameView(Frame):
 
         self.hud.grid(row=0, column=0, columnspan=10, sticky="nsew")
         self.side_bar.grid(row=1, column=0, rowspan=9, sticky="nsew")
-        self.side_bar.grid_propagate(False)
         self.canvas.grid(row=1, column=1, columnspan=9, rowspan=9,
                          sticky="nsew")
 
@@ -89,12 +91,14 @@ class GameView(Frame):
         self.side_bar.refresh(mod)
 
         dict_ress = mod.joueurs[mod.controller_username].ressources
-        dict_ress.pop("science")
+        dict_ress.pop(
+            "science")  # todo modifier update ressources pour ne pas avoir à faire ça
 
         self.hud.update_ressources(**dict_ress)
         self.chat.refresh(mod)
 
-        self.side_bar.minimap.user_square_move(self.canvas.view_pos)
+        self.side_bar.minimap.user_square_move(
+            self.canvas.view_pos)  # todo : change name for refresh
 
     def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
@@ -135,31 +139,31 @@ class GameView(Frame):
 class LobbyView(Frame):
     def __init__(self, url_serveur: str, username: str):
         super().__init__()
-        self.config(bg=hexDark, bd=2,
+        self.config(bg=Color.dark.value, bd=2,
                     relief="solid",
                     width=620, height=480)
 
         self.connection_screen_label = Label(self,
                                              text='Orion - '
                                                   'Connection screen',
-                                             bg=hexDark, fg="white",
+                                             bg=Color.dark.value, fg="white",
                                              font=("Fixedsys", 30))
 
         self.game_state_label = Label(self, text="Game state:",
-                                      bg=hexDark, fg="white",
+                                      bg=Color.dark.value, fg="white",
                                       font=("Fixedsys", 15))
         self.game_state_label_value = Label(self, text="Not connected",
-                                            bg=hexDark, fg="white",
+                                            bg=Color.dark.value, fg="white",
                                             font=("Fixedsys", 10))
 
         self.player_name_label = Label(self, text="Joueur name: ",
-                                       bg=hexDark, fg="white",
+                                       bg=Color.dark.value, fg="white",
                                        font=("Fixedsys", 10))
         self.player_name_entry = Entry(self, width=30)
         self.player_name_entry.insert(0, username)
 
         self.url_serveur_label = Label(self, text="URL serveur: ",
-                                       bg=hexDark, fg="white",
+                                       bg=Color.dark.value, fg="white",
                                        font=("Fixedsys", 10))
         self.url_entry = Entry(self, width=30)
         self.url_entry.insert(0, url_serveur)
@@ -171,7 +175,7 @@ class LobbyView(Frame):
         self.restart_button = Button(self, text="Restart")
 
         self.player_list = Canvas(self, width=300, height=100,
-                                  bg=hexDarkGrey)
+                                  bg=Color.dark.value)
 
         self.start_button = Button(self, text="Start Game")
 
@@ -245,9 +249,10 @@ class LobbyView(Frame):
 
             for i in range(len(joueurs)):
                 Label(self.player_list, text=joueurs[i][0],
-                      bg=hexDarkGrey, fg="white",
+                      bg=Color.dark.value, fg="white",
                       font=("Fixedsys", 10)).place(anchor="center",
-                                                relx=0.5, rely=0.15 + i * 0.2)
+                                                   relx=0.5,
+                                                   rely=0.15 + i * 0.2)
 
     def enable_restart_button(self):
         self.restart_button.config(state="normal")

@@ -40,10 +40,10 @@ class PorteDeVers:
 
     def __init__(self, hole_id: str, x: int, y: int, taille: int) -> None:
         """Constructeur de la classe PorteDeVers.
-        :param parent_id: l'id du trou de vers auquel la porte de vers appartient
+        :param hole_id: l'id du trou de vers auquel
+        la porte de vers appartient
         :param x: coordonnee x du centre de la porte
         :param y: coordonnee y du centre de la porte
-        :param couleur: la couleur de la porte
         :param taille: la taille de la porte
         """
         self.parent_id = hole_id
