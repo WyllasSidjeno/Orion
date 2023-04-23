@@ -76,7 +76,8 @@ class Modele(IModel):
             "trous_de_vers": self.get_porte_de_vers_in_view(x1, x2, y1, y2)
         }
 
-    def get_etoiles_in_view(self, x1, y1, x2, y2) -> Generator[Etoile]:
+    def get_etoiles_in_view(self, x1, y1, x2, y2) \
+            -> Generator[Etoile, None, None]:
         for etoile in self.etoiles:
             if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
                 yield etoile

@@ -49,6 +49,11 @@ class GameCanvas(Canvas):
             "orange": Image.open("assets/planet/star_orange01.png"),
             "background": Image.open("assets/background/background.jpeg"),
         }
+        for key, photo in self.photo_cache.items():
+            if key != "background":
+                photo.thumbnail((50, 50), Image.ANTIALIAS)
+            else:
+                photo.thumbnail((1000, 1000), Image.ANTIALIAS)
 
 
         self.cache = []
@@ -88,9 +93,13 @@ class GameCanvas(Canvas):
         self.initial_x_move = None
         self.initial_y_move = None
 
+        self.dx = 0
+        self.dy = 0
+
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
+        self.focus()
         if self.moved:
             x = self.bounding_box.x + self.dx
             y = self.bounding_box.y + self.dy
@@ -107,36 +116,17 @@ class GameCanvas(Canvas):
 
             self.bounding_box.update(x, y, width, height)
 
+        self.delete(StringTypes.ETOILE.value)
+        self.delete(StringTypes.ETOILE_OCCUPEE.value)
         self.delete(StringTypes.TROUDEVERS.value)
-
-        ids = self.find_withtag(StringTypes.ETOILE.value)
-        self.refresh_past_objects(mod, ids)
+        self.delete(StringTypes.VAISSEAU.value)
 
         for etoile in mod.get_etoiles_in_view(*self.bounding_box.__tuple__()):
-            star_tkinter_id = self.find_withtag(etoile.id)
-            if not star_tkinter_id:
-                self.generate_etoile(etoile, StringTypes.ETOILE.value)
-            elif (etoile.x, etoile.y) in self.bounding_box:
-                if etoile.needs_refresh:
-                    self.refresh_star(etoile)
-                elif self.moved:
-                    self.coords(etoile.id, self.new_pos(etoile.x, etoile.y))
+            self.generate_etoile(etoile)
 
-        for porte in mod.get_porte_de_vers_in_view(
-                *self.bounding_box.__tuple__()):
+        for porte in mod.get_porte_de_vers_in_view(*self.bounding_box.__tuple__()):
             self.generate_porte_de_vers(porte)
 
-        if self.moved:
-            self.moved = False
-
-    def refresh_past_objects(self, mod, ids):
-        for id in ids:
-            obj = self.gettags(id)
-            if obj[0] == StringTypes.ETOILE.value:
-                if not mod.is_star_in_view(
-                        obj[1], *self.bounding_box.__tuple__()
-                ):
-                    self.delete(id)
 
     def generate_porte_de_vers(self, porte: PorteDeVers):
 
@@ -148,10 +138,11 @@ class GameCanvas(Canvas):
                          fill="black",
                          tags=(porte.id, StringTypes.TROUDEVERS.value))
 
-    def generate_etoile(self, star, tag: str):
+    def generate_etoile(self, star):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
+        print(star)
         photo = self.photo_cache[star.couleur]
 
         photo = photo.resize((star.taille * 12, star.taille * 12),
@@ -161,6 +152,10 @@ class GameCanvas(Canvas):
 
         star_x = star.x - self.bounding_box.x
         star_y = star.y - self.bounding_box.y
+        if star.proprietaire == "":
+            tag= StringTypes.ETOILE.value
+        else:
+            tag = StringTypes.ETOILE_OCCUPEE.value
 
         self.create_image(star_x, star_y, image=photo,
                           tags=(tag,
@@ -168,30 +163,6 @@ class GameCanvas(Canvas):
                                 star.proprietaire)
                           )
 
-    def refresh_star(self, star):
-        """Rafraichit une étoile sur le canvas.
-        :param star: L'étoile à rafraichir"""
-        photo = self.photo_cache[star.couleur]
-
-        photo = photo.resize((star.taille * 12, star.taille * 12),
-                             Image.ANTIALIAS)
-        photo = ImageTk.PhotoImage(photo)
-        self.cache.append(photo)
-
-        star_x = star.x - self.bounding_box.x
-        star_y = star.y - self.bounding_box.y
-
-        self.itemconfig(star.id, image=photo)
-        self.coords(star.id, star_x, star_y)
-
-    def new_pos(self, x, y) -> tuple[int, int]:
-        """Retourne les nouvelles coordonnées en fonction de la position
-        du canvas.
-        :param x: La position x
-        :param y: La position y
-        :return: Les nouvelles coordonnées
-        """
-        return x - self.bounding_box.x, y - self.bounding_box.y
 
     def move_to(self, rel_x, rel_y):
         """Déplace le canvas à la position x et y
@@ -213,6 +184,7 @@ class GameCanvas(Canvas):
         height = max(min(height, 9000), 0)
 
         self.bounding_box.update(x, y, width, height)
+        self.moved = True
 
     def on_resize(self, event):
         """Méthode appelée lorsqu'on redimensionne la fenêtre.
@@ -224,7 +196,7 @@ class GameCanvas(Canvas):
 
         background = self.create_image(0, 0, anchor=NW,
                                        image=self.background_image)
-
+        self.tag_lower(background)
 
 
 class SideBar(Frame):
