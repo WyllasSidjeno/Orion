@@ -88,6 +88,8 @@ class GameCanvas(Canvas):
         if self.initial_x_move is None:
             self.initial_x_move = event.x
             self.initial_y_move = event.y
+        if self.mouse_over_view.visible:
+            self.mouse_over_view.hide("arg")
 
         self.dx = event.x - self.initial_x_move
         self.dy = event.y - self.initial_y_move
