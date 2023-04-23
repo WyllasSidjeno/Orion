@@ -58,7 +58,7 @@ class GameCanvas(Canvas):
 
         self.cache = []
 
-        self.mouseOverView = MouseOverView(self)
+        self.mouse_over_view = MouseOverView(self)
 
         # self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
         #              self.mouse_over_view_show)
@@ -76,6 +76,12 @@ class GameCanvas(Canvas):
         self.moved: bool = True
 
         self.bind("<Configure>", self.on_resize)
+        self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
+                      self.mouse_over_view.show)
+
+        self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
+                        self.mouse_over_view.hide)
+
 
     def mouse_drag(self, event):
         """Déplace le canvas de jeu en fonction de la souris"""
@@ -127,6 +133,10 @@ class GameCanvas(Canvas):
         for porte in mod.get_porte_de_vers_in_view(*self.bounding_box.__tuple__()):
             self.generate_porte_de_vers(porte)
 
+        if self.mouse_over_view.visible:
+            obj = mod.get_object(self.mouse_over_view.id)
+            self.mouse_over_view.on_mouse_over(obj.to_mouse_over_dict())
+
 
     def generate_porte_de_vers(self, porte: PorteDeVers):
 
@@ -142,7 +152,6 @@ class GameCanvas(Canvas):
         """Créé une étoile sur le canvas.
         :param star: L'étoile à créer
         :param tag: Un tag de l'étoile"""
-        print(star)
         photo = self.photo_cache[star.couleur]
 
         photo = photo.resize((star.taille * 12, star.taille * 12),
@@ -680,46 +689,42 @@ class ChatBox(Frame):
 
 
 class MouseOverView(Frame):
+    id: str or int
     def __init__(self, master):
         super().__init__(master)
         self.configure(bg=Color.dark.value, bd=1, relief="solid")
         self.visible = False
-        self.updated = False
-        self.id = None
 
     def on_mouse_over(self, *args):
-        if not self.updated:
-            dictlist = []
-            for dict in args:
-                if dict is not None:
-                    dictlist.append(dict)
-            for i in range(len(dictlist)):
-                container = Frame(self, bg=Color.dark.value, bd=1,
-                                  relief="solid",
-                                  pady=10)
-                # add a max size with :
-                container.grid(row=i, column=0, sticky="nsew")
-                title = Label(container, text=dictlist[i].pop("header"),
+        dictlist = []
+        for dict in args:
+            if dict is not None:
+                dictlist.append(dict)
+        for i in range(len(dictlist)):
+            container = Frame(self, bg=Color.dark.value, bd=1,
+                              relief="solid",
+                              pady=10)
+            # add a max size with :
+            container.grid(row=i, column=0, sticky="nsew")
+            title = Label(container, text=dictlist[i].pop("header"),
+                          bg=Color.dark.value, fg="white",
+                          font=(police, 15),
+                          pady=2)
+            title.grid(row=0, column=0, sticky="nsew")
+            for j, (key, value) in enumerate(dictlist[i].items()):
+                label = Label(container, text=key + " : " + str(value),
                               bg=Color.dark.value, fg="white",
-                              font=(police, 15),
-                              pady=2)
-                title.grid(row=0, column=0, sticky="nsew")
-                for j, (key, value) in enumerate(dictlist[i].items()):
-                    label = Label(container, text=key + " : " + str(value),
-                                  bg=Color.dark.value, fg="white",
-                                  font=(police, 10),
-                                  pady=2, wraplength=250)
-                    label.grid(row=j + 1, column=0, sticky="nsew")
-
-            self.updated = True
+                              font=(police, 10),
+                              pady=2, wraplength=250)
+                label.grid(row=j + 1, column=0, sticky="nsew")
 
     def hide(self, _):
         self.visible = False
-        self.updated = False
-        self.destroy()
+        self.place_forget()
 
     def show(self, event):
         self.id = event.widget.find_withtag("current")[0]
+        self.id = event.widget.gettags(self.id)[1]
         self.visible = True
 
         x = event.x
@@ -731,6 +736,10 @@ class MouseOverView(Frame):
         # If it gets out of the window, it will be placed on the top
         if y + self.winfo_height() > event.widget.winfo_height():
             y = event.widget.winfo_height() - self.winfo_height()
+
+        # add an offset so the cursor is not on the frame
+        x += 10
+        y += 10
 
         self.place(x=x, y=y)
 
