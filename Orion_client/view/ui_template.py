@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tkinter import Frame, Label, Canvas, Text, END, Entry, Button, Tk
+from tkinter import Frame, Label, Canvas, Text, END, Entry, Button, Tk, NW
 
 from PIL import Image
 from typing import TYPE_CHECKING
@@ -47,7 +47,9 @@ class GameCanvas(Canvas):
             "red": Image.open("assets/planet/star_red01.png"),
             "yellow": Image.open("assets/planet/star_yellow01.png"),
             "orange": Image.open("assets/planet/star_orange01.png"),
+            "background": Image.open("assets/background/background.jpeg"),
         }
+
 
         self.cache = []
 
@@ -67,6 +69,8 @@ class GameCanvas(Canvas):
         self.bounding_box = BoundingBox(0, 0, 0, 0)
 
         self.moved: bool = True
+
+        self.bind("<Configure>", self.on_resize)
 
     def mouse_drag(self, event):
         """Déplace le canvas de jeu en fonction de la souris"""
@@ -209,6 +213,18 @@ class GameCanvas(Canvas):
         height = max(min(height, 9000), 0)
 
         self.bounding_box.update(x, y, width, height)
+
+    def on_resize(self, event):
+        """Méthode appelée lorsqu'on redimensionne la fenêtre.
+        :param event: L'événement"""
+        background_image = self.photo_cache["background"]
+        background_image = background_image.resize((event.width, event.height),
+                                                    Image.ANTIALIAS)
+        self.background_image = ImageTk.PhotoImage(background_image)
+
+        background = self.create_image(0, 0, anchor=NW,
+                                       image=self.background_image)
+
 
 
 class SideBar(Frame):
