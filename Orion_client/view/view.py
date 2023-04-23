@@ -82,7 +82,7 @@ class GameView(Frame):
         self.chat.refresh(mod)
 
         self.side_bar.minimap.user_square_move(
-            self.canvas.view_pos)  # todo : change name for refresh
+            self.canvas.bounding_box.__tuple__())  # todo : change name for refresh
 
     def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""

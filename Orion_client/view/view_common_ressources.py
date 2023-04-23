@@ -26,3 +26,23 @@ class Color(Enum):
         return self.value
 
 
+class BoundingBox:
+    def __init__(self, x: int, y: int, width: int, height: int):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+    def __contains__(self, point: tuple[int, int]) -> bool:
+        return self.x <= point[0] <= self.x + self.width and self.y <= point[
+            1] <= self.y + self.height
+
+    def update(self, x: int, y: int, width: int, height: int):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        print(self.__tuple__())
+
+    def __tuple__(self):
+        return self.x, self.y, self.width, self.height

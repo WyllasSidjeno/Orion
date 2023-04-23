@@ -1,7 +1,6 @@
 from __future__ import annotations
-import random
 
-from tkinter import Frame, Label, Canvas, Scrollbar, Text, END, Entry, Button, Tk
+from tkinter import Frame, Label, Canvas, Text, END, Entry, Button, Tk
 
 from PIL import Image
 from typing import TYPE_CHECKING
@@ -26,18 +25,14 @@ class GameCanvas(Canvas):
     """
     username: str
     command_queue: ControllerQueue
-    view_pos: tuple[int, int, int, int]
-    x: int
-    y: int
     def __init__(self, master, proprietaire):
         """Initialise le canvas de jeu
-        :param scroll_x: La scrollbar horizontale
-        :param scroll_y: La scrollbar verticale
+        :param master: la fenetre principale
+        :param proprietaire: le proprietaire du canvas de jeu
         """
         super().__init__(master)
         self.configure(bg=Color.brightGreen.value, bd=1,
                        relief="solid", highlightthickness=0)
-
 
         self.ship_view = ShipViewGenerator()
 
@@ -57,25 +52,22 @@ class GameCanvas(Canvas):
 
         self.mouseOverView = MouseOverView(self)
 
-        self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
-                      self.mouse_over_view_show)
+        #self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
+        #              self.mouse_over_view_show)
 
         self.bind("<B1-Motion>", self.mouse_drag)
         self.bind("<ButtonRelease-1>", self.on_mouse_stop_drag)
 
         self.initial_x_move : int | None = None
         self.initial_y_move: int | None = None
-
-        self.x1 = 0
-        self.y1 = 0
-        self.x2 = 0
-        self.y2 = 0
-
         self.dx = 0
         self.dy = 0
 
+        self.bounding_box = BoundingBox(0, 0, 0, 0)
+
     def mouse_drag(self, event):
         """Déplace le canvas de jeu en fonction de la souris"""
+        print(event.x, event.y)
         if self.initial_x_move is None:
             self.initial_x_move = event.x
             self.initial_y_move = event.y
@@ -85,8 +77,8 @@ class GameCanvas(Canvas):
 
     def on_mouse_stop_drag(self, event):
         """Déplace le canvas de jeu en fonction de la souris"""
-        self.x = None
-        self.y = None
+        self.initial_x_move = None
+        self.initial_y_move = None
 
         self.dx = 0
         self.dy = 0
@@ -96,32 +88,32 @@ class GameCanvas(Canvas):
         :param mod: Le model"""
         # todo : Optimize the movement so we do not have to
         #  delete but only move it with a move or coords function
-        self.x1 += self.dx
-        self.y1 += self.dy
-        self.x2 = self.x1 + self.winfo_width()
-        self.y2 = self.y1 + self.winfo_height()
+        x = self.bounding_box.x + self.dx
+        y = self.bounding_box.y + self.dy
+        width = x + self.winfo_width()
+        height = y + self.winfo_height()
 
-        x_diff = self.x2 - self.x1
-        y_diff = self.y2 - self.y1
+        x_diff = width - x
+        y_diff = height - y
 
-        self.x1 = max(min(self.x1, 9000 - x_diff), 0)
-        self.y1 = max(min(self.y1, 9000 - y_diff), 0)
-        self.x2 = max(min(self.x2, 9000), 0)
-        self.y2 = max(min(self.y2, 9000), 0)
+        x = max(min(x, 9000 - x_diff), 0)
+        y = max(min(y, 9000 - y_diff), 0)
+        width = max(min(width, 9000), 0)
+        height = max(min(height, 9000), 0)
 
-        self.view_pos = (self.x1, self.y1, self.x2, self.y2)
+        self.bounding_box.update(x, y, width, height)
 
         # get all the tags
         ids = self.find_withtag(StringTypes.ETOILE.value)
         for id in ids:
             obj = self.gettags(id)
             if obj[0] == StringTypes.ETOILE.value:
-                if not mod.is_star_in_view(obj[1], *self.view_pos):
+                if not mod.is_star_in_view(obj[1], *self.bounding_box.__tuple__()):
                     print("delete")
                     self.delete(id)
 
 
-        for etoile in mod.get_etoiles_in_view(*self.view_pos):
+        for etoile in mod.get_etoiles_in_view(*self.bounding_box.__tuple__()):
             star_tkinter_id = self.find_withtag(etoile.id)
             if not star_tkinter_id:
                 self.generate_etoile(etoile, StringTypes.ETOILE.value)
@@ -142,8 +134,8 @@ class GameCanvas(Canvas):
         photo = ImageTk.PhotoImage(photo)
         self.cache.append(photo)
 
-        star_x = star.x - self.x1
-        star_y = star.y - self.y1
+        star_x = star.x - self.bounding_box.x
+        star_y = star.y - self.bounding_box.y
 
         self.create_image(star_x, star_y, image=photo,
                           tags=(tag,
@@ -156,8 +148,8 @@ class GameCanvas(Canvas):
         """Met à jour une étoile sur le canvas.
         :param star: L'étoile à mettre à jour
         """
-        star_x = star.x - self.x1
-        star_y = star.y - self.y1
+        star_x = star.x - self.bounding_box.x
+        star_y = star.y - self.bounding_box.y
 
         self.coords(star.id, star_x, star_y)
         print("update_star")
