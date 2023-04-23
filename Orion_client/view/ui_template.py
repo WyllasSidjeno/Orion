@@ -75,10 +75,17 @@ class GameCanvas(Canvas):
 
         self.bind("<Configure>", self.on_resize)
         self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
-                      self.mouse_over_view.show)
+                      self.on_etoile_enter)
 
-        self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
-                      self.mouse_over_view.hide)
+    def on_etoile_enter(self, event):
+        self.mouse_over_view.show(event)
+        self.tag_unbind(StringTypes.ETOILE.value, "<Enter>")
+        self.tag_bind(StringTypes.ETOILE.value, "<Leave>", self.on_etoile_leave)
+
+    def on_etoile_leave(self, event):
+        self.mouse_over_view.hide(event)
+        self.tag_unbind(StringTypes.ETOILE.value, "<Leave>")
+        self.tag_bind(StringTypes.ETOILE.value, "<Enter>", self.on_etoile_enter)
 
     def mouse_drag(self, event):
         """Déplace le canvas de jeu en fonction de la souris"""
@@ -697,6 +704,7 @@ class MouseOverView(Frame):
         for dict in args:
             if dict is not None:
                 dictlist.append(dict)
+
         for i in range(len(dictlist)):
             container = Frame(self, bg=Color.dark.value, bd=1,
                               relief="solid",
