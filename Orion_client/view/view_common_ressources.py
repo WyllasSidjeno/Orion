@@ -42,7 +42,6 @@ class BoundingBox:
         self.y = y
         self.width = width
         self.height = height
-        print(self.__tuple__())
 
     def __tuple__(self):
         return self.x, self.y, self.width, self.height

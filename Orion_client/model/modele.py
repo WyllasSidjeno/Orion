@@ -80,12 +80,15 @@ class Modele(IModel):
         for etoile in self.etoiles:
             if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
                 yield etoile
+        for username in self.joueurs.keys():
+            for etoile in self.joueurs[username].etoiles_controlees:
+                if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
+                    yield etoile
     def get_porte_de_vers_in_view(self, x1, x2, y1, y2):
-        return [
-            trou for trou in self.trou_de_vers
-            for porte in trou.portes
-            if x1 < porte.x < x2 and y1 < porte.y < y2
-        ]
+        for trou in self.trou_de_vers:
+            for porte in trou.portes:
+                if x1 <= porte.x <= x2 and y1 <= porte.y <= y2:
+                    yield porte
 
     def is_star_in_view(self, _id, x1, y1, x2, y2):
         star = self.get_object(_id, StringTypes.ETOILE)

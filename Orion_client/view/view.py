@@ -76,13 +76,13 @@ class GameView(Frame):
 
         dict_ress = mod.joueurs[mod.controller_username].ressources
         dict_ress.pop(
-            "science")  # todo modifier update ressources pour ne pas avoir à faire ça
+            "science")
 
         self.hud.update_ressources(**dict_ress)
         self.chat.refresh(mod)
 
         self.side_bar.minimap.user_square_move(
-            self.canvas.bounding_box.__tuple__())  # todo : change name for refresh
+            self.canvas.bounding_box.__tuple__())
 
     def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
@@ -91,12 +91,12 @@ class GameView(Frame):
         pcty = event.y / self.side_bar.minimap.winfo_height()
         """Percentage of the y coordinate on the minimap."""
 
-        x = (self.canvas.winfo_width() / 2) / 9000
-        """ This represents the x coordinate of the center of the canvas"""
-        y = (self.canvas.winfo_height() / 2) / 9000
-        """ This represents the y coordinate of the center of the canvas"""
+        # make it so that the canvas is centered on the click cursor, not the top left corner
+        pctx -= 0.05
+        pcty -= 0.05
 
-        self.canvas.move_to((pctx - x), (pcty - y))
+
+        self.canvas.move_to(pctx, pcty)
 
     def on_game_click(self, event) -> None:
         """Gère les clics sur le canvas.
