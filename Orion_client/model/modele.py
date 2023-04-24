@@ -18,9 +18,11 @@ from Orion_client.model import ships
 from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from Orion_client.model.ships import Ship, Flotte
+from Orion_client.science import ArbreScience
 from Orion_client.model.space_object import TrouDeVers, Etoile
-import math
 
+import math
+import json as science
 
 class Modele(IModel):
     """Classe du modèle.
@@ -51,6 +53,9 @@ class Modele(IModel):
 
         self.local_queue = ModelQueue()
         self.log: dict = {}
+
+        self.science = science.loads(open("data/json/sciences.json").read())
+        self.sciences_status = ArbreScience.sciences
 
         self.message_manager = MessageManager()
         self.message_manager.add_message(f"Serveur : Bienvenue dans Orion, "
