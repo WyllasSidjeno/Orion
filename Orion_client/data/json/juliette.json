@@ -23,99 +23,125 @@
     "bonus": {
         "vaisseau": {
             "vitesse": 1.5
-        }
+      }
     }
   },
-    "Hull": {
+  "Hull": {
     "price": 5,
     "dependencies": [],
     "bonus": {
       "vaisseau": {
         "vie": 1.2
       }
-    },
-    "Improved Hull": {
-        "price": 10,
-        "dependencies": ["Hull"],
-        "bonus": {
-          "vaisseau": {
-            "vie": 1.4
-          }
-        }
-    },
-    "Advanced Hull": {
-        "price": 15,
-        "dependencies": ["Improved Hull"],
-        "bonus": {
-            "vaisseau": {
-                "vie": 1.6
-            }
-        }
-    },
-    "Coil Gun": {
-            "price": 5,
-            "dependencies": [],
-            "bonus": {
-              "vaisseau": {
-                "degats": 1.2
-              }
-            }
-        },
-    "Rail Gun": {
-            "price": 10,
-            "dependencies": ["Coil Gun"],
-            "bonus": {
-                "vaisseau": {
-                    "degats": 1.4
-                }
-            }
-        },
-    "Auto Cannon": {
-            "price": 20,
-            "dependencies": ["Rail Gun"],
-            "bonus": {
-                "vaisseau": {
-                    "degats": 1.6
-                }
-            }
-        },
-    "Laser beam": {
-          "price": 30,
-          "dependencies": ["Auto Cannon"],
-          "bonus": {
-              "vaisseau": {
-                  "degats": 2.0
-              }
-          }
-      },
-  "New Worlds" : {
-    "price": 5,
-    "dependencies": [],
-    "bonus": {
-      "population": {
-        "croissance": 1.2
-      }
     }
   },
-    "Colonization" : {
-        "price": 10,
-        "dependencies": ["New Worlds"],
-        "bonus": {
-        "population": {
-            "croissance": 1.4
+    "Improved Hull": {
+      "price": 10,
+      "dependencies": [
+        "Hull"
+      ],
+      "bonus": {
+        "vaisseau": {
+          "vie": 1.4
         }
-        }
+      }
     },
-    "Advanced Colonization" : {
-        "price": 20,
-        "dependencies": ["Colonization"],
-        "bonus": {
+    "Advanced Hull": {
+      "price": 15,
+      "dependencies": [
+        "Improved Hull"
+      ],
+      "bonus": {
+        "vaisseau": {
+          "vie": 1.6
+        }
+      }
+    },
+    "Coil Gun": {
+      "price": 6,
+      "dependencies": [],
+      "bonus": {
+        "vaisseau": {
+          "degats": 1.2
+        }
+      }
+    },
+    "Rail Gun": {
+      "price": 12,
+      "dependencies": [
+        "Coil Gun"
+      ],
+      "bonus": {
+        "vaisseau": {
+          "degats": 1.4
+        }
+      }
+    },
+    "Auto Cannon": {
+      "price": 20,
+      "dependencies": [
+        "Rail Gun"
+      ],
+      "bonus": {
+        "vaisseau": {
+          "degats": 1.6
+        }
+      }
+    },
+    "Laser beam": {
+      "price": 30,
+      "dependencies": [
+        "Auto Cannon"
+      ],
+      "bonus": {
+        "vaisseau": {
+          "degats": 2.0
+        }
+      }
+    },
+    "New Worlds": {
+      "price": 7,
+      "dependencies": [],
+      "bonus": {
         "population": {
-            "croissance": 1.6
+          "croissance": 1.2
         }
+      }
+    },
+    "Colonization": {
+      "price": 15,
+      "dependencies": [
+        "New Worlds"
+      ],
+      "bonus": {
+        "population": {
+          "croissance": 1.4
         }
-      },
-    "Particles generator" : {
+      }
+    },
+    "Advanced Colonization": {
+      "price": 20,
+      "dependencies": [
+        "Colonization"
+      ],
+      "bonus": {
+        "population": {
+          "croissance": 1.6
+        }
+      }
+    },
+    "Life extension Technologies": {
+      "price": 30,
+      "dependencies": [
+        "Advanced Colonization"
+      ],
+      "bonus": {
+        "population": {
+          "croissance": 2.0
+        }
+      }
+    },
+    "Particles generator": {
       "price": 6,
       "dependencies": [],
       "bonus": {
@@ -124,25 +150,37 @@
         }
       }
     },
-      "Fusion power" : {
-          "price": 12,
-          "dependencies": ["Particles generator"],
-          "bonus": {
-          "power plant": {
-              "production": 1.4
-          }
-          }
-      },
-      "Biomatter generator" : {
-          "price": 18,
-          "dependencies": ["Biomatter generator"],
-          "bonus": {
-          "power plant": {
-              "production": 1.6
-          }
-          }
-      },
-
-
-
+    "Fusion power": {
+      "price": 12,
+      "dependencies": [
+        "Particles generator"
+      ],
+      "bonus": {
+        "power plant": {
+          "production": 1.4
+        }
+      }
+    },
+    "Biomatter generator": {
+      "price": 18,
+      "dependencies": [
+        "Fusion power"
+      ],
+      "bonus": {
+        "power plant": {
+          "production": 1.6
+        }
+      }
+    },
+  "Electromagnetic generator": {
+    "price": 30,
+    "dependencies": [
+      "Biomatter generator"
+    ],
+    "bonus": {
+      "power plant": {
+        "production": 2.2
+      }
+    }
+  }
 }
