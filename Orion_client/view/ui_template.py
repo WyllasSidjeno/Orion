@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from tkinter import Frame, Label, Canvas, Text, Entry, Button, Tk, NW
 from typing import TYPE_CHECKING
 
@@ -174,15 +175,22 @@ class GameCanvas(Canvas):
             largeur = 4
             longueur = 6
 
+
+
         photo = self.photo_cache[vaisseau.type()]
 
-        photo = photo.rotate(vaisseau.angle, expand=True)
-        if vaisseau.angle % 180 == 90:
+        if 0 <= vaisseau.direction_angle < math.pi / 4:
+            photo = photo.rotate(270)
+            largeur, longueur = longueur, largeur
+        elif math.pi / 4 <= vaisseau.direction_angle < 3 * math.pi / 4:
+            photo = photo.rotate(180)
+        elif 3 * math.pi / 4 <= vaisseau.direction_angle < 5 * math.pi / 4:
+            photo = photo.rotate(90)
             largeur, longueur = longueur, largeur
 
-        photo = photo.resize((largeur * 12, longueur * 12),
-                             Image.ANTIALIAS)
+        photo = photo.resize((largeur * 12, longueur * 12), Image.ANTIALIAS)
         photo = ImageTk.PhotoImage(photo)
+
         self.cache.append(photo)
 
         self.create_image(x, y, image=photo,
