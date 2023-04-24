@@ -8,6 +8,7 @@ from PIL import ImageTk
 
 from Orion_client.helpers.CommandQueues import ControllerQueue
 from Orion_client.helpers.helper import StringTypes
+from Orion_client.model.ships import Ship
 from Orion_client.view.star_template import EtoileWindow
 from Orion_client.view.view_common_ressources import *
 
@@ -58,9 +59,6 @@ class GameCanvas(Canvas):
 
         self.mouse_over_view = MouseOverView(self)
 
-        # self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
-        #              self.mouse_over_view_show)
-
         self.bind("<B1-Motion>", self.mouse_drag)
         self.bind("<ButtonRelease-1>", self.on_mouse_stop_drag)
 
@@ -85,7 +83,8 @@ class GameCanvas(Canvas):
     def on_etoile_leave(self, event):
         self.mouse_over_view.hide(event)
         self.tag_unbind(StringTypes.ETOILE.value, "<Leave>")
-        self.tag_bind(StringTypes.ETOILE.value, "<Enter>", self.on_etoile_enter)
+        self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
+                      self.on_etoile_enter)
 
     def mouse_drag(self, event):
         """Déplace le canvas de jeu en fonction de la souris"""
@@ -128,6 +127,8 @@ class GameCanvas(Canvas):
 
             self.bounding_box.update(x, y, width, height)
 
+        self.cache = []
+
         self.delete(StringTypes.ETOILE.value)
         self.delete(StringTypes.ETOILE_OCCUPEE.value)
         self.delete(StringTypes.TROUDEVERS.value)
@@ -139,6 +140,12 @@ class GameCanvas(Canvas):
         for porte in mod.get_porte_de_vers_in_view(
                 *self.bounding_box.__tuple__()):
             self.generate_porte_de_vers(porte)
+
+        print(*self.bounding_box.__tuple__() )
+
+        for vaisseau in mod.get_vaisseau_in_view(*self.bounding_box.__tuple__()):
+            print(vaisseau)
+            self.generate_vaisseau(vaisseau)
 
         if self.mouse_over_view.visible:
             obj = mod.get_object(self.mouse_over_view.id)
@@ -153,6 +160,16 @@ class GameCanvas(Canvas):
                          x + porte.pulse, y + porte.pulse,
                          fill="black",
                          tags=(porte.id, StringTypes.TROUDEVERS.value))
+
+    def generate_vaisseau(self, vaisseau: Ship):
+        x = vaisseau.position[0] - self.bounding_box.x
+        y = vaisseau.position[1] - self.bounding_box.y
+        print(vaisseau.position)
+
+        self.create_oval(x - 40, y - 40,
+                         x + 40, y + 40,
+                         fill="black",
+                         tags=(vaisseau.id, StringTypes.VAISSEAU.value))
 
     def generate_etoile(self, star):
         """Créé une étoile sur le canvas.
@@ -698,33 +715,40 @@ class MouseOverView(Frame):
         super().__init__(master)
         self.configure(bg=Color.dark.value, bd=1, relief="solid")
         self.visible = False
+        self.modulo = 30
+        self.current_modulo = 30
+
 
     def on_mouse_over(self, *args):
-        dictlist = []
-        for dict in args:
-            if dict is not None:
-                dictlist.append(dict)
+        if self.modulo == self.current_modulo:
+            self.current_modulo = 0
+            dictlist = []
+            for dict in args:
+                if dict is not None:
+                    dictlist.append(dict)
 
-        for i in range(len(dictlist)):
-            container = Frame(self, bg=Color.dark.value, bd=1,
-                              relief="solid",
-                              pady=10)
-            # add a max size with :
-            container.grid(row=i, column=0, sticky="nsew")
-            title = Label(container, text=dictlist[i].pop("header"),
-                          bg=Color.dark.value, fg="white",
-                          font=(police, 15),
-                          pady=2)
-            title.grid(row=0, column=0, sticky="nsew")
-            for j, (key, value) in enumerate(dictlist[i].items()):
-                label = Label(container, text=key + " : " + str(value),
+            for i in range(len(dictlist)):
+                container = Frame(self, bg=Color.dark.value, bd=1,
+                                  relief="solid",
+                                  pady=10)
+                # add a max size with :
+                container.grid(row=i, column=0, sticky="nsew")
+                title = Label(container, text=dictlist[i].pop("header"),
                               bg=Color.dark.value, fg="white",
-                              font=(police, 10),
-                              pady=2, wraplength=250)
-                label.grid(row=j + 1, column=0, sticky="nsew")
-
+                              font=(police, 15),
+                              pady=2)
+                title.grid(row=0, column=0, sticky="nsew")
+                for j, (key, value) in enumerate(dictlist[i].items()):
+                    label = Label(container, text=key + " : " + str(value),
+                                  bg=Color.dark.value, fg="white",
+                                  font=(police, 10),
+                                  pady=2, wraplength=250)
+                    label.grid(row=j + 1, column=0, sticky="nsew")
+        else:
+            self.current_modulo += 1
     def hide(self, _):
         self.visible = False
+        self.current_modulo = 30
         self.place_forget()
 
     def show(self, event):
