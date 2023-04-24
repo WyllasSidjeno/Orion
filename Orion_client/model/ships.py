@@ -170,7 +170,7 @@ class Militaire(Ship):
         :param pos: Position du vaisseau
         :param owner: Proprietaire du vaisseau"""
         super().__init__(local_queue, player_local_queue,
-                         pos=pos, vitesse=150, resistance=100, owner=owner,
+                         pos=pos, vitesse=6, resistance=100, owner=owner,
                          attack_strength=30, defense_strength=10,
                          attack_range=20, consommation=20)
         self.is_currently_attacking = False
