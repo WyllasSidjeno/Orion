@@ -82,9 +82,6 @@ class Controller(IController):
 
         self.view.update()
 
-        self.view.canvas.move_to_with_model_coords(
-            self.model.joueurs[self.username].etoile_mere.x
-            , self.model.joueurs[self.username].etoile_mere.y)
 
         self.tick()
 
@@ -145,6 +142,7 @@ class Controller(IController):
     def handle_left_click(self, pos, new_tags_list):
         """Gère les interactions de la vue du jeu lors d'un clic gauche sur
         le canvas."""
+        print(f'{new_tags_list=} {pos=} {self.previous_selection=}')
         self.look_for_etoile_window_interactions(new_tags_list)
 
         self.look_for_ship_interactions(new_tags_list, pos)
