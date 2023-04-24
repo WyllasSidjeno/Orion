@@ -48,10 +48,13 @@ class GameCanvas(Canvas):
             "yellow": Image.open("assets/planet/star_yellow01.png"),
             "orange": Image.open("assets/planet/star_orange01.png"),
             "background": Image.open("assets/background/background.jpeg"),
+            "militaire": Image.open("assets/ships/fighter.png"),
+            "reconnaissance": Image.open("assets/ships/reconnaissance.png"),
+            "transportation": Image.open("assets/ships/transportation.png"),
         }
         for key, photo in self.photo_cache.items():
             if key != "background":
-                photo.thumbnail((50, 50), Image.ANTIALIAS)
+                photo.thumbnail((100, 100), Image.ANTIALIAS)
             else:
                 photo.thumbnail((1000, 1000), Image.ANTIALIAS)
 
@@ -78,7 +81,8 @@ class GameCanvas(Canvas):
     def on_etoile_enter(self, event):
         self.mouse_over_view.show(event)
         self.tag_unbind(StringTypes.ETOILE.value, "<Enter>")
-        self.tag_bind(StringTypes.ETOILE.value, "<Leave>", self.on_etoile_leave)
+        self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
+                      self.on_etoile_leave)
 
     def on_etoile_leave(self, event):
         self.mouse_over_view.hide(event)
@@ -141,10 +145,8 @@ class GameCanvas(Canvas):
                 *self.bounding_box.__tuple__()):
             self.generate_porte_de_vers(porte)
 
-        print(*self.bounding_box.__tuple__() )
-
-        for vaisseau in mod.get_vaisseau_in_view(*self.bounding_box.__tuple__()):
-            print(vaisseau)
+        for vaisseau in mod.get_vaisseau_in_view(
+                *self.bounding_box.__tuple__()):
             self.generate_vaisseau(vaisseau)
 
         if self.mouse_over_view.visible:
@@ -164,12 +166,25 @@ class GameCanvas(Canvas):
     def generate_vaisseau(self, vaisseau: Ship):
         x = vaisseau.position[0] - self.bounding_box.x
         y = vaisseau.position[1] - self.bounding_box.y
-        print(vaisseau.position)
+        if vaisseau.type() == "transportation":
+            largeur = 4
+            longueur = 8
+        elif vaisseau.type() == "militaire":
+            largeur = 6
+            longueur = 6
+        else:
+            largeur = 4
+            longueur = 6
 
-        self.create_oval(x - 40, y - 40,
-                         x + 40, y + 40,
-                         fill="black",
-                         tags=(vaisseau.id, StringTypes.VAISSEAU.value))
+        photo = self.photo_cache[vaisseau.type()]
+        photo = photo.resize((largeur * 12, longueur * 12),
+                             Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(photo)
+        self.cache.append(photo)
+
+        self.create_image(x, y, image=photo,
+                          tags=(vaisseau.id,
+                                StringTypes.VAISSEAU.value))
 
     def generate_etoile(self, star):
         """Créé une étoile sur le canvas.
@@ -718,7 +733,6 @@ class MouseOverView(Frame):
         self.modulo = 30
         self.current_modulo = 30
 
-
     def on_mouse_over(self, *args):
         if self.modulo == self.current_modulo:
             self.current_modulo = 0
@@ -746,6 +760,7 @@ class MouseOverView(Frame):
                     label.grid(row=j + 1, column=0, sticky="nsew")
         else:
             self.current_modulo += 1
+
     def hide(self, _):
         self.visible = False
         self.current_modulo = 30
