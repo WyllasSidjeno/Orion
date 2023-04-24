@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from ast import literal_eval
 from random import randrange, choice
-
+from typing import Generator
 
 from Orion_client.interface import IModel, IJoueur
 from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
@@ -35,6 +35,7 @@ class Modele(IModel):
     :ivar log: Le dictionnaire des logs
     :param joueurs: Les joueurs du jeu
     """
+
     def __init__(self, joueurs, username: str):
         """Initialise le modèle.
         :param joueurs: Les joueurs du jeu
@@ -70,6 +71,44 @@ class Modele(IModel):
         :param message: Le message reçu
         """
         self.message_manager.add_message(message)
+
+    def get_objects_in_view(self, x1, x2, y1, y2):
+        return {
+            StringTypes.VAISSEAU.value: self.get_vaisseau_in_view(x1, x2, y1, y2),
+            StringTypes.ETOILE.value: self.get_etoiles_in_view(x1, x2, y1, y2),
+            StringTypes.TROUDEVERS.value: self.get_porte_de_vers_in_view(x1, x2, y1, y2)
+        }
+
+    def get_etoiles_in_view(self, x1, y1, x2, y2) \
+            -> Generator[Etoile, None, None]:
+        for etoile in self.etoiles:
+            if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
+                yield etoile
+        for username in self.joueurs.keys():
+            for etoile in self.joueurs[username].etoiles_controlees:
+                if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
+                    yield etoile
+
+    def get_porte_de_vers_in_view(self, x1, y1, x2, y2):
+        for trou in self.trou_de_vers:
+            for porte in trou.portes:
+                if x1 <= porte.x <= x2 and y1 <= porte.y <= y2:
+                    yield porte
+
+    def is_star_in_view(self, _id, x1, y1, x2, y2):
+        star = self.get_object(_id, StringTypes.ETOILE)
+        if star:
+            return x1 <= star.x <= x2 and y1 <= star.y <= y2
+        return False
+
+    def get_vaisseau_in_view(self, x1, y1, x2, y2):
+        for username in self.joueurs.keys():
+            for key in self.joueurs[username].flotte.keys():
+                for id, vaisseau in self.joueurs[username].flotte[key].items():
+                    x = vaisseau.position[0]
+                    y = vaisseau.position[1]
+                    if x1 <= x <= x2 and y1 <= y <= y2:
+                        yield vaisseau
 
     def change_planet_ownership(self, planet_id: str,
                                 new_owner: None | str = None,
@@ -350,6 +389,7 @@ class Joueur(IJoueur):
         """L'id du joueur."""
         self.nom = nom
         self.etoile_mere = etoile_mere
+        print("pos_mere", self.etoile_mere.position)
         self.etoile_mere.transit = True
         self.etoile_mere.buildinglist = [Farm(), Mine(), PowerPlant()]
         self.etoile_mere.proprietaire = self.nom
@@ -398,6 +438,7 @@ class Joueur(IJoueur):
         :param type_ship: le type de vaisseau à construire
         """
         pos = self.get_etoile_by_id(planet_id).position
+        print("pos", pos)
         ship = getattr(ships, type_ship.capitalize())(
             pos, self.nom, self.local_queue, self.player_local_queue
         )
@@ -466,11 +507,9 @@ class Joueur(IJoueur):
         # Todo: Ajouter les variables bool docked et int consommation
         #  dans le modele vaisseau (2e sprint)
 
-        self.ressources["energie"] -= AlwaysInt((
-                conso_vaisseaux + conso_structures +
-                self.consommation_energie_joueur
-            )
-        )
+        self.ressources["energie"] -= AlwaysInt(
+            (conso_vaisseaux + conso_structures +
+             self.consommation_energie_joueur))
 
     def get_etoile_by_id(self, etoile_id: str) -> Etoile | None:
         """Renvoie l'étoile correspondant à l'id donné.
@@ -514,7 +553,7 @@ class Joueur(IJoueur):
 
         """Fonction de jeu du joueur pour un tour."""
         self.cadre_consommation += 1
-     
+
         for etoile in self.etoiles_controlees:
             etoile.tick()
 
@@ -573,6 +612,7 @@ class Joueur(IJoueur):
 
             # TODO : tester que la reduction par pourcentage permet une
             #  conquete facile
+
 
 
 class AI(Joueur):

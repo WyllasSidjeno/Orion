@@ -1,23 +1,21 @@
 from __future__ import annotations
-import random
 
-from tkinter import Frame, Label, Canvas, Scrollbar, \
-    Text, END, Entry, Button, Tk
-
-from PIL import Image
+import math
+from tkinter import Frame, Label, Canvas, Text, Entry, Button, Tk, NW, END
 from typing import TYPE_CHECKING
 
+from PIL import Image
 from PIL import ImageTk
 
 from Orion_client.helpers.CommandQueues import ControllerQueue
 from Orion_client.helpers.helper import StringTypes
-
-from Orion_client.view.view_common_ressources import *
+from Orion_client.model.ships import Ship
 from Orion_client.view.star_template import EtoileWindow
+from Orion_client.view.view_common_ressources import *
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
-    from Orion_client.model.space_object import TrouDeVers, PorteDeVers
+    from Orion_client.model.space_object import PorteDeVers
 
 
 class GameCanvas(Canvas):
@@ -28,199 +26,233 @@ class GameCanvas(Canvas):
     username: str
     command_queue: ControllerQueue
 
-    def __init__(self, master, scroll_x: Scrollbar,
-                 scroll_y: Scrollbar, proprietaire):
+    def __init__(self, master, proprietaire):
         """Initialise le canvas de jeu
-        :param scroll_x: La scrollbar horizontale
-        :param scroll_y: La scrollbar verticale
+        :param master: la fenetre principale
+        :param proprietaire: le proprietaire du canvas de jeu
         """
+        backgroud_image: Image
         super().__init__(master)
-        self.configure(bg=hexSpaceBlack, bd=1,
-                       relief="solid", highlightthickness=0,
-                       xscrollcommand=scroll_x.set,
-                       yscrollcommand=scroll_y.set)
-
-        scroll_x.config(command=self.xview)
-        scroll_y.config(command=self.yview)
-
-        self.configure(scrollregion=(0, 0, 9000, 9000))
-        self.generate_background(9000)
-
-        self.ship_view = ShipViewGenerator()
+        self.configure(bg=Color.spaceBlack.value, bd=1,
+                       relief="solid", highlightthickness=0)
 
         self.etoile_window = EtoileWindow(master, proprietaire)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.etoile_window.hide()
 
         self.photo_cache = {
-            "white": Image.open("assets/star/star_white.png"),
-            "blue": Image.open("assets/star/star_blue.png"),
-            "red": Image.open("assets/star/star_red.png"),
-            "yellow": Image.open("assets/star/star_yellow.png"),
-            "orange": Image.open("assets/star/star_orange.png"),
+            "white": Image.open("assets/planet/star_white01.png"),
+            "blue": Image.open("assets/planet/star_blue01.png"),
+            "red": Image.open("assets/planet/star_red01.png"),
+            "yellow": Image.open("assets/planet/star_yellow01.png"),
+            "orange": Image.open("assets/planet/star_orange01.png"),
+            "background": Image.open("assets/background/background.jpeg"),
+            "militaire": Image.open("assets/ships/fighter.png"),
+            "reconnaissance": Image.open("assets/ships/reconnaissance.png"),
+            "transportation": Image.open("assets/ships/transportation.png"),
         }
+        for key, photo in self.photo_cache.items():
+            if key != "background":
+                photo.thumbnail((100, 100), Image.ANTIALIAS)
+            else:
+                photo.thumbnail((1000, 1000), Image.ANTIALIAS)
 
         self.cache = []
 
-        self.mouseOverView = MouseOverView(self)
+        self.mouse_over_view = MouseOverView(self)
 
-        self.focus_set()
+        self.bind("<B1-Motion>", self.mouse_drag)
+        self.bind("<ButtonRelease-1>", self.on_mouse_stop_drag)
 
+        self.initial_x_move: int | None = None
+        self.initial_y_move: int | None = None
+        self.dx = 0
+        self.dy = 0
+
+        self.bounding_box = BoundingBox(0, 0, 0, 0)
+
+        self.moved: bool = True
+
+        self.bind("<Configure>", self.on_resize)
         self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
-                      self.mouse_over_view_show)
+                      self.on_etoile_enter)
 
-        self.view_pos = self.coords("current")
-        """La position de la caméra sur la scroll region du canvas de jeu."""
-
-    def mouse_over_view_show(self, event):
-        self.mouseOverView = MouseOverView(self)
-        self.mouseOverView.show(event)
+    def on_etoile_enter(self, event):
+        self.mouse_over_view.show(event)
+        self.tag_unbind(StringTypes.ETOILE.value, "<Enter>")
         self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
-                      self.mouseOverView.hide)
+                      self.on_etoile_leave)
+    def on_etoile_leave(self, event):
+        self.mouse_over_view.hide(event)
+        self.tag_unbind(StringTypes.ETOILE.value, "<Leave>")
+        self.tag_bind(StringTypes.ETOILE.value, "<Enter>",
+                      self.on_etoile_enter)
+
+    def mouse_drag(self, event):
+        """Déplace le canvas de jeu en fonction de la souris"""
+        if self.initial_x_move is None:
+            self.initial_x_move = event.x
+            self.initial_y_move = event.y
+        if self.mouse_over_view.visible:
+            self.mouse_over_view.hide("arg")
+
+        self.dx = event.x - self.initial_x_move
+        self.dy = event.y - self.initial_y_move
+
+        self.moved = True
+
+    def on_mouse_stop_drag(self, _):
+        """Déplace le canvas de jeu en fonction de la souris"""
+        self.initial_x_move = None
+        self.initial_y_move = None
+
+        self.dx = 0
+        self.dy = 0
 
     def refresh(self, mod: Modele):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
-        # todo : Optimize the movement so we do not have to
-        #  delete but only move it with a move or coords function
-        x1 = self.canvasx(0)
-        y1 = self.canvasy(0)
-        x2 = self.canvasx(self.winfo_width())
-        y2 = self.canvasy(self.winfo_height())
-        self.view_pos = (x1, y1, x2, y2)
-
-        if self.etoile_window.star_id is not None:
+        self.focus()
+        if self.etoile_window.is_visible:
             self.etoile_window.refresh(mod)
+        if self.moved:
+            x = self.bounding_box.x + self.dx
+            y = self.bounding_box.y + self.dy
+            width = x + self.winfo_width()
+            height = y + self.winfo_height()
+
+            x_diff = width - x
+            y_diff = height - y
+
+            x = max(min(x, 9000 - x_diff), 0)
+            y = max(min(y, 9000 - y_diff), 0)
+            width = max(min(width, 9000), 0)
+            height = max(min(height, 9000), 0)
+
+            self.bounding_box.update(x, y, width, height)
+
+        self.cache = []
+
+        self.delete(StringTypes.ETOILE.value)
+        self.delete(StringTypes.ETOILE_OCCUPEE.value)
         self.delete(StringTypes.TROUDEVERS.value)
+        self.delete(StringTypes.VAISSEAU.value)
 
-        if self.mouseOverView.visible:
-            item_tags = self.gettags("current")
-            obj = mod.get_object(item_tags[1], item_tags[0])
-            self.mouseOverView.on_mouse_over(obj.to_mouse_over_dict())
+        for etoile in mod.get_etoiles_in_view(*self.bounding_box.__tuple__()):
+            self.generate_etoile(etoile)
 
-        stars = mod.get_player_stars() + mod.etoiles
+        for porte in mod.get_porte_de_vers_in_view(
+                *self.bounding_box.__tuple__()):
+            self.generate_porte_de_vers(porte)
 
-        for star in stars:
-            if star.id not in self.cache or star.needs_refresh:
-                if star.needs_refresh:
-                    self.delete(star.id)
-                if star.proprietaire != '':
-                    tags = StringTypes.ETOILE_OCCUPEE.value
-                else:
-                    tags = StringTypes.ETOILE.value
-                self.generate_etoile(star, tags)
-                self.cache.append(star.id)
+        for vaisseau in mod.get_vaisseau_in_view(
+                *self.bounding_box.__tuple__()):
+            self.generate_vaisseau(vaisseau)
 
-        self.generate_trou_de_vers(mod.trou_de_vers)
+        if self.mouse_over_view.visible:
+            obj = mod.get_object(self.mouse_over_view.id)
+            self.mouse_over_view.on_mouse_over(obj.to_mouse_over_dict())
 
-        # todo : Could be optimized.
-        for joueur in mod.joueurs.values():
-            if joueur.recently_lost_ships_id:
-                for ship_id in joueur.recently_lost_ships_id:
-                    self.delete(ship_id)
-                joueur.recently_lost_ships_id = []
+    def generate_porte_de_vers(self, porte: PorteDeVers):
 
-            couleur = joueur.couleur
-            for ship_type in joueur.flotte.keys():
-                for ship_id in joueur.flotte[ship_type]:
-                    ship = joueur.flotte[ship_type][ship_id]
-                    if ship.nouveau:
-                        self.ship_view.generate_ship_view(self, ship.position,
-                                                          couleur,
-                                                          ship.id,
-                                                          joueur.nom,
-                                                          ship_type)
-                        ship.nouveau = False
+        x = porte.x - self.bounding_box.x
+        y = porte.y - self.bounding_box.y
 
-                    else:
-                        self.ship_view.move(self, ship.position, ship.id,
-                                            ship_type)
+        self.create_oval(x - porte.pulse, y - porte.pulse,
+                         x + porte.pulse, y + porte.pulse,
+                         fill="black",
+                         tags=(porte.id, StringTypes.TROUDEVERS.value))
 
-        self.tag_raise("vaisseau")
+    def generate_vaisseau(self, vaisseau: Ship):
+        x = vaisseau.position[0] - self.bounding_box.x
+        y = vaisseau.position[1] - self.bounding_box.y
+        if vaisseau.type() == "transportation":
+            largeur = 4
+            longueur = 8
+        elif vaisseau.type() == "militaire":
+            largeur = 6
+            longueur = 6
+        else:
+            largeur = 4
+            longueur = 6
 
-    def move_to(self, x: float, y: float) -> None:
-        """Déplace le canvas de jeu à une position donnée
-        :param x: La position x en 0.0 - 1.0
-        :param y: La position y en 0.0 - 1.0
-        """
 
-        """ Bouge le canvas vers la position du clic sur la minimap."""
-        self.xview_moveto(x)
-        self.yview_moveto(y)
 
-    def move_to_with_model_coords(self, x: float, y: float) -> None:
-        """Déplace le canvas de jeu à une position donnée
-        :param x: La position x en 0.0 - 1.0
-        :param y: La position y en 0.0 - 1.0
-        """
+        photo = self.photo_cache[vaisseau.type()]
 
-        """ Bouge le canvas vers la position du clic sur la minimap."""
-        canvas_width = self.winfo_width()
-        canvas_height = self.winfo_height()
+        if 0 <= vaisseau.direction_angle < math.pi / 4:
+            photo = photo.rotate(270)
+            largeur, longueur = longueur, largeur
+        elif math.pi / 4 <= vaisseau.direction_angle < 3 * math.pi / 4:
+            photo = photo.rotate(180)
+        elif 3 * math.pi / 4 <= vaisseau.direction_angle < 5 * math.pi / 4:
+            photo = photo.rotate(90)
+            largeur, longueur = longueur, largeur
 
-        x_view = (x - canvas_width / 2) / 9000
-        y_view = (y - canvas_height / 2) / 9000
-
-        self.xview_moveto(x_view)
-        self.yview_moveto(y_view)
-
-    def drag(self, event):
-        """Déplace le canvas de jeu en fonction de la position de la souris
-        :param event: L'événement de la souris"""
-        self.scan_dragto(event.x, event.y, gain=1)
-
-    def horizontal_scroll(self, event):
-        """Effectue un scroll horizontal sur le canvas."""
-        self.xview_scroll(-1 * int(event.delta / 120), "units")
-
-    def vertical_scroll(self, event):
-        """Effectue un scroll vertical sur le canvas."""
-        self.yview_scroll(-1 * int(event.delta / 120), "units")
-
-    def generate_background(self, n: int):
-        """Genère un background de n étoiles de tailles aléatoires
-        :param n: Le nombre d'étoiles à générer"""
-        self.update_idletasks()
-        for i in range(n):
-            x, y = random.randrange(9000), random.randrange(9000)
-            size = random.randrange(3) + 1
-            col = random.choice(["lightYellow", "lightBlue", "lightGreen"])
-
-            self.create_oval(x - size, y - size, x + size, y + size,
-                             fill=col, tags="background")
-
-    def generate_etoile(self, star, tag: str):
-        """Créé une étoile sur le canvas.
-        :param star: L'étoile à créer
-        :param tag: Un tag de l'étoile"""
-        print("star_generated")
-        photo = self.photo_cache[star.couleur]
-
-        photo = photo.resize((star.taille * 12, star.taille * 12),
-                             Image.ANTIALIAS)
-
+        photo = photo.resize((largeur * 12, longueur * 12), Image.ANTIALIAS)
         photo = ImageTk.PhotoImage(photo)
 
         self.cache.append(photo)
 
-        self.create_image(star.x, star.y, image=photo,
+        self.create_image(x, y, image=photo,
+                          tags=(StringTypes.VAISSEAU.value, vaisseau.id,
+                                vaisseau.proprietaire, vaisseau.type()))
+
+    def generate_etoile(self, star):
+        """Créé une étoile sur le canvas.
+        :param star: L'étoile à créer"""
+        photo = self.photo_cache[star.couleur]
+
+        photo = photo.resize((star.taille * 12, star.taille * 12),
+                             Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(photo)
+        self.cache.append(photo)
+
+        star_x = star.x - self.bounding_box.x
+        star_y = star.y - self.bounding_box.y
+        if star.proprietaire == "":
+            tag = StringTypes.ETOILE.value
+        else:
+            tag = StringTypes.ETOILE_OCCUPEE.value
+
+        self.create_image(star_x, star_y, image=photo,
                           tags=(tag,
                                 star.id,
-                                star.proprietaire))
+                                star.proprietaire)
+                          )
 
-    def generate_trou_de_vers(self, trou_de_vers: list[TrouDeVers]):
-        """Créé deux portes de trou de vers sur le canvas. """
-        for wormhole in trou_de_vers:
-            self.generate_porte_de_vers(wormhole.porte_a, wormhole.id)
-            self.generate_porte_de_vers(wormhole.porte_b, wormhole.id)
+    def move_to(self, rel_x, rel_y):
+        """Déplace le canvas à la position x et y
+        """
 
-    def generate_porte_de_vers(self, porte: PorteDeVers, parent_id: str):
-        """Créé une porte de trou de vers sur le canvas."""
-        self.create_oval(porte.x - porte.pulse, porte.y - porte.pulse,
-                         porte.x + porte.pulse, porte.y + porte.pulse,
-                         fill="purple",
-                         tags=(StringTypes.TROUDEVERS.value,
-                               porte.id, parent_id))
+        x = rel_x * 9000
+        y = rel_y * 9000
+
+        width = x + self.winfo_width()
+        height = y + self.winfo_height()
+
+        x_diff = width - x
+        y_diff = height - y
+
+        x = max(min(x, 9000 - x_diff), 0)
+        y = max(min(y, 9000 - y_diff), 0)
+        width = max(min(width, 9000), 0)
+        height = max(min(height, 9000), 0)
+
+        self.bounding_box.update(x, y, width, height)
+        self.moved = True
+
+    def on_resize(self, event):
+        """Méthode appelée lorsqu'on redimensionne la fenêtre.
+        :param event: L'événement"""
+        background_image = self.photo_cache["background"]
+        background_image = background_image.resize((event.width, event.height),
+                                                   Image.ANTIALIAS)
+        self.background_image = ImageTk.PhotoImage(background_image)
+
+        background = self.create_image(0, 0, anchor=NW,
+                                       image=self.background_image)
+        self.tag_lower(background)
 
 
 class SideBar(Frame):
@@ -229,29 +261,29 @@ class SideBar(Frame):
     def __init__(self, master):
         """Initialise la sidebar"""
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1,
+        self.configure(bg=Color.dark.value, bd=1,
                        relief="solid")
 
-        self.planet_frame = Frame(self, bg=hexDark, bd=1,
+        self.planet_frame = Frame(self, bg=Color.dark.value, bd=1,
                                   relief="solid")
 
         self.planet_label = Label(self.planet_frame, text="Planet",
-                                  bg=hexDark, fg="white",
+                                  bg=Color.dark.value, fg="white",
                                   font=(police, 20))
 
-        self.armada_frame = Frame(self, bg=hexDark, bd=1,
+        self.armada_frame = Frame(self, bg=Color.dark.value, bd=1,
                                   relief="solid")
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.armada_label = Label(self.armada_frame, text="Armada",
-                                  bg=hexDark, fg="white",
+                                  bg=Color.dark.value, fg="white",
                                   font=(police, 20))
         """Représente le label de la vue du jeu contenant les informations"""
 
-        self.minimap_frame = Frame(self, bg=hexDark, bd=1,
+        self.minimap_frame = Frame(self, bg=Color.dark.value, bd=1,
                                    relief="solid")
         """Représente le cadre de la vue du jeu contenant les informations"""
         self.minimap_label = Label(self.minimap_frame, text="Minimap",
-                                   bg=hexDark, fg="white",
+                                   bg=Color.dark.value, fg="white",
                                    font=(police, 20))
         """Représente le label de la vue du jeu contenant les informations"""
         self.minimap = Minimap(self.minimap_frame)
@@ -307,7 +339,7 @@ class Minimap(Canvas):
 
     def __init__(self, master):
         """Initialise la minimap"""
-        super().__init__(master, bg=hexDark, bd=1,
+        super().__init__(master, bg=Color.dark.value, bd=1,
                          relief="solid", highlightthickness=0)
         self.propagate(False)
         self.after_id: None or int = None
@@ -328,7 +360,7 @@ class Minimap(Canvas):
                              star.x * self.x_ratio + 2,
                              star.y * self.y_ratio + 2,
                              fill="grey", tags=StringTypes.ETOILE.value,
-                             outline=hexSpaceBlack)
+                             outline=Color.spaceBlack.value)
 
         for key in mod.joueurs:
             for star in mod.joueurs[key].etoiles_controlees:
@@ -338,16 +370,16 @@ class Minimap(Canvas):
                                  star.y * self.y_ratio + 2,
                                  fill=mod.joueurs[key].couleur,
                                  tags="etoile_controlee",
-                                 outline=hexSpaceBlack)
+                                 outline=Color.spaceBlack.value)
 
-            for wormhole in mod.trou_de_vers:
+            """for wormhole in mod.trou_de_vers:
                 self.create_oval(wormhole.porte_a.x * self.x_ratio - 2,
                                  wormhole.porte_a.y * self.y_ratio - 2,
                                  wormhole.porte_a.x * self.x_ratio + 2,
                                  wormhole.porte_a.y * self.y_ratio + 2,
                                  fill="purple",
                                  tags=StringTypes.TROUDEVERS.value,
-                                 outline=hexSpaceBlack)
+                                 outline=Color.spaceBlack.value)
 
                 self.create_oval(wormhole.porte_b.x * self.x_ratio - 2,
                                  wormhole.porte_b.y * self.y_ratio - 2,
@@ -355,7 +387,7 @@ class Minimap(Canvas):
                                  wormhole.porte_b.y * self.y_ratio + 2,
                                  fill="purple",
                                  tags=StringTypes.TROUDEVERS.value,
-                                 outline=hexSpaceBlack)
+                                 outline=Color.spaceBlack.value)"""
 
     def on_resize(self, _):
         if self.after_id is not None:
@@ -385,7 +417,8 @@ class Minimap(Canvas):
                     new_y2 = self.get_new_star_position(*self.coords(star))
                 self.delete(star)
                 self.create_oval(new_x1, new_y1, new_x2, new_y2,
-                                 fill=color, tags=tag, outline=hexSpaceBlack)
+                                 fill=color, tags=tag,
+                                 outline=Color.spaceBlack.value)
 
         for star in self.find_withtag("etoile_controlee"):
             new_x1, new_y1, \
@@ -394,7 +427,7 @@ class Minimap(Canvas):
             self.delete(star)
             self.create_oval(new_x1, new_y1, new_x2, new_y2,
                              fill=color, tags="etoile_controlee",
-                             outline=hexSpaceBlack)
+                             outline=Color.spaceBlack.value)
 
     def get_new_star_position(self, x1, y1, x2, y2):
         return x1 * self.x_ratio / self.old_x_ratio, \
@@ -416,14 +449,15 @@ class Minimap(Canvas):
 class Hud(Frame):
     def __init__(self, master):
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1, relief="solid")
+        self.configure(bg=Color.dark.value, bd=1, relief="solid")
 
         self.grid_columnconfigure(0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_propagate(False)
 
-        self.ressource_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.ressource_frame = Frame(self, bg=Color.dark.value, bd=1,
+                                     relief="solid")
         self.ressource_frame.grid(row=0, column=0, sticky="nsew")
 
         for i in range(4):  # separate ressources in 4 columns
@@ -518,13 +552,14 @@ class Hud(Frame):
         self.energy_info.grid(row=1, column=0, sticky="new")
         self.food_info.grid(row=1, column=0, sticky="new")
 
-        self.science_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.science_frame = Frame(self, bg=Color.dark.value, bd=1,
+                                   relief="solid")
         self.science_frame.grid(row=0, column=1, sticky="e", padx=10)
         self.science_frame.grid_columnconfigure(0, weight=1)
         self.science_frame.grid_rowconfigure(0, weight=1)
 
         self.science_button = Button(self.science_frame, text="Science",
-                                     bg=hexDark, fg="white",
+                                     bg=Color.dark.value, fg="white",
                                      font=("Fixedsys", self.text_size),
                                      width=self.ressource_width,
                                      height=self.ressource_height)
@@ -540,21 +575,21 @@ class Hud(Frame):
 class MiniGameWindow(Frame):
 
     def __init__(self, master, proprietaire: str):
-        super().__init__(master, bg=hexDarkGrey, bd=2, relief="solid",
+        super().__init__(master, bg=Color.darkGrey.value, bd=2, relief="solid",
                          width=500, height=500)
 
         self.is_shown: bool = False
 
-        self.header_frame: Frame = Frame(self, bg=hexDarkGrey,
+        self.header_frame: Frame = Frame(self, bg=Color.darkGrey.value,
                                          bd=1, relief="solid")
         self.title_label = Label(self.header_frame, text="HEADER",
-                                 bg=hexDarkGrey, fg="white",
+                                 bg=Color.darkGrey.value, fg="white",
                                  font=("Fixedsys", 15))
 
-        self.main_frame: Frame = Frame(self, bg=hexDarkGrey,
+        self.main_frame: Frame = Frame(self, bg=Color.darkGrey.value,
                                        bd=1, relief="solid")
         self.minigame_label = Label(self.main_frame, text="MINIGAME",
-                                    bg=hexDarkGrey, fg="white",
+                                    bg=Color.darkGrey.value, fg="white",
                                     font=("Fixedsys", 13))
 
         self.place_header()
@@ -587,36 +622,38 @@ class MiniGameWindow(Frame):
 class Minigame(Frame):
 
     def __init__(self, master, *args):
-        super().__init__(master, bg=hexDark, bd=1, relief="solid",
+        super().__init__(master, bg=Color.dark.value, bd=1, relief="solid",
                          width=400, height=350, *args)
 
     def game1(self):  # remember the number
-        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
+                                    relief="solid")
         self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4,
                                   relheight=0.15, anchor="center")
 
         self.answerLabel = Label(self.minigame_frame, text="123456",
-                                 bg=hexDarkGrey, fg="white",
+                                 bg=Color.darkGrey.value, fg="white",
                                  font=("Fixedsys", 18))
         self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.input_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.input_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
+                                 relief="solid")
         self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45,
                                relheight=0.25, anchor="center")
 
         self.input_text = Text(self.input_frame, height=1, width=10,
-                               bg=hexDarkGrey, fg="white", bd=1,
+                               bg=Color.darkGrey.value, fg="white", bd=1,
                                relief="solid",
                                font=("Fixedsys", 17))
         self.input_text.place(relx=0.5, rely=0.3, anchor="center")
 
         self.input_button = Button(self.input_frame,
-                                   text="input")  # TODO: add command
-        # attribute to link input
+                                   text="input")  # TODO: add command attribute to link input
         self.input_button.place(relx=0.5, rely=0.75, anchor="center")
 
     def game2(self):  # simon says
-        self.minigame_frame = Frame(self, bg=hexDarkGrey, bd=1, relief="solid")
+        self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
+                                    relief="solid")
         self.minigame_frame.place(relx=0.5, rely=0.5, anchor="center")
 
         # for i in range(9):
@@ -632,20 +669,24 @@ class ChatBox(Frame):
     def __init__(self, master, queue):
         super().__init__(master)
         self.queue = queue
-        self.configure(bg=hexDark, bd=1, relief="solid", height=200, width=400)
+        self.configure(bg=Color.dark.value, bd=1, relief="solid", height=200,
+                       width=400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.chat_frame = Frame(self, bg=hexDark, bd=1, relief="solid")
+        self.chat_frame = Frame(self, bg=Color.dark.value, bd=1,
+                                relief="solid")
         self.chat_frame.grid(row=0, column=0, sticky="nsew")
         self.chat_frame.grid_columnconfigure(0, weight=1)
         self.chat_frame.grid_rowconfigure(0, weight=1)
-        self.chat_text = Text(self.chat_frame, bg=hexDark, fg="white", bd=0,
+        self.chat_text = Text(self.chat_frame, bg=Color.dark.value, fg="white",
+                              bd=0,
                               relief="solid", height=10, width=50)
         self.chat_text.grid(row=0, column=0, sticky="nsew")
 
         self.chat_text.bind("<Button-1>", lambda _: "break")
 
-        self.chat_entry = Entry(self, bg=hexDark, fg="white", bd=-1, width=50)
+        self.chat_entry = Entry(self, bg=Color.dark.value, fg="white", bd=-1,
+                                width=50)
         self.chat_entry.grid(row=1, column=0, sticky="nsew")
         self.chat_entry.bind("<Return>", self.send_message)
         self.chat_entry.bind("<Escape>", self.hide)
@@ -694,44 +735,52 @@ class ChatBox(Frame):
                 self.chat_text.insert(END, message + "\n")
 
 
+
 class MouseOverView(Frame):
+    id: str or int
+
     def __init__(self, master):
         super().__init__(master)
-        self.configure(bg=hexDark, bd=1, relief="solid")
+        self.configure(bg=Color.dark.value, bd=1, relief="solid")
         self.visible = False
-        self.updated = False
-        self.id = None
+        self.modulo = 30
+        self.current_modulo = 30
 
     def on_mouse_over(self, *args):
-        if not self.updated:
+        if self.modulo == self.current_modulo:
+            self.current_modulo = 0
             dictlist = []
-            for dicto in args:
-                if dicto is not None:
-                    dictlist.append(dicto)
+            for dict in args:
+                if dict is not None:
+                    dictlist.append(dict)
             for i in range(len(dictlist)):
-                container = Frame(self, bg=hexDark, bd=1, relief="solid",
+                container = Frame(self, bg=Color.dark.value, bd=1,
+                                  relief="solid",
                                   pady=10)
                 # add a max size with :
                 container.grid(row=i, column=0, sticky="nsew")
                 title = Label(container, text=dictlist[i].pop("header"),
-                              bg=hexDark, fg="white", font=(police, 15),
+                              bg=Color.dark.value, fg="white",
+                              font=(police, 15),
                               pady=2)
                 title.grid(row=0, column=0, sticky="nsew")
                 for j, (key, value) in enumerate(dictlist[i].items()):
                     label = Label(container, text=key + " : " + str(value),
-                                  bg=hexDark, fg="white", font=(police, 10),
+                                  bg=Color.dark.value, fg="white",
+                                  font=(police, 10),
                                   pady=2, wraplength=250)
                     label.grid(row=j + 1, column=0, sticky="nsew")
-
-            self.updated = True
+        else:
+            self.current_modulo += 1
 
     def hide(self, _):
         self.visible = False
-        self.updated = False
-        self.destroy()
+        self.current_modulo = 30
+        self.place_forget()
 
     def show(self, event):
         self.id = event.widget.find_withtag("current")[0]
+        self.id = event.widget.gettags(self.id)[1]
         self.visible = True
 
         x = event.x
@@ -744,122 +793,11 @@ class MouseOverView(Frame):
         if y + self.winfo_height() > event.widget.winfo_height():
             y = event.widget.winfo_height() - self.winfo_height()
 
+        # add an offset so the cursor is not on the frame
+        x += 10
+        y += 10
+
         self.place(x=x, y=y)
-
-
-class ShipViewGenerator:
-    """Class that generates all ships view.
-    This includes Reconnaissance, Militaire and Transportation."""
-
-    def __init__(self):
-        self.settings = {
-            "Reconnaissance": {
-                "size": 7,
-            },
-            "Militaire": {
-                "size": 10,
-            },
-            "Transportation": {
-                "size": 12
-            }
-        }
-
-    def move(self, canvas, pos, ship_tag, ship_type):
-        """Move the ship to the given position"""
-        if ship_type == "reconnaissance":
-            self.move_reconnaissance(canvas, ship_tag, pos)
-        elif ship_type == "militaire":
-            self.move_militaire(canvas, ship_tag, pos)
-        elif ship_type == "transportation":
-            self.move_transportation(canvas, ship_tag, pos)
-
-    def move_reconnaissance(self, canvas, ship_tag, pos):
-        """Move the recon to the given position"""
-        # get the ship id using the ship tag
-        ship_id = canvas.find_withtag(ship_tag)[0]
-        canvas.coords(ship_id,
-                      pos[0] - self.settings["Reconnaissance"]["size"],
-                      pos[1] - self.settings["Reconnaissance"]["size"],
-                      pos[0] + self.settings["Reconnaissance"]["size"],
-                      pos[1] + self.settings["Reconnaissance"]["size"])
-
-    def move_militaire(self, canvas, ship_tag, pos):
-        """Move the fighter to the given position"""
-        ship_id = canvas.find_withtag(ship_tag)[0]
-        canvas.coords(ship_id, pos[0],
-                      pos[1] - self.settings["Militaire"]["size"],
-                      pos[0] - self.settings["Militaire"]["size"],
-                      pos[1] + self.settings["Militaire"]["size"],
-                      pos[0] + self.settings["Militaire"]["size"],
-                      pos[1] + self.settings["Militaire"]["size"])
-
-    def move_transportation(self, canvas, ship_tag, pos):
-        """Move the cargo to the given position"""
-        ship_id = canvas.find_withtag(ship_tag)[0]
-        # Move a polygon
-        canvas.coords(ship_id,
-                      pos[0] - self.settings["Transportation"]["size"],
-                      pos[1] - self.settings["Transportation"]["size"],
-                      pos[0] + self.settings["Transportation"]["size"],
-                      pos[1] + self.settings["Transportation"]["size"])
-
-    @staticmethod
-    def delete(canvas: Canvas, ship_id: str):
-        """Delete the ship from the canvas"""
-        canvas.delete(ship_id)
-
-    def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
-                           ship_id: str, username: str, ship_type: str):
-        """Generate a ship view depending on the type of ship"""
-        if ship_type == "reconnaissance":
-            self.create_reconnaissance(master, pos, couleur, ship_id, username,
-                                       ship_type)
-        elif ship_type == "militaire":
-            self.create_militaire(master, pos, couleur, ship_id, username,
-                                  ship_type)
-        elif ship_type == "transportation":
-            self.create_transportation(master, pos, couleur, ship_id, username,
-                                       ship_type)
-
-    def create_reconnaissance(self, master: Canvas, pos: tuple, couleur: str,
-                              ship_id: str, username: str, ship_type: str):
-        """Creer un arc dans le canvas à la position donnée tout en
-        utilisant les paramètres du vaisseau"""
-        master.create_arc(pos[0] - self.settings["Reconnaissance"]["size"],
-                          pos[1] - self.settings["Reconnaissance"]["size"],
-                          pos[0] + self.settings["Reconnaissance"]["size"],
-                          pos[1] + self.settings["Reconnaissance"]["size"],
-                          start=0, extent=180, fill=couleur,
-                          tags=("vaisseau", ship_id, username, ship_type),
-                          outline=hexSpaceBlack)
-
-    def create_transportation(self, master: Canvas, pos: tuple, couleur: str,
-                              ship_id: str, username: str, ship_type: str):
-        """Creer un rectangle dans le canvas à la position donnée tout en
-        utilisant les paramètres du vaisseau"""
-        master.create_rectangle(
-            pos[0] - self.settings["Transportation"]["size"],
-            pos[1] - self.settings["Transportation"]["size"],
-            pos[0] + self.settings["Transportation"]["size"],
-            pos[1] + self.settings["Transportation"]["size"],
-            fill=couleur,
-            tags=("vaisseau", ship_id, username, ship_type),
-            outline=hexSpaceBlack)
-
-    def create_militaire(self, master: Canvas, pos: tuple, couleur: str,
-                         ship_id: str, username: str, ship_type: str):
-        """Creer un triangle dans le canvas à la position donnée tout en
-        utilisant les paramètres du vaisseau"""
-
-        master.create_polygon(pos[0],
-                              pos[1] - self.settings["Militaire"]["size"],
-                              pos[0] - self.settings["Militaire"]["size"],
-                              pos[1] + self.settings["Militaire"]["size"],
-                              pos[0] + self.settings["Militaire"]["size"],
-                              pos[1] + self.settings["Militaire"]["size"],
-                              fill=couleur,
-                              tags=("vaisseau", ship_id, username, ship_type),
-                              outline=hexSpaceBlack)
 
 
 if __name__ == '__main__':
