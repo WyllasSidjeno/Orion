@@ -263,7 +263,8 @@ class EtoileWindow(Frame):
                 self.building_list[i].show(row=i // 3, column=i % 3)
                 self.building_list[i].reinitialize()
                 if i < max_building:
-                    self.building_list[i].show_building(star.buildinglist[i])
+                    if star.buildinglist[i] is not None:
+                        self.building_list[i].show_building(star.buildinglist[i])
 
                 else:
                     self.building_list[i].bind("<Button-1>",
