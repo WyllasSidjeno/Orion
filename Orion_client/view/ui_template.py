@@ -114,6 +114,8 @@ class GameCanvas(Canvas):
         """Rafrachit le canvas de jeu avec les données du model
         :param mod: Le model"""
         self.focus()
+        if self.etoile_window.is_visible:
+            self.etoile_window.refresh(mod)
         if self.moved:
             x = self.bounding_box.x + self.dx
             y = self.bounding_box.y + self.dy

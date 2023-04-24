@@ -106,7 +106,7 @@ class GameView(Frame):
         elle envoie les commandes au controller pour traiter les clics.
         """
         self.canvas.scan_mark(event.x, event.y)
-        if self.canvas.etoile_window.is_shown:
+        if self.canvas.etoile_window.is_visible:
             self.canvas.etoile_window.hide()
 
         pos = self.canvas.canvasx(event.x) + self.canvas.bounding_box.x,\

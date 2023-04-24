@@ -14,8 +14,12 @@ class EtoileWindow(Frame):
         super().__init__(master, bg=Color.darkGrey.value, bd=1, relief="solid",
                          width=500, height=500)
 
-        self.is_shown: bool = False
+        self.is_visible: bool = False
         """Si la fenetre est affichee"""
+
+        self.current_modulo: int = 0
+        """Le modulo actuel de la fenetre"""
+        self.modulo = 30
 
         # # # Le Header
         self.header_frame: Frame = Frame(self, bg=Color.darkGrey.value,
@@ -247,50 +251,54 @@ class EtoileWindow(Frame):
 
     def refresh(self, model):
         """Rafraichit la fenetre"""
-        star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
-        self.population_label.config(text=star.population)
-        self.stockpile_boolean_label.config(
-            text="Oui" if star.transit else "Non")
+        if self.current_modulo == self.modulo:
+            star = model.get_object(self.star_id, StringTypes.ETOILE_OCCUPEE)
+            self.population_label.config(text=star.population)
+            self.stockpile_boolean_label.config(
+                text="Oui" if star.transit else "Non")
 
-        max_building = star.buildinglist.__len__()
+            max_building = star.buildinglist.__len__()
 
-        for i in range(star.taille):
-            self.building_list[i].show(row=i // 3, column=i % 3)
-            self.building_list[i].reinitialize()
-            if i < max_building:
-                self.building_list[i].show_building(star.buildinglist[i])
+            for i in range(star.taille):
+                self.building_list[i].show(row=i // 3, column=i % 3)
+                self.building_list[i].reinitialize()
+                if i < max_building:
+                    self.building_list[i].show_building(star.buildinglist[i])
 
-            else:
-                self.building_list[i].bind("<Button-1>",
-                                           lambda event, i=i:
-                                           self.construct_building_menu.show(
-                                               event, self.star_id))
+                else:
+                    self.building_list[i].bind("<Button-1>",
+                                               lambda event, i=i:
+                                               self.construct_building_menu.show(
+                                                   event, self.star_id))
 
-        output = star.output.__dict__()
-        self.energie_value_label.config(text=output["energie"])
-        self.metal_value_label.config(text=output["metal"])
-        self.beton_value_label.config(text=output["beton"])
-        self.nourriture_value_label.config(text=output["nourriture"])
-        self.science_value_label.config(text=output["science"])
+            output = star.output.__dict__()
+            self.energie_value_label.config(text=output["energie"])
+            self.metal_value_label.config(text=output["metal"])
+            self.beton_value_label.config(text=output["beton"])
+            self.nourriture_value_label.config(text=output["nourriture"])
+            self.science_value_label.config(text=output["science"])
 
-        self.nom_label.config(text=star.name)
+            self.nom_label.config(text=star.name)
+        else:
+            self.current_modulo += 1
 
     def hide(self) -> None:
         """Cache la fenetre"""
         self.place_forget()
         for i in range(8):
-            if self.building_list[i].is_shown:
+            if self.building_list[i].is_visible:
                 self.building_list[i].hide()
-        self.is_shown = False
+        self.is_visible = False
         self.construct_ship_menu.current_star_id = None
         self.star_id = None
+        self.current_modulo = self.modulo
 
     def show(self, star_id: int) -> None:
         """Affiche la fenetre"""
         self.star_id = star_id
         self.construct_ship_menu.current_planet_id = star_id
         self.place(relx=0.5, rely=0.5, anchor="center")
-        self.is_shown = True
+        self.is_visible = True
 
     def show_construct_ship_menu(self, event) -> None:
         """Affiche le menu de construction de vaisseau"""
@@ -336,15 +344,15 @@ class BuildingWindow(Frame):
 
         self.upgrade_canvas.place(anchor="center", relx=0.2, rely=0.8)
 
-        self.is_shown = False
+        self.is_visible = False
 
     def hide(self):
         self.grid_forget()
-        self.is_shown = False
+        self.is_visible = False
 
     def show(self, **kwargs):
         self.grid(**kwargs)
-        self.is_shown = True
+        self.is_visible = True
 
     def reinitialize(self):
         self.name_label.config(text="Libre")
