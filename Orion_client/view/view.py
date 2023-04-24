@@ -109,7 +109,8 @@ class GameView(Frame):
         if self.canvas.etoile_window.is_shown:
             self.canvas.etoile_window.hide()
 
-        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        pos = self.canvas.canvasx(event.x) + self.canvas.bounding_box.x,\
+            self.canvas.canvasy(event.y) + self.canvas.bounding_box.y
         tags_list = []
         for tag in self.canvas.gettags("current"):
             tags_list.append(tag)

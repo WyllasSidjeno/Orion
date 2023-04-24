@@ -35,8 +35,6 @@ class GameCanvas(Canvas):
         self.configure(bg=Color.spaceBlack.value, bd=1,
                        relief="solid", highlightthickness=0)
 
-        self.ship_view = ShipViewGenerator()
-
         self.etoile_window = EtoileWindow(master, proprietaire)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.etoile_window.hide()
@@ -177,13 +175,10 @@ class GameCanvas(Canvas):
             longueur = 6
 
         photo = self.photo_cache[vaisseau.type()]
-        # Using the angle that is from 0 to 360 in vaisseau.angle, rotate the image
-        # but keep its integrity
-        # rotate the size, not just the pictures
+
         photo = photo.rotate(vaisseau.angle, expand=True)
         if vaisseau.angle % 180 == 90:
             largeur, longueur = longueur, largeur
-
 
         photo = photo.resize((largeur * 12, longueur * 12),
                              Image.ANTIALIAS)
@@ -191,7 +186,8 @@ class GameCanvas(Canvas):
         self.cache.append(photo)
 
         self.create_image(x, y, image=photo,
-                            tags=(vaisseau.id, StringTypes.VAISSEAU.value))
+                          tags=(StringTypes.VAISSEAU.value, vaisseau.id,
+                                vaisseau.proprietaire, vaisseau.type()))
 
     def generate_etoile(self, star):
         """Créé une étoile sur le canvas.
@@ -793,121 +789,6 @@ class MouseOverView(Frame):
         y += 10
 
         self.place(x=x, y=y)
-
-
-class ShipViewGenerator:
-    """Class that generates all ships view.
-    This includes Reconnaissance, Militaire and Transportation."""
-
-    def __init__(self):
-        self.settings = {
-            "Reconnaissance": {
-                "size": 7,
-            },
-            "Militaire": {
-                "size": 10,
-            },
-            "Transportation": {
-                "size": 12
-            }
-        }
-
-    def move(self, canvas, pos, ship_tag, ship_type):
-        """Move the ship to the given position"""
-        if ship_type == "reconnaissance":
-            self.move_reconnaissance(canvas, ship_tag, pos)
-        elif ship_type == "militaire":
-            self.move_militaire(canvas, ship_tag, pos)
-        elif ship_type == "transportation":
-            self.move_transportation(canvas, ship_tag, pos)
-
-    def move_reconnaissance(self, canvas, ship_tag, pos):
-        """Move the recon to the given position"""
-        # get the ship id using the ship tag
-        ship_id = canvas.find_withtag(ship_tag)[0]
-        canvas.coords(ship_id,
-                      pos[0] - self.settings["Reconnaissance"]["size"],
-                      pos[1] - self.settings["Reconnaissance"]["size"],
-                      pos[0] + self.settings["Reconnaissance"]["size"],
-                      pos[1] + self.settings["Reconnaissance"]["size"])
-
-    def move_militaire(self, canvas, ship_tag, pos):
-        """Move the fighter to the given position"""
-        ship_id = canvas.find_withtag(ship_tag)[0]
-        canvas.coords(ship_id, pos[0],
-                      pos[1] - self.settings["Militaire"]["size"],
-                      pos[0] - self.settings["Militaire"]["size"],
-                      pos[1] + self.settings["Militaire"]["size"],
-                      pos[0] + self.settings["Militaire"]["size"],
-                      pos[1] + self.settings["Militaire"]["size"])
-
-    def move_transportation(self, canvas, ship_tag, pos):
-        """Move the cargo to the given position"""
-        ship_id = canvas.find_withtag(ship_tag)[0]
-        # Move a polygon
-        canvas.coords(ship_id,
-                      pos[0] - self.settings["Transportation"]["size"],
-                      pos[1] - self.settings["Transportation"]["size"],
-                      pos[0] + self.settings["Transportation"]["size"],
-                      pos[1] + self.settings["Transportation"]["size"])
-
-    @staticmethod
-    def delete(canvas: Canvas, ship_id: str):
-        """Delete the ship from the canvas"""
-        canvas.delete(ship_id)
-
-    def generate_ship_view(self, master: Canvas, pos: tuple, couleur: str,
-                           ship_id: str, username: str, ship_type: str):
-        """Generate a ship view depending on the type of ship"""
-        if ship_type == "reconnaissance":
-            self.create_reconnaissance(master, pos, couleur, ship_id, username,
-                                       ship_type)
-        elif ship_type == "militaire":
-            self.create_militaire(master, pos, couleur, ship_id, username,
-                                  ship_type)
-        elif ship_type == "transportation":
-            self.create_transportation(master, pos, couleur, ship_id, username,
-                                       ship_type)
-
-    def create_reconnaissance(self, master: Canvas, pos: tuple, couleur: str,
-                              ship_id: str, username: str, ship_type: str):
-        """Creer un arc dans le canvas à la position donnée tout en
-        utilisant les paramètres du vaisseau"""
-        master.create_arc(pos[0] - self.settings["Reconnaissance"]["size"],
-                          pos[1] - self.settings["Reconnaissance"]["size"],
-                          pos[0] + self.settings["Reconnaissance"]["size"],
-                          pos[1] + self.settings["Reconnaissance"]["size"],
-                          start=0, extent=180, fill=couleur,
-                          tags=("vaisseau", ship_id, username, ship_type),
-                          outline=Color.spaceBlack.value)
-
-    def create_transportation(self, master: Canvas, pos: tuple, couleur: str,
-                              ship_id: str, username: str, ship_type: str):
-        """Creer un rectangle dans le canvas à la position donnée tout en
-        utilisant les paramètres du vaisseau"""
-        master.create_rectangle(
-            pos[0] - self.settings["Transportation"]["size"],
-            pos[1] - self.settings["Transportation"]["size"],
-            pos[0] + self.settings["Transportation"]["size"],
-            pos[1] + self.settings["Transportation"]["size"],
-            fill=couleur,
-            tags=("vaisseau", ship_id, username, ship_type),
-            outline=Color.spaceBlack.value)
-
-    def create_militaire(self, master: Canvas, pos: tuple, couleur: str,
-                         ship_id: str, username: str, ship_type: str):
-        """Creer un triangle dans le canvas à la position donnée tout en
-        utilisant les paramètres du vaisseau"""
-
-        master.create_polygon(pos[0],
-                              pos[1] - self.settings["Militaire"]["size"],
-                              pos[0] - self.settings["Militaire"]["size"],
-                              pos[1] + self.settings["Militaire"]["size"],
-                              pos[0] + self.settings["Militaire"]["size"],
-                              pos[1] + self.settings["Militaire"]["size"],
-                              fill=couleur,
-                              tags=("vaisseau", ship_id, username, ship_type),
-                              outline=Color.spaceBlack.value)
 
 
 if __name__ == '__main__':
