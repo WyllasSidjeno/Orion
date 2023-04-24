@@ -41,11 +41,11 @@ class GameCanvas(Canvas):
         self.etoile_window.hide()
 
         self.photo_cache = {
-            "white": Image.open("assets/planet/star_white01.png"),
-            "blue": Image.open("assets/planet/star_blue01.png"),
-            "red": Image.open("assets/planet/star_red01.png"),
-            "yellow": Image.open("assets/planet/star_yellow01.png"),
-            "orange": Image.open("assets/planet/star_orange01.png"),
+            "white": Image.open("assets/star/star_white.png"),
+            "blue": Image.open("assets/star/star_blue.png"),
+            "red": Image.open("assets/star/star_red.png"),
+            "yellow": Image.open("assets/star/star_yellow.png"),
+            "orange": Image.open("assets/star/star_orange.png"),
             "background": Image.open("assets/background/background.jpeg"),
             "militaire": Image.open("assets/ships/fighter.png"),
             "reconnaissance": Image.open("assets/ships/reconnaissance.png"),
