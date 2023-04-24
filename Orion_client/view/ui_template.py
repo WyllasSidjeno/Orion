@@ -177,14 +177,21 @@ class GameCanvas(Canvas):
             longueur = 6
 
         photo = self.photo_cache[vaisseau.type()]
+        # Using the angle that is from 0 to 360 in vaisseau.angle, rotate the image
+        # but keep its integrity
+        # rotate the size, not just the pictures
+        photo = photo.rotate(vaisseau.angle, expand=True)
+        if vaisseau.angle % 180 == 90:
+            largeur, longueur = longueur, largeur
+
+
         photo = photo.resize((largeur * 12, longueur * 12),
                              Image.ANTIALIAS)
         photo = ImageTk.PhotoImage(photo)
         self.cache.append(photo)
 
         self.create_image(x, y, image=photo,
-                          tags=(vaisseau.id,
-                                StringTypes.VAISSEAU.value))
+                            tags=(vaisseau.id, StringTypes.VAISSEAU.value))
 
     def generate_etoile(self, star):
         """Créé une étoile sur le canvas.
