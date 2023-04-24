@@ -3,7 +3,7 @@ from tkinter import Frame, Label, Canvas, Entry, Button, Scrollbar
 from Orion_client.helpers.CommandQueues import ControllerQueue
 from Orion_client.view.ui_template import GameCanvas, SideBar, Hud, ChatBox
 
-from Orion_client.view.ui_template import Color, police
+from Orion_client.view.ui_template import Color
 
 
 class GameView(Frame):
