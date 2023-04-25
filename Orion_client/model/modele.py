@@ -18,7 +18,7 @@ from Orion_client.model import ships
 from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from Orion_client.model.ships import Ship, Flotte
-from Orion_client.model.space_object import TrouDeVers, Etoile
+from Orion_client.model.space_object import TrouDeVers, Etoile, Artefact
 import math
 
 
@@ -47,6 +47,7 @@ class Modele(IModel):
 
         self.trou_de_vers: list = []
         self.etoiles: list = []
+        self.artefacts: list = []
         self.joueurs: dict = {}
 
         self.local_queue = ModelQueue()
@@ -62,6 +63,7 @@ class Modele(IModel):
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
         self.creer_etoiles(int((self.hauteur * self.largeur) / 500000),
                            star_name_csv)
+        self.creer_artefacts(int(self.hauteur * self.largeur / 750000))
         self.creer_joueurs(joueurs, star_name_csv)
         self.creer_ias()
     def receive_message(self, message):
@@ -243,6 +245,16 @@ class Modele(IModel):
                    self.local_queue, planet_name_csv)
             for _ in range(nb_etoiles)]
 
+    def creer_artefacts(self, nb_artefacts): # avec le calcul du constructeur de modèle: 108 artéfacts (0 à 107)
+        id_artefact: int = 0
+        while id_artefact < nb_artefacts:
+            self.artefacts = [
+                Artefact(randrange(self.largeur), randrange(self.hauteur), False, id_artefact)
+            ]
+
+            if id_artefact < 108:
+                print("Artefact numero ", id_artefact, " position ", self.artefacts[0].position)
+            id_artefact += 1
     def creer_joueurs(self, joueurs: list, planet_name_csv):
         """Créé les joueurs et leur attribue une etoile mère.
         :param joueurs: la liste des joueurs à créer

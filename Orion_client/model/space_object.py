@@ -115,3 +115,17 @@ class Etoile:
                 "output": self.output,
                 "population": self.population
                 }
+
+class Artefact:
+    def __init__(self, x: int, y: int, claimed: bool, id_artefact: int) -> None:
+        # self.x = x
+        # self.y = y
+        self.position = (x, y)
+        self.claimed = claimed
+        self.id = id_artefact
+        self.game_list = ["Game1", "Game2", "Game3", "Game4"]
+        self.hosted_mini_game = random.choice(self.game_list)
+        self.taille = 6
+
+    def set_solved_enigma(self) -> None:
+        self.claimed = True
