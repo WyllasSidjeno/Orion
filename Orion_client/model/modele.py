@@ -410,8 +410,7 @@ class Joueur(IJoueur):
         science = json.loads(open("data/json/sciences.json").read())
 
         for key in science.keys():
-            self.sciences_status["name"] = key # ???
-            self.sciences_status["price"] = science[key]["price"]
+            self.sciences_status = science[key]
             self.sciences_status["dependencies"] = science[key]["dependencies"]
             self.sciences_status["bonus"] = science[key]["bonus"]
 
