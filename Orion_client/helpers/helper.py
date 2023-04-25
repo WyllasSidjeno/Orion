@@ -103,6 +103,7 @@ class StringTypes(Enum):
     ETOILE_OCCUPEE = "etoile_occupee"
     ETOILE = "etoile"
     TROUDEVERS = "TrouDeVers"
+    ARTEFACT = "artefact"
 
     # Les éléments de joueurs
     VAISSEAU = "vaisseau"

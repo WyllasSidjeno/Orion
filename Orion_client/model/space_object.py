@@ -118,8 +118,8 @@ class Etoile:
 
 class Artefact:
     def __init__(self, x: int, y: int, claimed: bool, id_artefact: int) -> None:
-        # self.x = x
-        # self.y = y
+        self.x = x
+        self.y = y
         self.position = (x, y)
         self.claimed = claimed
         self.id = id_artefact
@@ -129,3 +129,7 @@ class Artefact:
 
     def set_solved_enigma(self) -> None:
         self.claimed = True
+
+    # def tick(self) -> None:
+    #     if self.claimed:
+    #         self.claimed = False

@@ -64,7 +64,7 @@ class Modele(IModel):
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
         self.creer_etoiles(int((self.hauteur * self.largeur) / 500000),
                            star_name_csv)
-        self.creer_artefacts(int(self.hauteur * self.largeur / 750000))
+        self.creer_artefacts(int((self.hauteur * self.largeur) / 750000))
         self.creer_joueurs(joueurs, star_name_csv)
         self.creer_ias()
 
@@ -75,7 +75,8 @@ class Modele(IModel):
         return {
             StringTypes.VAISSEAU.value: self.get_vaisseau_in_view(x1, x2, y1, y2),
             StringTypes.ETOILE.value: self.get_etoiles_in_view(x1, x2, y1, y2),
-            StringTypes.TROUDEVERS.value: self.get_porte_de_vers_in_view(x1, x2, y1, y2)
+            StringTypes.TROUDEVERS.value: self.get_porte_de_vers_in_view(x1, x2, y1, y2),
+            StringTypes.ARTEFACT.value: self.get_artefacts_in_view(x1, x2, y1, y2)
         }
 
     def get_etoiles_in_view(self, x1, y1, x2, y2) \
@@ -87,6 +88,12 @@ class Modele(IModel):
             for etoile in self.joueurs[username].etoiles_controlees:
                 if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
                     yield etoile
+
+    def get_artefacts_in_view(self, x1, y1, x2, y2) \
+            -> Generator[Artefact, None, None]:
+        for artefact in self.artefacts:
+            if x1 <= artefact.x <= x2 and y1 <= artefact.y <= y2:
+                yield artefact
 
     def get_porte_de_vers_in_view(self, x1, y1, x2, y2):
         for trou in self.trou_de_vers:
@@ -284,16 +291,30 @@ class Modele(IModel):
                    self.local_queue, planet_name_csv)
             for _ in range(nb_etoiles)]
 
-    def creer_artefacts(self, nb_artefacts): # avec le calcul du constructeur de modèle: 108 artéfacts (0 à 107)
-        id_artefact: int = 0
-        while id_artefact < nb_artefacts:
-            self.artefacts = [
-                Artefact(randrange(self.largeur), randrange(self.hauteur), False, id_artefact)
-            ]
+    def creer_artefacts(self, nb_artefacts: int):  # Avec le calcul du constructeur de modèle: 108 artéfacts (0 à 107)
+        id_artefact: int = -1
+        bordure = 10
 
+        for _ in range(nb_artefacts):
+            x1 = randrange(10, self.largeur - 10)
+            y1 = randrange(10, self.hauteur - 10)
+            id_artefact += 1
+            self.artefacts.append(Artefact(x1, y1, False, id_artefact))
+
+        # self.artefacts = [
+        #     Artefact(randrange(self.largeur - (2 * bordure)) + bordure,
+        #              randrange(self.largeur - (2 * bordure)) + bordure,
+        #              False, id_artefact)
+        #     for _ in range(nb_artefacts)]
+        """
             if id_artefact < 108:
                 print("Artefact numero ", id_artefact, " position ", self.artefacts[0].position)
-            id_artefact += 1
+                
+                Artefact(randrange(self.largeur - (2 * bordure)) + bordure,
+                         randrange(self.largeur - (2 * bordure)) + bordure,
+                         False, id_artefact)
+            """
+
     def creer_joueurs(self, joueurs: list, planet_name_csv):
         """Créé les joueurs et leur attribue une etoile mère.
         :param joueurs: la liste des joueurs à créer

@@ -15,7 +15,7 @@ from Orion_client.view.view_common_ressources import *
 
 if TYPE_CHECKING:
     from Orion_client.model.modele import Modele
-    from Orion_client.model.space_object import PorteDeVers
+    from Orion_client.model.space_object import PorteDeVers, Artefact
 
 
 class GameCanvas(Canvas):
@@ -50,6 +50,7 @@ class GameCanvas(Canvas):
             "militaire": Image.open("assets/ships/fighter.png"),
             "reconnaissance": Image.open("assets/ships/reconnaissance.png"),
             "transportation": Image.open("assets/ships/transportation.png"),
+            "artefact": Image.open("assets/artefact/artefact.png"),
         }
         for key, photo in self.photo_cache.items():
             if key != "background":
@@ -150,6 +151,11 @@ class GameCanvas(Canvas):
                 *self.bounding_box.__tuple__()):
             self.generate_vaisseau(vaisseau)
 
+        for artefact in mod.get_artefacts_in_view(
+                *self.bounding_box.__tuple__()):
+            self.generate_artefact(artefact)
+
+
         if self.mouse_over_view.visible:
             obj = mod.get_object(self.mouse_over_view.id)
             self.mouse_over_view.on_mouse_over(obj.to_mouse_over_dict())
@@ -163,6 +169,19 @@ class GameCanvas(Canvas):
                          x + porte.pulse, y + porte.pulse,
                          fill="black",
                          tags=(porte.id, StringTypes.TROUDEVERS.value))
+
+    def generate_artefact(self, artefact: Artefact):
+        x = artefact.x - self.bounding_box.x
+        y = artefact.x - self.bounding_box.y
+        photo = self.photo_cache["artefact"]
+
+        photo = photo.resize((artefact.taille * 12, artefact.taille * 12), Image.ANTIALIAS)
+
+        photo = ImageTk.PhotoImage(photo)
+        self.cache.append(photo)
+
+        self.create_image(x, y, image=photo)
+
 
     def generate_vaisseau(self, vaisseau: Ship):
         x = vaisseau.position[0] - self.bounding_box.x
