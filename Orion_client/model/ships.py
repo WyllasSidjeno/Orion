@@ -2,8 +2,8 @@
 import math
 from abc import ABC
 
-from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
-from Orion_client.helpers.helper import get_prochain_id, AlwaysInt
+from helpers.CommandQueues import JoueurQueue, ModelQueue
+from helpers.helper import get_prochain_id, AlwaysInt
 
 from math import atan2, sin, cos
 

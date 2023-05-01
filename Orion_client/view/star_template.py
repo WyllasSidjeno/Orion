@@ -1,9 +1,9 @@
 from functools import partial
 from tkinter import Frame, Label, Canvas, Button, Menu
 
-from Orion_client.helpers.CommandQueues import ControllerQueue
-from Orion_client.helpers.helper import StringTypes
-from Orion_client.view.view_common_ressources import *
+from helpers.CommandQueues import ControllerQueue
+from helpers.helper import StringTypes
+from view.view_common_ressources import *
 
 
 class EtoileWindow(Frame):

@@ -1,8 +1,8 @@
 import random
 
-from Orion_client.helpers.helper import get_prochain_id
-from Orion_client.model.building import Building
-from Orion_client.model.ressource import Ressource
+from helpers.helper import get_prochain_id
+from model.building import Building
+from model.ressource import Ressource
 from random import randrange
 
 
