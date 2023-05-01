@@ -150,7 +150,7 @@ class Modele(IModel):
             player_ship.target_change(new_pos)
 
     def get_object(self, object_id, object_type=None,
-                   owner=None) -> None | Ship | Flotte | TrouDeVers | Etoile:
+                   owner=None) -> None | Ship | Flotte | TrouDeVers | Etoile | Artefact:
         """Retourne un objet du jeu.
         :param object_id: L'id de l'objet
         :param object_type: Le type de l'objet
@@ -299,7 +299,7 @@ class Modele(IModel):
             x1 = randrange(10, self.largeur - 10)
             y1 = randrange(10, self.hauteur - 10)
             id_artefact += 1
-            self.artefacts.append(Artefact(x1, y1, False, id_artefact))
+            self.artefacts.append(Artefact(x1, y1, False))
 
         # self.artefacts = [
         #     Artefact(randrange(self.largeur - (2 * bordure)) + bordure,

@@ -119,7 +119,17 @@ class Controller(IController):
                                    "pos": pos}
                     self.controller_server_model.target_change_request(
                         ship_info, target_info)
-
+                elif self.model.is_type(new_tags_list, StringTypes.ARTEFACT.value):
+                    ship_info = {"id": self.previous_selection[1],
+                                 "type": self.previous_selection[3]
+                                 }
+                    target_info = {"id": new_tags_list[1],
+                                   "type": new_tags_list[0],
+                                   "pos": pos}
+                    self.controller_server_model.target_change_request(
+                        ship_info, target_info)
+                elif self.model.is_type(new_tags_list, StringTypes.ARTEFACT_CLAIMED.value):
+                    print("Cet artéfact a été récupéré")
             elif self.model.is_type(self.previous_selection, "militaire"):
                 if self.model.is_type(
                         new_tags_list, [StringTypes.ETOILE_OCCUPEE.value,

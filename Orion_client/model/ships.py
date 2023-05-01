@@ -272,7 +272,7 @@ class Reconnaissance(Ship):
                  local_queue, player_local_queue) -> None:
         """Initialise un vaisseau de reconnaissance."""
         super().__init__(local_queue, player_local_queue,
-                         pos=pos, vitesse=3, resistance=100, owner=owner, consommation=15)
+                         pos=pos, vitesse=500, resistance=100, owner=owner, consommation=15)
 
     def tick(self) -> None:
         if self.position_cible:

@@ -147,14 +147,13 @@ class GameCanvas(Canvas):
                 *self.bounding_box.__tuple__()):
             self.generate_porte_de_vers(porte)
 
-        for vaisseau in mod.get_vaisseau_in_view(
-                *self.bounding_box.__tuple__()):
-            self.generate_vaisseau(vaisseau)
-
         for artefact in mod.get_artefacts_in_view(
                 *self.bounding_box.__tuple__()):
             self.generate_artefact(artefact)
 
+        for vaisseau in mod.get_vaisseau_in_view(
+                *self.bounding_box.__tuple__()):
+            self.generate_vaisseau(vaisseau)
 
         if self.mouse_over_view.visible:
             obj = mod.get_object(self.mouse_over_view.id)
@@ -180,7 +179,7 @@ class GameCanvas(Canvas):
         photo = ImageTk.PhotoImage(photo)
         self.cache.append(photo)
 
-        self.create_image(x, y, image=photo)
+        self.create_image(x, y, image=photo, tags=(StringTypes.ARTEFACT.value, artefact.id))
 
 
     def generate_vaisseau(self, vaisseau: Ship):

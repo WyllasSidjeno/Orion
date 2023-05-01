@@ -117,12 +117,12 @@ class Etoile:
                 }
 
 class Artefact:
-    def __init__(self, x: int, y: int, claimed: bool, id_artefact: int) -> None:
+    def __init__(self, x: int, y: int, claimed: bool) -> None:
         self.x = x
         self.y = y
         self.position = (x, y)
         self.claimed = claimed
-        self.id = id_artefact
+        self.id: str = get_prochain_id()
         self.game_list = ["Game1", "Game2", "Game3", "Game4"]
         self.hosted_mini_game = random.choice(self.game_list)
         self.taille = 6
