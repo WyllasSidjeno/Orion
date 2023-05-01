@@ -66,9 +66,6 @@ class Ship(ABC):
         self.direction_angle = atan2(self.position_cible[1] - self.position[1],
                                      self.position_cible[0] - self.position[0])
 
-        if self.direction_angle < 0:
-            self.direction_angle += 2 * math.pi
-
         if math.hypot(
                 self.position_cible[0] - self.position[0],
                 self.position_cible[1] - self.position[1]) < self.vitesse:
@@ -77,6 +74,7 @@ class Ship(ABC):
             self.position = \
                 (self.position[0] + self.vitesse * cos(self.direction_angle),
                  self.position[1] + self.vitesse * sin(self.direction_angle))
+
 
         if self.position == self.position_cible:
             self.target_change(None)
