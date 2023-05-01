@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, List
 
-from Orion_client.interface import IModel, IJoueur, IController
+from interface import IModel, IJoueur, IController
 
 
 class CommandQueue(ABC):

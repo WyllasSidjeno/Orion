@@ -7,12 +7,12 @@ import urllib.parse
 import urllib.request
 from random import seed
 
-from Orion_client.helpers.helper import StringTypes
-from Orion_client.helpers.CommandQueues import ControllerQueue, \
+from helpers.helper import StringTypes
+from helpers.CommandQueues import ControllerQueue, \
     ModelQueue, JoueurQueue
-from Orion_client.interface import IController
-from Orion_client.view.view import GameView, LobbyView
-from Orion_client.model.modele import Modele
+from interface import IController
+from view.view import GameView, LobbyView
+from model.modele import Modele
 
 # cprofile
 from cProfile import Profile
@@ -33,7 +33,7 @@ class Controller(IController):
     previous_selection: list[str] | None
 
     def __init__(self):
-        from Orion_client.helpers.helper import get_random_username
+        from helpers.helper import get_random_username
         """Initialisation du controller"""
         self.frame = 0
         """La frame actuelle du jeu"""

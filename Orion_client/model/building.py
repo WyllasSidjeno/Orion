@@ -1,7 +1,7 @@
 """ Module représentant les modele des bâtiments construisible du jeu"""
 from abc import abstractmethod, ABC
 
-from Orion_client.model.ressource import RessourceMul, Ressource
+from model.ressource import RessourceMul, Ressource
 
 
 class Building(ABC):
