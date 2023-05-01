@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from tkinter import Frame, Label, Canvas, Text, Entry, Button, Tk, NW
+from tkinter import Frame, Label, Canvas, Text, Entry, Button, Tk, NW, END
 from typing import TYPE_CHECKING
 
 from PIL import Image
@@ -41,11 +41,11 @@ class GameCanvas(Canvas):
         self.etoile_window.hide()
 
         self.photo_cache = {
-            "white": Image.open("assets/planet/star_white01.png"),
-            "blue": Image.open("assets/planet/star_blue01.png"),
-            "red": Image.open("assets/planet/star_red01.png"),
-            "yellow": Image.open("assets/planet/star_yellow01.png"),
-            "orange": Image.open("assets/planet/star_orange01.png"),
+            "white": Image.open("assets/star/star_white.png"),
+            "blue": Image.open("assets/star/star_blue.png"),
+            "red": Image.open("assets/star/star_red.png"),
+            "yellow": Image.open("assets/star/star_yellow.png"),
+            "orange": Image.open("assets/star/star_orange.png"),
             "background": Image.open("assets/background/background.jpeg"),
             "militaire": Image.open("assets/ships/fighter.png"),
             "reconnaissance": Image.open("assets/ships/reconnaissance.png"),
@@ -82,7 +82,6 @@ class GameCanvas(Canvas):
         self.tag_unbind(StringTypes.ETOILE.value, "<Enter>")
         self.tag_bind(StringTypes.ETOILE.value, "<Leave>",
                       self.on_etoile_leave)
-
     def on_etoile_leave(self, event):
         self.mouse_over_view.hide(event)
         self.tag_unbind(StringTypes.ETOILE.value, "<Leave>")
@@ -706,7 +705,7 @@ class ChatBox(Frame):
     def send_message(self, _):
         if self.chat_entry.get() != "":
             self.queue.handle_message(self.chat_entry.get())
-            self.chat_entry.delete(0, "end")
+            self.chat_entry.delete(0, END)
         else:
             self.hide(None)
 
@@ -739,7 +738,8 @@ class ChatBox(Frame):
         if model.message_manager.new_messages:
             messages = model.message_manager.get_new_messages()
             for message in messages:
-                self.chat_text.insert("end", message + "\n")
+                self.chat_text.insert(END, message + "\n")
+
 
 
 class MouseOverView(Frame):
@@ -759,7 +759,6 @@ class MouseOverView(Frame):
             for dict in args:
                 if dict is not None:
                     dictlist.append(dict)
-
             for i in range(len(dictlist)):
                 container = Frame(self, bg=Color.dark.value, bd=1,
                                   relief="solid",

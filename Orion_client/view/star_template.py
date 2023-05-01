@@ -8,6 +8,8 @@ from Orion_client.view.view_common_ressources import *
 
 class EtoileWindow(Frame):
     star_id: int | None
+    x: int | None
+    y: int | None
 
     def __init__(self, master, proprietaire: str):
         """Initialise la fenetre"""
@@ -167,8 +169,12 @@ class EtoileWindow(Frame):
         """Déplace la fenetre en suivant la souris
         """
         if self.x is not None and self.y is not None:
-            x = self.master.winfo_pointerx() - self.x - self.master.winfo_rootx()
-            y = self.master.winfo_pointery() - self.y - self.master.winfo_rooty()
+            x = self.master.winfo_pointerx() - self.x \
+                - self.master.winfo_rootx()
+
+            y = self.master.winfo_pointery() - self.y \
+                - self.master.winfo_rooty()
+
             self.place(x=x, y=y)
 
     def place_header(self) -> None:
@@ -268,12 +274,11 @@ class EtoileWindow(Frame):
                     if star.buildinglist[i] is not None:
                         self.building_list[i].show_building(star.buildinglist[i])
                         self.building_list[i].unbind("<Button-1>")
-
-                else:
-                    self.building_list[i].bind("<Button-1>",
-                                               lambda event, i=i:
-                                               self.construct_building_menu.show(
-                                                   event, self.star_id))
+                    else:
+                        self.building_list[i].bind("<Button-1>",
+                                                   lambda event:
+                                                   self.construct_building_menu.show(
+                                                       event, self.star_id, i))
 
             output = star.output.__dict__()
             self.energie_value_label.config(text=output["energie"])
@@ -435,9 +440,9 @@ class ConstructBuildingMenu(Menu):
         self.post(event.x_root, event.y_root)
 
     def on_click(self, i):
-        type = self.building_types[i].lower().replace(" ", "")
+        current_type = self.building_types[i].lower().replace(" ", "")
         self.command_queue.handle_building_construct_request(self.planet_id,
-                                                             type,
+                                                             current_type,
                                                              self.list_position)
         self.hide()
 
