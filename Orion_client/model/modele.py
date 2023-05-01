@@ -477,10 +477,25 @@ class Joueur(IJoueur):
         Elle s'assure que la construction d'un vaisseau est possible et
         la déclenche si elle l'est."""
         # make a switch case
+        print(list_position)
+
         etoile = self.get_etoile_by_id(etoile_id)
-        if type_building == "mine":
-            Mine.build_request(self.ressources, etoile.buildinglist,
-                               list_position)
+
+        match type_building:
+            case "mine":
+                Mine.build_request(self.ressources, etoile.buildinglist, list_position)
+            case "farm":
+                Farm.build_request(self.ressources, etoile.buildinglist, list_position)
+            case "concretefactory":
+                ConcreteFactory.build_request(self.ressources, etoile.buildinglist, list_position)
+            case "powerplant":
+                PowerPlant.build_request(self.ressources, etoile.buildinglist, list_position)
+            case "reserchcenter":
+                ResearchCenter.build_request(self.ressources, etoile.buildinglist, list_position)
+            case _:
+                print("pas asser de ressources")
+
+        print(etoile.buildinglist)
 
     def deplete_energy(self):
         """

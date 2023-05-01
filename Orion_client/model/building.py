@@ -59,7 +59,7 @@ class Mine(Building):
         )
         level = 1
         max_level = 3
-        consumption = 100
+        consumption = 5
         super().__init__(name, description, upgrade_cost, output,
                          level, max_level, consumption)
 
@@ -105,7 +105,7 @@ class Farm(Building):
         )
         level = 1
         max_level = 3
-        consumption = 100
+        consumption = 5
         super().__init__(name, description, upgrade_cost, output,
                          level, max_level, consumption)
 
@@ -132,6 +132,22 @@ class Farm(Building):
                 return False
         return True
 
+    def build_request(ressource_joueur: Ressource, list_building: list, pos: int) -> bool:
+        """Méthode permettant de savoir si le joueur peut acheter une mine.
+        :return: True si le joueur peut acheter une batiment, False sinon
+        """
+        build_cost: Ressource = Ressource(metal=1000, beton=1500, energie=2500) / 2
+        can_afford = True
+        for key in ressource_joueur:
+            if ressource_joueur[key] <= build_cost[key]:
+                can_afford = False
+
+        if can_afford:
+            ressource_joueur - build_cost
+            list_building.insert(pos, Farm())
+
+        return can_afford
+
 
 class ConcreteFactory(Building):
     """Classe représentant une usine à béton
@@ -150,7 +166,7 @@ class ConcreteFactory(Building):
 
         level = 1
         max_level = 3
-        consumption = 100
+        consumption = 5
         super().__init__(name, description, upgrade_cost, output,
                          level, max_level, consumption)
 
@@ -160,6 +176,23 @@ class ConcreteFactory(Building):
         self.level += 1
         # todo : update ressource
         self.output = self.output * 1.5  # todo : Ressource
+
+    @staticmethod
+    def build_request(ressource_joueur: Ressource, list_building: list, pos: int) -> bool:
+        """Méthode permettant de savoir si le joueur peut acheter une mine.
+        :return: True si le joueur peut acheter une batiment, False sinon
+        """
+        build_cost: Ressource = Ressource(metal=1000, beton=3000, energie=2000) / 2
+        can_afford = True
+        for key in ressource_joueur:
+            if ressource_joueur[key] <= build_cost[key]:
+                can_afford = False
+
+        if can_afford:
+            ressource_joueur - build_cost
+            list_building.insert(pos, ConcreteFactory())
+
+        return can_afford
 
 
 class PowerPlant(Building):
@@ -188,6 +221,23 @@ class PowerPlant(Building):
         # todo : update ressource
         self.output = self.output * 2  # todo : Ressource
 
+    @staticmethod
+    def build_request(ressource_joueur: Ressource, list_building: list, pos: int) -> bool:
+        """Méthode permettant de savoir si le joueur peut acheter une mine.
+        :return: True si le joueur peut acheter une batiment, False sinon
+        """
+        build_cost: Ressource = Ressource(metal=4000, beton=1000, energie=1000) / 2
+        can_afford = True
+        for key in ressource_joueur:
+            if ressource_joueur[key] <= build_cost[key]:
+                can_afford = False
+
+        if can_afford:
+            ressource_joueur - build_cost
+            list_building.insert(pos, PowerPlant())
+
+        return can_afford
+
 
 class ResearchCenter(Building):  # todo Research center avec science
     """Classe représentant un centre de recherche
@@ -204,7 +254,7 @@ class ResearchCenter(Building):  # todo Research center avec science
         output: dict = {}  # todo: Science class
         level = 1
         max_level = 3
-        consumption = 100
+        consumption = 5
         super().__init__(name, description, upgrade_cost, output,
                          level, max_level, consumption)
 
@@ -214,3 +264,20 @@ class ResearchCenter(Building):  # todo Research center avec science
         self.level += 1
         # todo : update ressource
         self.output = self.output * 2
+
+    @staticmethod
+    def build_request(ressource_joueur: Ressource, list_building: list, pos: int) -> bool:
+        """Méthode permettant de savoir si le joueur peut acheter une mine.
+        :return: True si le joueur peut acheter une batiment, False sinon
+        """
+        build_cost: Ressource = Ressource(metal=4000, beton=1000, energie=1000) / 2
+        can_afford = True
+        for key in ressource_joueur:
+            if ressource_joueur[key] <= build_cost[key]:
+                can_afford = False
+
+        if can_afford:
+            ressource_joueur - build_cost
+            list_building.insert(pos, ResearchCenter())
+
+        return can_afford
