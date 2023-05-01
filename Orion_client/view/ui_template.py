@@ -181,13 +181,19 @@ class GameCanvas(Canvas):
 
         photo = self.photo_cache[vaisseau.type()]
 
-        if 0 <= vaisseau.direction_angle < math.pi / 4:
-            photo = photo.rotate(270)
+        """egree = math.degrees(vaisseau.direction_angle)+90
+
+        photo = photo.rotate(-degree, expand=True, resample=Image.BICUBIC,
+                             center=(photo.width/2, photo.height/2))"""
+
+        if 0 <= vaisseau.direction_angle < math.pi / 4:\
+             #if the degree is between 0 and 45
+            photo = photo.rotate(270, expand=True)
             largeur, longueur = longueur, largeur
         elif math.pi / 4 <= vaisseau.direction_angle < 3 * math.pi / 4:
-            photo = photo.rotate(180)
+            photo = photo.rotate(180, expand=True)
         elif 3 * math.pi / 4 <= vaisseau.direction_angle < 5 * math.pi / 4:
-            photo = photo.rotate(90)
+            photo = photo.rotate(90,    expand=True)
             largeur, longueur = longueur, largeur
 
         photo = photo.resize((largeur * 12, longueur * 12), Image.ANTIALIAS)
