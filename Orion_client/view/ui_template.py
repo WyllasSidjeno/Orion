@@ -616,7 +616,7 @@ class MiniGameWindow(Frame):
 
         minigame = Minigame(self.minigame_label)
 
-        minigame.game1()
+        minigame.game2()
         minigame.pack()
 
 
@@ -654,10 +654,31 @@ class Minigame(Frame):
 
     def game2(self):  # simon says
         self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
-                                    relief="solid")
-        self.minigame_frame.place(relx=0.5, rely=0.5, anchor="center")
+                                 relief="solid")
+        self.minigame_frame.place(relx=0.5, rely=0.5, relwidth=0.8,
+                               relheight=0.8, anchor="center")
 
-        # for i in range(9):
+        for n in range(3):
+            self.minigame_frame.rowconfigure(n, weight=1)
+        for m in range(3):
+            self.minigame_frame.columnconfigure(m, weight=1)
+
+        frames = []
+        n = 0
+        for i in range(3):
+            for j in range(3):
+                tile = Frame(self.minigame_frame, bg=Color.darkGrey.value, bd=1,
+                             relief="solid")
+                tile.grid(row=i, column=j, sticky= 'nsew')
+
+                self.answerLabel = Label(tile, text=n,
+                                         bg=Color.darkGrey.value, fg="white",
+                                         font=("Fixedsys", 18))
+                self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
+                frames.append(tile)
+                n += 1
+
+
 
     def game3(self):  # target practice
         print("")
