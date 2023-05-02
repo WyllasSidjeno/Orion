@@ -130,6 +130,7 @@ class Controller(IController):
                         ship_info, target_info)
                 elif self.model.is_type(new_tags_list, StringTypes.ARTEFACT_CLAIMED.value):
                     print("Cet artéfact a été récupéré")
+
             elif self.model.is_type(self.previous_selection, "militaire"):
                 if self.model.is_type(
                         new_tags_list, [StringTypes.ETOILE_OCCUPEE.value,
