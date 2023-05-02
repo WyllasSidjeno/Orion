@@ -4,6 +4,7 @@ que le modèle de base du jeu.
 """
 from __future__ import annotations
 
+import os
 from ast import literal_eval
 from random import randrange, choice
 from typing import Generator
@@ -57,7 +58,7 @@ class Modele(IModel):
         self.message_manager.add_message(f"Serveur : Bienvenue dans Orion, "
                                          f"{self.controller_username} !")
 
-        with open("data/text/star.csv", "r") as star_name_csv:
+        with open("./data/text/star.csv", "r") as star_name_csv:
             star_name_csv = star_name_csv.read().split("\n")
 
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))

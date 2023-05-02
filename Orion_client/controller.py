@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import os
 import time
 import urllib
 import urllib.error
@@ -49,6 +50,10 @@ class Controller(IController):
         self.lobby_controller = \
             LobbyController(self.username, self.urlserveur, self.start_game)
         """Le sous-controller utilisateur courant de l'application"""
+
+        #print("position", os.getcwd(), os.path.realpath(__file__))
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
+        """change le working dirrectory pour le répertoire courrant Orion_client"""
 
     def start_game(self, joueurs: list[tuple[str, str]]) -> None:
         """Debute le jeu avec les joueurs donnés en paramètre,
