@@ -593,6 +593,7 @@ class MiniGameWindow(Frame):
                                     bg=Color.darkGrey.value, fg="white",
                                     font=("Fixedsys", 13))
 
+        self.minigame = MinigameView1(self.minigame_label)
         self.place_header()
         self.place_main()
 
@@ -614,77 +615,91 @@ class MiniGameWindow(Frame):
         self.main_frame.place(relx=0, rely=0.1, relwidth=1, relheight=0.9)
         self.minigame_label.place(anchor="center", relx=0.5, rely=0.5)
 
-        minigame = Minigame(self.minigame_label)
+        self.minigame.place()
+        self.minigame.pack()
 
-        minigame.game2()
-        minigame.pack()
+    def get_minigame(self):
+        return self.minigame
 
-
-class Minigame(Frame):
-
+class MinigameView1(Frame):
     def __init__(self, master, *args):
         super().__init__(master, bg=Color.dark.value, bd=1, relief="solid",
                          width=400, height=350, *args)
-
-    def game1(self):  # remember the number
         self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
                                     relief="solid")
-        self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4,
-                                  relheight=0.15, anchor="center")
-
         self.answerLabel = Label(self.minigame_frame, text="123456",
                                  bg=Color.darkGrey.value, fg="white",
                                  font=("Fixedsys", 18))
-        self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
-
         self.input_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
                                  relief="solid")
-        self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45,
-                               relheight=0.25, anchor="center")
-
         self.input_text = Text(self.input_frame, height=1, width=10,
                                bg=Color.darkGrey.value, fg="white", bd=1,
                                relief="solid",
                                font=("Fixedsys", 17))
-        self.input_text.place(relx=0.5, rely=0.3, anchor="center")
-
         self.input_button = Button(self.input_frame,
                                    text="input")  # TODO: add command attribute to link input
+
+    def place(self):
+        self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4,
+                                  relheight=0.15, anchor="center")
+        self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
+        self.input_frame.place(relx=0.5, rely=0.6, relwidth=0.45,
+                               relheight=0.25, anchor="center")
+        self.input_text.place(relx=0.5, rely=0.3, anchor="center")
         self.input_button.place(relx=0.5, rely=0.75, anchor="center")
 
-    def game2(self):  # simon says
-        self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
-                                 relief="solid")
-        self.minigame_frame.place(relx=0.5, rely=0.5, relwidth=0.8,
-                               relheight=0.8, anchor="center")
+    def bind_button(self, onClick):
+        self.input_button.config(command=onClick)
 
+    def get_text(self):
+        return self.input_text.get("1.0", "end-1c")
+
+    def setTextbox(self, text):
+        self.answerLabel.configure(text=text)
+
+    def disableInput(self):
+        self.input_text.config(state="disabled")
+
+    def enableInput(self):
+        self.input_text.config(state="normal")
+
+    def winState(self):
+        self.input_text.config(bg="green")
+
+    def failState(self):
+        self.input_text.config(bg="red")
+
+class MinigameView2(Frame):
+    def __init__(self, master, *args):
+        super().__init__(master, bg=Color.dark.value, bd=1, relief="solid",
+                         width=400, height=350, *args)
+        self.minigame_frame = Frame(self, bg=Color.darkGrey.value, bd=1,
+                                    relief="solid")
+        self.minigame_frame.place(relx=0.5, rely=0.5, relwidth=0.8,
+                                  relheight=0.8, anchor="center")
         for n in range(3):
             self.minigame_frame.rowconfigure(n, weight=1)
         for m in range(3):
             self.minigame_frame.columnconfigure(m, weight=1)
 
-        frames = []
+        self.generate_buttons()
+
+    def generate_buttons(self):
+        buttons = []
         n = 0
         for i in range(3):
             for j in range(3):
                 tile = Frame(self.minigame_frame, bg=Color.darkGrey.value, bd=1,
                              relief="solid")
-                tile.grid(row=i, column=j, sticky= 'nsew')
+                tile.grid(row=i, column=j, sticky='nsew')
 
-                self.answerLabel = Label(tile, text=n,
-                                         bg=Color.darkGrey.value, fg="white",
-                                         font=("Fixedsys", 18))
-                self.answerLabel.place(relx=0.5, rely=0.5, anchor="center")
-                frames.append(tile)
+                answerLabel = Button(tile, text=n,
+                                     bg=Color.darkGrey.value, fg="white",
+                                     font=("Fixedsys", 18))
+                answerLabel.place(relx=0.5, rely=0.5, width=80, height=80, anchor="center")
+
+                buttons.append(answerLabel)
                 n += 1
-
-
-
-    def game3(self):  # target practice
-        print("")
-
-    def game4(self):  # solo pong
-        print("")
 
 
 class ChatBox(Frame):
@@ -828,5 +843,6 @@ if __name__ == '__main__':
 
     minigamewindow = MiniGameWindow(root, "Bob")
     minigamewindow.pack()
+
 
     root.mainloop()
