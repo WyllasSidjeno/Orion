@@ -38,9 +38,7 @@ class ArbreScience(Frame):
         self.science_frame = Frame(self, bg=Color.grey.value)
         self.science_frame.grid(row=1, column=0, sticky="nsew")
 
-        self.show_science(ArbreScience.sciences)
-
-    def show_science(self, sciences):
+    def show_science(self, event, sciences):
         """Affiche les sciences"""
         max_row = 0
         max_column = 4
