@@ -1,7 +1,7 @@
 """Module qui contient la classe Science et Science Tree"""
 from tkinter import Frame, Label, Button, Tk
-from Orion_client.helpers.helper import AlwaysInt
-from Orion_client.view.view_common_ressources import *
+from helpers.helper import AlwaysInt
+from view.view_common_ressources import *
 
 
 class ArbreScience(Frame):

@@ -5,7 +5,6 @@ from enum import Enum
 
 police: str = "FixedSys"
 
-
 class Color(Enum):
     """Enumération des couleurs utilisées dans l'application"""
     darkGrey = "#36393f"
