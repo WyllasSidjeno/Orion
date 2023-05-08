@@ -139,6 +139,7 @@ class GameCanvas(Canvas):
         self.delete(StringTypes.ETOILE_OCCUPEE.value)
         self.delete(StringTypes.TROUDEVERS.value)
         self.delete(StringTypes.VAISSEAU.value)
+        self.delete(StringTypes.ARTEFACT.value)
 
         for etoile in mod.get_etoiles_in_view(*self.bounding_box.__tuple__()):
             self.generate_etoile(etoile)
@@ -171,7 +172,7 @@ class GameCanvas(Canvas):
 
     def generate_artefact(self, artefact: Artefact):
         x = artefact.x - self.bounding_box.x
-        y = artefact.x - self.bounding_box.y
+        y = artefact.y - self.bounding_box.y
         photo = self.photo_cache["artefact"]
 
         photo = photo.resize((artefact.taille * 12, artefact.taille * 12), Image.ANTIALIAS)

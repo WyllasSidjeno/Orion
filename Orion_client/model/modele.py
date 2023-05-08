@@ -1,4 +1,4 @@
-"""Module des modeles de donnees du jeu
+"""Modartefact_id=Nonede donnees du jeu
 Ce module contient les classes qui representent les objets du jeu ainsi
 que le modèle de base du jeu.
 """
@@ -89,8 +89,9 @@ class Modele(IModel):
                 if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
                     yield etoile
 
-    def get_artefacts_in_view(self, x1, y1, x2, y2) \
-            -> Generator[Artefact, None, None]:
+    def get_artefacts_in_view(self, x1, y1, x2, y2):
+        # \
+        #     -> Generator[Artefact, None, None]:
         for artefact in self.artefacts:
             if x1 <= artefact.x <= x2 and y1 <= artefact.y <= y2:
                 yield artefact
@@ -141,7 +142,8 @@ class Modele(IModel):
         """
         player_ship = self.get_object(ship_informations["id"],
                                       ship_informations["type"])
-
+        print("print de target_change_request")
+        print(ship_informations, target)
         new_pos = target["pos"]
         if "id" in target:
             new_target = self.get_object(target["id"], target["type"])
@@ -165,6 +167,9 @@ class Modele(IModel):
             elif object_type in StringTypes.planet_types():
                 temp_object = self.__get_etoile(object_id)
 
+            elif object_type in StringTypes.artefact_type():
+                print("print object_type: "+object_type)
+                temp_object = self.__get_artefacte(object_id)
         else:
             temp_object = self.__get_ship(object_id, owner=owner)
             if not temp_object:
@@ -176,9 +181,15 @@ class Modele(IModel):
 
         return temp_object
 
+    def __get_artefacte(self, artefact_id):
+        """Retourne un artefact"""
+        for artefact in self.artefacts:
+            if artefact.id == artefact_id:
+                print("getArtefact" + artefact.id)
+                return artefact
+
     def __get_etoile(self, etoile_id):
-        """Retourne une étoile.
-        """
+        """Retourne une étoile."""
         for etoile in self.etoiles:
             if etoile.id == etoile_id:
                 return etoile
@@ -300,20 +311,6 @@ class Modele(IModel):
             y1 = randrange(10, self.hauteur - 10)
             id_artefact += 1
             self.artefacts.append(Artefact(x1, y1, False))
-
-        # self.artefacts = [
-        #     Artefact(randrange(self.largeur - (2 * bordure)) + bordure,
-        #              randrange(self.largeur - (2 * bordure)) + bordure,
-        #              False, id_artefact)
-        #     for _ in range(nb_artefacts)]
-        """
-            if id_artefact < 108:
-                print("Artefact numero ", id_artefact, " position ", self.artefacts[0].position)
-                
-                Artefact(randrange(self.largeur - (2 * bordure)) + bordure,
-                         randrange(self.largeur - (2 * bordure)) + bordure,
-                         False, id_artefact)
-            """
 
     def creer_joueurs(self, joueurs: list, planet_name_csv):
         """Créé les joueurs et leur attribue une etoile mère.

@@ -106,6 +106,7 @@ class Controller(IController):
     def handle_right_click(self, pos, new_tags_list):
         """Gère les interactions de la vue du jeu lors d'un clic droit sur
         le canvas."""
+        print(pos, new_tags_list)
         if self.previous_selection:
             if self.model.is_type(self.previous_selection, "reconnaissance"):
                 if self.model.is_type(new_tags_list,
@@ -120,12 +121,14 @@ class Controller(IController):
                     self.controller_server_model.target_change_request(
                         ship_info, target_info)
                 elif self.model.is_type(new_tags_list, StringTypes.ARTEFACT.value):
+                    print("entre dans le print artefafct right click")
                     ship_info = {"id": self.previous_selection[1],
                                  "type": self.previous_selection[3]
                                  }
                     target_info = {"id": new_tags_list[1],
                                    "type": new_tags_list[0],
                                    "pos": pos}
+                    print("target info" + new_tags_list[0])
                     self.controller_server_model.target_change_request(
                         ship_info, target_info)
                 elif self.model.is_type(new_tags_list, StringTypes.ARTEFACT_CLAIMED.value):
