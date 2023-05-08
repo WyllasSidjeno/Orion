@@ -13,10 +13,9 @@ from interface import IModel, IJoueur
 from helpers.CommandQueues import JoueurQueue, ModelQueue
 from helpers.helper import AlwaysInt, StringTypes, \
     get_prochain_id, MessageManager
-from model.building import *
 
+from model.building import *
 from model import ships
-from model.building import Building
 from model.ressource import Ressource
 from model.ships import Ship, Flotte
 from model.space_object import TrouDeVers, Etoile
@@ -610,11 +609,10 @@ class Joueur(IJoueur):
             if p.transit:
                 tot_population += p.population
                 cpt_transit += 1
+        """Consommation de nourriture par tick (server % 60)"""
+        #self.ressources["nourriture"] -= tot_population
 
-        """Consommation de nourriture par tick (server % 30)"""
-        self.ressources["nourriture"] -= tot_population
-
-        nourriture_apres_conso = self.ressources["nourriture"]
+        nourriture_apres_conso = self.ressources["nourriture"] - tot_population
         nourriture_apres_conso *= .15
         nourriture_apres_conso /= cpt_transit
 
@@ -625,6 +623,11 @@ class Joueur(IJoueur):
                 c.population = AlwaysInt(c.population * .90)
             if c.population <= 0:
                 c.population = 0
+
+        if nourriture_apres_conso > 0 :
+            self.ressources["nourriture"] -= tot_population
+        else :
+            self.ressources["nourriture"] = 0
 
             # TODO : tester que la reduction par pourcentage permet une
             #  conquete facile
