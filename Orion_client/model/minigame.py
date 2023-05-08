@@ -10,6 +10,7 @@ class Minigame1:
         self.game = self.minigame.get_minigame()
         self.sequence = ""
         self.guess = ""
+        self.time = 0
         self.game.bind_button(self.check_guess)
 
     def generate_sequence(self, length):
@@ -28,16 +29,22 @@ class Minigame1:
             print("false")
             self.game.failState()
 
+    def tick(self):
+        self.time += 1
+        print(self.time)
+
     def play_game(self, length):
         sequence = self.generate_sequence(length)
         self.sequence = "".join(sequence)
         self.game.setTextbox(self.sequence)
         self.game.disableInput()
 
-        #wait x seconds
 
-        self.game.setTextbox(" ")
-        self.game.enableInput()
+        if self.time <= 25:
+            self.tick()
+        else:
+            self.game.setTextbox(" ")
+            self.game.enableInput()
 
 
     def get_gameWindow(self):
