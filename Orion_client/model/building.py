@@ -44,7 +44,6 @@ class Building(ABC):
         raise NotImplementedError
 
 
-
 class Mine(Building):
     """Classe représentant une mine
     Cette classe contient les attributs et les méthodes communes à toutes les
@@ -119,6 +118,7 @@ class Farm(Building):
             if ressource_joueur[key] < build_cost[key]:
                 can_afford = False
         return can_afford
+
 
 class ConcreteFactory(Building):
     """Classe représentant une usine à béton

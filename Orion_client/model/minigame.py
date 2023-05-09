@@ -1,7 +1,7 @@
-import math
 import random
 from tkinter import Tk
 from Orion_client.view.ui_template import MiniGameWindow
+
 
 class Minigame1:
     def __init__(self):
@@ -39,13 +39,84 @@ class Minigame1:
         self.game.setTextbox(self.sequence)
         self.game.disableInput()
 
-
         if self.time <= 25:
             self.tick()
         else:
             self.game.setTextbox(" ")
             self.game.enableInput()
 
+    def get_gameWindow(self):
+        return self.minigame
+
+
+class Minigame2:
+    def __init__(self):
+        self.minigame = MiniGameWindow(root, "bob")
+        self.game = self.minigame.get_minigame()
+        self.colors = ["red", "green", "blue", "yellow"]
+        self.sequence = []
+        self.player_sequence = []
+        self.turn = 0
+        self.tile_size = 150
+        self.game.generate_buttons(self.tile_clicked)
+        self.tiles = self.game.get_tiles()
+
+    def start_game(self):
+        # Generate a new sequence of tiles
+        self.sequence = []
+        for i in range(5):
+            self.sequence.append(random.choice(self.colors))
+
+        # Show the sequence to the player
+        self.show_sequence()
+
+    def show_sequence(self):
+        # Disable the tiles while showing the sequence
+        for tile in self.tiles:
+            tile.config(state="disabled")
+
+        # Show each tile in the sequence in order
+        for color in self.sequence:
+            tile = self.tiles[self.colors.index(color)]
+            tile.config(bg=color)
+            #TODO WAIT
+            tile.config(bg="gray")
+            #TODO WAIT
+
+        # Enable the tiles for the player to click
+        for tile in self.tiles:
+            tile.config(state="normal")
+
+    def tile_clicked(self, event):
+        # Get the tile that was clicked
+        tile = event.widget
+
+        # Add the color to the player's sequence
+        color = self.colors[self.tiles.index(tile)]
+        self.player_sequence.append(color)
+
+        # Light up the tile briefly
+        tile.config(bg=color)
+        #TODO WAIT
+        tile.config(bg="gray")
+
+        # Check if the player's sequence matches the computer's sequence
+        if self.player_sequence == self.sequence:
+            self.turn += 1
+            self.player_sequence = []
+            if self.turn == 5:
+                self.game_over()
+            else:
+                self.show_sequence()
+        elif self.sequence[:len(self.player_sequence)] != self.player_sequence:
+            self.game_over()
+
+    def game_over(self):
+        # Disable the tiles
+        for tile in self.tiles:
+            tile.config(state="disabled")
+
+        # Show the game over message
 
     def get_gameWindow(self):
         return self.minigame
@@ -55,10 +126,10 @@ if __name__ == '__main__':
     root = Tk()
     root.geometry("800x600")
 
-    minigamewindow = Minigame1()
+    minigamewindow = Minigame2()
 
     minigame = minigamewindow.get_gameWindow()
     minigame.pack()
-    minigamewindow.play_game(6)
-
+    #minigamewindow.start_game(6)
+    minigamewindow.start_game()
     root.mainloop()

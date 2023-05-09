@@ -593,7 +593,7 @@ class MiniGameWindow(Frame):
                                     bg=Color.darkGrey.value, fg="white",
                                     font=("Fixedsys", 13))
 
-        self.minigame = MinigameView1(self.minigame_label)
+        self.minigame = MinigameView2(self.minigame_label)
         self.place_header()
         self.place_main()
 
@@ -620,6 +620,7 @@ class MiniGameWindow(Frame):
 
     def get_minigame(self):
         return self.minigame
+
 
 class MinigameView1(Frame):
     def __init__(self, master, *args):
@@ -669,6 +670,7 @@ class MinigameView1(Frame):
     def failState(self):
         self.input_text.config(bg="red")
 
+
 class MinigameView2(Frame):
     def __init__(self, master, *args):
         super().__init__(master, bg=Color.dark.value, bd=1, relief="solid",
@@ -681,11 +683,9 @@ class MinigameView2(Frame):
             self.minigame_frame.rowconfigure(n, weight=1)
         for m in range(3):
             self.minigame_frame.columnconfigure(m, weight=1)
+        self.tiles = []
 
-        self.generate_buttons()
-
-    def generate_buttons(self):
-        buttons = []
+    def generate_buttons(self, onClick):
         n = 0
         for i in range(3):
             for j in range(3):
@@ -693,13 +693,18 @@ class MinigameView2(Frame):
                              relief="solid")
                 tile.grid(row=i, column=j, sticky='nsew')
 
-                answerLabel = Button(tile, text=n,
+                answerLabel = Label(tile, text=n,
                                      bg=Color.darkGrey.value, fg="white",
                                      font=("Fixedsys", 18))
                 answerLabel.place(relx=0.5, rely=0.5, width=80, height=80, anchor="center")
 
-                buttons.append(answerLabel)
+                tile.bind("<Button-1>", onClick)
+
+                self.tiles.append(answerLabel)
                 n += 1
+
+    def get_tiles(self):
+        return self.tiles
 
 
 class ChatBox(Frame):
