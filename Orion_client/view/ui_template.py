@@ -593,7 +593,7 @@ class MiniGameWindow(Frame):
                                     bg=Color.darkGrey.value, fg="white",
                                     font=("Fixedsys", 13))
 
-        self.minigame = MinigameView2(self.minigame_label)
+        self.minigame = MinigameView3(self.minigame_label)
         self.place_header()
         self.place_main()
 
@@ -620,6 +620,9 @@ class MiniGameWindow(Frame):
 
     def get_minigame(self):
         return self.minigame
+
+    def set_header(self, title):
+        self.title_label.config(text=title)
 
 
 class MinigameView1(Frame):
@@ -705,6 +708,35 @@ class MinigameView2(Frame):
 
     def get_tiles(self):
         return self.tiles
+
+
+class MinigameView3(Frame):
+    def __init__(self, master, *args):
+        super().__init__(master, bg=Color.dark.value, bd=1, relief="solid",
+                         width=400, height=350, *args)
+        self.width = 500
+        self.height = 500
+        self.canvas = Canvas(self.master, width=self.width, height=self.height)
+        self.canvas.pack()
+
+        self.score_label = Label(self.master, text="Score: 0")
+        self.score_label.pack()
+
+        self.timer = 10
+        self.timer_label = Label(self.master, text=f"Time left: {self.timer}")
+        self.timer_label.pack()
+
+    def bindCanvas(self, onClick):
+        self.canvas.bind("<Button-1>", onClick)
+
+    def getCanvas(self):
+        return self.canvas
+
+    def set_score(self, score):
+        self.score_label.config(text=f"Score: {score}")
+
+    def set_timer(self, text):
+        self.timer_label.config(text=text)
 
 
 class ChatBox(Frame):

@@ -3,11 +3,12 @@ from tkinter import Tk
 from Orion_client.view.ui_template import MiniGameWindow
 
 
-class Minigame1:
+class Minigame1: #remember the number
     def __init__(self):
         self.numbers = "0123456789"
         self.minigame = MiniGameWindow(root, "bob")
         self.game = self.minigame.get_minigame()
+        self.minigame.set_header("Number Memory")
         self.sequence = ""
         self.guess = ""
         self.time = 0
@@ -49,9 +50,10 @@ class Minigame1:
         return self.minigame
 
 
-class Minigame2:
+class Minigame2: #simon says
     def __init__(self):
         self.minigame = MiniGameWindow(root, "bob")
+        self.minigame.set_header("Simon Says")
         self.game = self.minigame.get_minigame()
         self.colors = ["red", "green", "blue", "yellow"]
         self.sequence = []
@@ -120,6 +122,50 @@ class Minigame2:
 
     def get_gameWindow(self):
         return self.minigame
+
+
+class Minigame3: #Target Shooter
+    def __init__(self, master):
+        self.minigame = MiniGameWindow(root, "bob")
+        self.game = self.minigame.get_minigame()
+        self.canvas = self.game.getCanvas()
+        self.width = 500
+        self.height = 500
+        self.score = 0
+        self.timer = 10
+        self.target_radius = 20
+        self.target_color = "#FF0000"
+        self.target = None
+        self.create_target()
+        self.game.bindCanvas(self.shoot)
+        self.tick()
+
+    def create_target(self):
+        x = random.randint(self.target_radius, self.width - self.target_radius)
+        y = random.randint(self.target_radius, self.height - self.target_radius)
+        if self.target:
+            self.canvas.delete(self.target)
+        self.target = self.canvas.create_oval(x - self.target_radius, y - self.target_radius,
+                                              x + self.target_radius, y + self.target_radius,
+                                              fill=self.target_color)
+
+    def shoot(self, event):
+        x, y = event.x, event.y
+        items = self.canvas.find_overlapping(x, y, x, y)
+        if self.target in items:
+            self.score += 1
+            self.game.set_score(self.score)
+            self.create_target()
+
+    def tick(self):
+        self.timer -= 1
+        self.game.set_timer(f"Time left: {self.timer}")
+        if self.timer == 0:
+            self.canvas.unbind("<Button-1>")
+            self.game.set_timer("Time's up!")
+        else:
+            print("tick")
+            #tick
 
 
 if __name__ == '__main__':
