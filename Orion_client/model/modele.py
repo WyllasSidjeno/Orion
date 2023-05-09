@@ -142,11 +142,11 @@ class Modele(IModel):
         """
         player_ship = self.get_object(ship_informations["id"],
                                       ship_informations["type"])
-        print("print de target_change_request")
-        print(ship_informations, target)
+        print("print de target_change_request", ship_informations, target)
         new_pos = target["pos"]
         if "id" in target:
             new_target = self.get_object(target["id"], target["type"])
+            print("Quel est le target:", target, "new target:", new_target)
             player_ship.target_change(new_pos, new_target)
         else:
             player_ship.target_change(new_pos)
@@ -160,16 +160,21 @@ class Modele(IModel):
         :return: L'objet demandé
         """
         temp_object = None
+        print("Quel est l'object_type:", object_type)
         if object_type:
             if object_type in StringTypes.ship_types():
+                print("pas supposé")
                 temp_object = self.__get_ship(object_id, owner=owner)
 
             elif object_type in StringTypes.planet_types():
+                print("pas supposé non plus!")
                 temp_object = self.__get_etoile(object_id)
 
             elif object_type in StringTypes.artefact_type():
-                print("print object_type: "+object_type)
+                print("print object_type 1 : ", object_type)
                 temp_object = self.__get_artefacte(object_id)
+                print("object_type 2 : ", self.__get_artefacte(object_id))
+
         else:
             temp_object = self.__get_ship(object_id, owner=owner)
             if not temp_object:
@@ -178,14 +183,14 @@ class Modele(IModel):
         if not temp_object:
             print(f"Object not found in get_object with parameter : "
                   f"{object_id}, {object_type}, {owner}")
-
+        print("print de return temp_object: ", temp_object)
         return temp_object
 
     def __get_artefacte(self, artefact_id):
         """Retourne un artefact"""
         for artefact in self.artefacts:
             if artefact.id == artefact_id:
-                print("getArtefact" + artefact.id)
+                print("getArtefact", artefact.id)
                 return artefact
 
     def __get_etoile(self, etoile_id):
@@ -257,6 +262,9 @@ class Modele(IModel):
             self.joueurs[i].tick()
 
         for i in self.trou_de_vers:
+            i.tick()
+
+        for i in self.artefacts:
             i.tick()
 
         # Command queues

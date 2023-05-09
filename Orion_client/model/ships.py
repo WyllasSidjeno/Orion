@@ -97,6 +97,7 @@ class Ship(ABC):
         """
         self.position_cible = new_target_pos
         self.cible = target
+        print(self.position_cible, self.cible)
 
     def is_static(self) -> bool:
         """Retourne True si le vaisseau est immobile."""
@@ -272,19 +273,26 @@ class Reconnaissance(Ship):
                  local_queue, player_local_queue) -> None:
         """Initialise un vaisseau de reconnaissance."""
         super().__init__(local_queue, player_local_queue,
-                         pos=pos, vitesse=500, resistance=100, owner=owner, consommation=15)
+                         pos=pos, vitesse=3, resistance=100, owner=owner, consommation=15)
 
     def tick(self) -> None:
         if self.position_cible:
-            if self.cible:
-                if self.is_close_enough():
-                    self.local_queue.change_planet_ownership(
-                        self.cible.id, self.proprietaire)
-                    self.target_change(None)
-                else:
-                    self.move()
-
-            else:
+            try:
+                if self.cible.tag == "etoile":
+                    if self.is_close_enough():
+                        self.local_queue.change_planet_ownership(
+                            self.cible.id, self.proprietaire)
+                        self.target_change(None)
+                    else:
+                        self.move()
+                elif self.cible.tag == "artefact":
+                    if self.is_close_enough():
+                        print("tag artefact ? est arrivé")
+                        self.target_change(None)
+                    else:
+                        print("tag artefact ? se déplace")
+                        self.move()
+            except self.cible.tag is None:
                 self.move()
 
 

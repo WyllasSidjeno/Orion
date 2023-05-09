@@ -64,7 +64,7 @@ class ModelQueue(IModel, CommandQueue):
         :param target: La nouvelle cible.
         """
         self._add("target_change_request", ship_informations, target)
-
+        print("target change de command Queue", ship_informations, target)
 
 class JoueurQueue(IJoueur, CommandQueue):
     def construct_ship_request(self, planet_id: str, type_ship: str) -> None:
