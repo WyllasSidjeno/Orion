@@ -593,7 +593,14 @@ class MiniGameWindow(Frame):
                                     bg=Color.darkGrey.value, fg="white",
                                     font=("Fixedsys", 13))
 
-        self.minigame = MinigameView3(self.minigame_label)
+    def setup_game(self, gameViewNum):
+        if gameViewNum == 1:
+            self.minigame = MinigameView1(self.minigame_label)
+        elif gameViewNum == 2:
+            self.minigame = MinigameView2(self.minigame_label)
+        elif gameViewNum == 3:
+            self.minigame = MinigameView3(self.minigame_label)
+
         self.place_header()
         self.place_main()
 
@@ -641,7 +648,7 @@ class MinigameView1(Frame):
                                relief="solid",
                                font=("Fixedsys", 17))
         self.input_button = Button(self.input_frame,
-                                   text="input")  # TODO: add command attribute to link input
+                                   text="input")
 
     def place(self):
         self.minigame_frame.place(relx=0.5, rely=0.3, relwidth=0.4,
@@ -714,16 +721,18 @@ class MinigameView3(Frame):
     def __init__(self, master, *args):
         super().__init__(master, bg=Color.dark.value, bd=1, relief="solid",
                          width=400, height=350, *args)
-        self.width = 500
-        self.height = 500
-        self.canvas = Canvas(self.master, width=self.width, height=self.height)
+        self.width = 400
+        self.height = 350
+        self.canvas = Canvas(self, width=self.width, height=self.height)
         self.canvas.pack()
 
-        self.score_label = Label(self.master, text="Score: 0")
+        self.score_label = Label(self, text="Score: 0", bg=Color.darkGrey.value, fg="white",
+                                     font=("Fixedsys", 10))
         self.score_label.pack()
 
         self.timer = 10
-        self.timer_label = Label(self.master, text=f"Time left: {self.timer}")
+        self.timer_label = Label(self, text=f"Time left: {self.timer}", bg=Color.darkGrey.value, fg="white",
+                                     font=("Fixedsys", 10))
         self.timer_label.pack()
 
     def bindCanvas(self, onClick):

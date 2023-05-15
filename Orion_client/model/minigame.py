@@ -7,6 +7,8 @@ class Minigame1: #remember the number
     def __init__(self):
         self.numbers = "0123456789"
         self.minigame = MiniGameWindow(root, "bob")
+        self.minigame.set_header("Remember the number")
+        self.minigame.setup_game(1)
         self.game = self.minigame.get_minigame()
         self.minigame.set_header("Number Memory")
         self.sequence = ""
@@ -29,19 +31,20 @@ class Minigame1: #remember the number
         else:
             print("false")
             self.game.failState()
+        self.time = 0
 
     def tick(self):
         self.time += 1
-        print(self.time)
 
-    def play_game(self, length):
+    def start_game(self, length):
         sequence = self.generate_sequence(length)
         self.sequence = "".join(sequence)
         self.game.setTextbox(self.sequence)
         self.game.disableInput()
 
         if self.time <= 25:
-            self.tick()
+            #TODO WAIT
+            print("waiting")
         else:
             self.game.setTextbox(" ")
             self.game.enableInput()
@@ -54,14 +57,19 @@ class Minigame2: #simon says
     def __init__(self):
         self.minigame = MiniGameWindow(root, "bob")
         self.minigame.set_header("Simon Says")
+        self.minigame.setup_game(2)
         self.game = self.minigame.get_minigame()
         self.colors = ["red", "green", "blue", "yellow"]
         self.sequence = []
         self.player_sequence = []
         self.turn = 0
+        self.time = 0
         self.tile_size = 150
         self.game.generate_buttons(self.tile_clicked)
         self.tiles = self.game.get_tiles()
+
+    def tick(self):
+        self.time += 1
 
     def start_game(self):
         # Generate a new sequence of tiles
@@ -82,8 +90,11 @@ class Minigame2: #simon says
             tile = self.tiles[self.colors.index(color)]
             tile.config(bg=color)
             #TODO WAIT
+            print("waiting")
+
             tile.config(bg="gray")
             #TODO WAIT
+            print("waiting")
 
         # Enable the tiles for the player to click
         for tile in self.tiles:
@@ -100,6 +111,7 @@ class Minigame2: #simon says
         # Light up the tile briefly
         tile.config(bg=color)
         #TODO WAIT
+        print("waiting")
         tile.config(bg="gray")
 
         # Check if the player's sequence matches the computer's sequence
@@ -117,7 +129,6 @@ class Minigame2: #simon says
         # Disable the tiles
         for tile in self.tiles:
             tile.config(state="disabled")
-
         # Show the game over message
 
     def get_gameWindow(self):
@@ -125,12 +136,14 @@ class Minigame2: #simon says
 
 
 class Minigame3: #Target Shooter
-    def __init__(self, master):
+    def __init__(self):
         self.minigame = MiniGameWindow(root, "bob")
+        self.minigame.set_header("Target Shooter")
+        self.minigame.setup_game(3)
         self.game = self.minigame.get_minigame()
         self.canvas = self.game.getCanvas()
-        self.width = 500
-        self.height = 500
+        self.width = 400
+        self.height = 350
         self.score = 0
         self.timer = 10
         self.target_radius = 20
@@ -138,7 +151,7 @@ class Minigame3: #Target Shooter
         self.target = None
         self.create_target()
         self.game.bindCanvas(self.shoot)
-        self.tick()
+        self.start_game()
 
     def create_target(self):
         x = random.randint(self.target_radius, self.width - self.target_radius)
@@ -157,7 +170,7 @@ class Minigame3: #Target Shooter
             self.game.set_score(self.score)
             self.create_target()
 
-    def tick(self):
+    def start_game(self):
         self.timer -= 1
         self.game.set_timer(f"Time left: {self.timer}")
         if self.timer == 0:
@@ -165,7 +178,10 @@ class Minigame3: #Target Shooter
             self.game.set_timer("Time's up!")
         else:
             print("tick")
-            #tick
+            #TODO WAIT
+
+    def get_gameWindow(self):
+        return self.minigame
 
 
 if __name__ == '__main__':
@@ -176,6 +192,5 @@ if __name__ == '__main__':
 
     minigame = minigamewindow.get_gameWindow()
     minigame.pack()
-    #minigamewindow.start_game(6)
     minigamewindow.start_game()
     root.mainloop()
