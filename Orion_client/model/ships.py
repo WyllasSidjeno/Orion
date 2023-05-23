@@ -272,42 +272,46 @@ class Reconnaissance(Ship):
         super().__init__(local_queue, player_local_queue,
                          pos=pos, vitesse=3, resistance=100, owner=owner, consommation=15)
 
+    """Bug Connu, cette version de la méthode tick fait planter le jeu"""
+    #def tick(self) -> None:
+    #    """vérification de la proximité d'une étoile ou d'un artéfact,
+    #      si l'objet célest est trop loin, il se rapporche de la cible.
+    #      S'il est assez près, le joueur sera propriétaire de l'objet."""
+    #    valeur = self.cible.id[3:]
+    #    if self.position_cible:
+    #        if (49 <= valeur <= 210) or 320 <= valeur <= 324:
+    #            if self.is_close_enough():
+    #                self.local_queue.change_planet_ownership(
+    #                    self.cible.id, self.proprietaire)
+    #                self.target_change(None)
+    #            else:
+    #                self.move()
+    #        elif 211 <= valeur <= 318:
+    #            if self.is_close_enough():
+    #                self.local_queue.add_artefact_to_player(self.cible.id, self.proprietaire)
+    #                print("tag artefact ? est arrivé")
+    #                self.target_change(None)
+    #            else:
+    #                print("tag artefact ? se déplace")
+    #                self.move()
+    #        else:  # except self.cible.tag is None:
+    #            self.move()
+
     def tick(self) -> None:
         """vérification de la proximité d'une étoile ou d'un artéfact,
           si l'objet célest est trop loin, il se rapporche de la cible.
           S'il est assez près, le joueur sera propriétaire de l'objet."""
-        valeur = self.cible.id[3:]
         if self.position_cible:
-            if (49 <= valeur <= 210) or 320 <= valeur <= 324:
+            if self.cible:
                 if self.is_close_enough():
                     self.local_queue.change_planet_ownership(
                         self.cible.id, self.proprietaire)
                     self.target_change(None)
                 else:
                     self.move()
-            elif 211 <= valeur <= 318:
-                if self.is_close_enough():
-                    self.local_queue.add_artefact_to_player(self.cible.id, self.proprietaire)
-                    print("tag artefact ? est arrivé")
-                    self.target_change(None)
-                else:
-                    print("tag artefact ? se déplace")
-                    self.move()
-            else:  # except self.cible.tag is None:
-                self.move()
 
-    # def tick(self) -> None:
-    #     if self.position_cible:
-    #         if self.cible:
-    #             if self.is_close_enough():
-    #                 self.local_queue.change_planet_ownership(
-    #                     self.cible.id, self.proprietaire)
-    #                 self.target_change(None)
-    #             else:
-    #                 self.move()
-    #
-    #         else:
-    #             self.move()
+            else:
+                self.move()
 
 
 class Flotte(dict):
