@@ -137,6 +137,11 @@ class Modele(IModel):
                 self.joueurs[new_owner].conquer_planet(planet)
                 planet.needs_refresh = True
 
+    def add_artefact_to_player(self, artefact_id: str, owner: None):
+        artefact = self.get_object(artefact_id, StringTypes.ARTEFACT)
+        self.joueurs[owner].artefacte_reclames.add(artefact_id)
+        self.joueurs[owner].claim_artefact(artefact)
+
     def target_change_request(self, ship_informations: dict, target: dict):
         """Demande de changement de cible d'un vaisseau.
         """
@@ -318,7 +323,7 @@ class Modele(IModel):
             x1 = randrange(10, self.largeur - 10)
             y1 = randrange(10, self.hauteur - 10)
             id_artefact += 1
-            self.artefacts.append(Artefact(x1, y1, False))
+            self.artefacts.append(Artefact(x1, y1, self.local_queue, False))
 
     def creer_joueurs(self, joueurs: list, planet_name_csv):
         """Créé les joueurs et leur attribue une etoile mère.
@@ -433,6 +438,8 @@ class Joueur(IJoueur):
         """Flotte du joueur."""
         self.etoiles_controlees: list = [etoile_mere]
         """Liste des etoiles controlees par le joueur."""
+        self.artefacte_reclames: list = []
+        """Artefact réclamées par le joueur"""
         self.consommation_energie_joueur = AlwaysInt(10)
         """Ressources totales du joueur."""
 
@@ -460,6 +467,12 @@ class Joueur(IJoueur):
         etoile.resistance = 50
         etoile.need_refresh = False
         self.etoiles_controlees.append(etoile)
+
+    def claim_artefact(self, artefact: Artefact):
+        """
+        """
+        artefact.claimed = True
+        self.artefacte_reclames.append(artefact)
 
     def construct_ship(self, planet_id, type_ship):
         """

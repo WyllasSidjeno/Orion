@@ -60,6 +60,7 @@ class Ship(ABC):
         self.position_cible: tuple | None = None
         self.cible = None
         self.direction_angle = 0
+        self.tag = None
 
     def move(self) -> None:
         """Fait avancer le vaisseau d'une unite de temps."""
@@ -276,24 +277,39 @@ class Reconnaissance(Ship):
                          pos=pos, vitesse=3, resistance=100, owner=owner, consommation=15)
 
     def tick(self) -> None:
+       # valeur :int = str.split(self.cible.id, _ ,  )
+        valeur = self.cible.id[3:]
         if self.position_cible:
-            try:
-                if self.cible.tag == "etoile":
-                    if self.is_close_enough():
-                        self.local_queue.change_planet_ownership(
-                            self.cible.id, self.proprietaire)
-                        self.target_change(None)
-                    else:
-                        self.move()
-                elif self.cible.tag == "artefact":
-                    if self.is_close_enough():
-                        print("tag artefact ? est arrivé")
-                        self.target_change(None)
-                    else:
-                        print("tag artefact ? se déplace")
-                        self.move()
-            except self.cible.tag is None:
+            if (49 <= valeur <= 210) or 320 <= valeur <= 324:
+                if self.is_close_enough():
+                    self.local_queue.change_planet_ownership(
+                        self.cible.id, self.proprietaire)
+                    self.target_change(None)
+                else:
+                    self.move()
+            elif 211 <= valeur <= 318:
+                if self.is_close_enough():
+                    self.local_queue.add_artefact_to_player(self.cible.id, self.proprietaire)
+                    print("tag artefact ? est arrivé")
+                    self.target_change(None)
+                else:
+                    print("tag artefact ? se déplace")
+                    self.move()
+            else: #except self.cible.tag is None:
                 self.move()
+
+    # def tick(self) -> None:
+    #     if self.position_cible:
+    #         if self.cible:
+    #             if self.is_close_enough():
+    #                 self.local_queue.change_planet_ownership(
+    #                     self.cible.id, self.proprietaire)
+    #                 self.target_change(None)
+    #             else:
+    #                 self.move()
+    #
+    #         else:
+    #             self.move()
 
 
 class Flotte(dict):

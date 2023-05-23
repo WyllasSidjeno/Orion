@@ -77,6 +77,7 @@ class Etoile:
         self.log = []
         self.transit: bool = False
         self.id: str = get_prochain_id()
+        print("etoile id ", self.id)
         # Is a csv file with planet names
         self.name = random.choice(planet_name_csv)
         self.proprietaire: str = ""
@@ -94,7 +95,6 @@ class Etoile:
         self.couleur = "white"
         self.population = random.randint(100, 200)
         self.needs_refresh: bool = False
-        self.tag = "etoile"
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""
@@ -119,16 +119,17 @@ class Etoile:
                 }
 
 class Artefact:
-    def __init__(self, x: int, y: int, claimed: bool) -> None:
+    def __init__(self, x: int, y: int, local_queue, claimed: bool) -> None:
         self.x = x
         self.y = y
         self.position = (x, y)
         self.claimed = claimed
         self.id: str = get_prochain_id()
+        print("artefact id ", self.id)
         self.game_list = ["Game1", "Game2", "Game3", "Game4"]
         self.hosted_mini_game = random.choice(self.game_list)
         self.taille = 6
-        self.tag = "artefact"
+        self.local_queue = local_queue
 
     def set_solved_enigma(self) -> None:
         self.claimed = True

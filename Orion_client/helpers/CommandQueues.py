@@ -57,6 +57,9 @@ class ModelQueue(IModel, CommandQueue):
         self._add("change_planet_ownership", planet_id,
                   new_owner, old_owner)
 
+    def add_artefact_to_player(self, artefact_id: str, owner: None):
+        self._add("add_artefact_to_player", artefact_id, owner)
+
     def target_change_request(self, ship_informations: dict,
                               target: dict) -> None:
         """Change la cible d'un vaisseau.
