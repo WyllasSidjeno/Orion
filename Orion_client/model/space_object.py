@@ -1,8 +1,8 @@
 import random
 
-from Orion_client.helpers.helper import get_prochain_id, AlwaysInt
-from Orion_client.model.building import Building
-from Orion_client.model.ressource import Ressource
+from helpers.helper import get_prochain_id
+from model.building import Building
+from model.ressource import Ressource
 from random import randrange
 
 
@@ -69,7 +69,6 @@ class Etoile:
 
     def __init__(self, x: int, y: int, local_queue, planet_name_csv) -> None:
         """Constructeur de la classe Etoile.
-        :param parent: le modele auquel l'etoile appartient
         :param x: coordonnee x de l'etoile
         :param y: coordonnee y de l'etoile
         """
@@ -77,8 +76,7 @@ class Etoile:
         self.log = []
         self.transit: bool = False
         self.id: str = get_prochain_id()
-        print("etoile id ", self.id)
-        # Is a csv file with planet names
+        # Is a csv file with star names
         self.name = random.choice(planet_name_csv)
         self.proprietaire: str = ""
         self.x = x
@@ -95,6 +93,7 @@ class Etoile:
         self.couleur = "white"
         self.population = random.randint(100, 200)
         self.needs_refresh: bool = False
+
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
         a l'etoile."""

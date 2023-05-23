@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, List
 
-from Orion_client.interface import IModel, IJoueur, IController
+from interface import IModel, IJoueur, IController
 
 
 class CommandQueue(ABC):
@@ -91,7 +91,8 @@ class JoueurQueue(IJoueur, CommandQueue):
         :param type_building: Le type de bâtiment.
         :param list_position: La position dans la liste.
         """
-        self._add("construct_building_request", planet_id, type_building)
+        self._add("construct_building_request", planet_id, type_building,
+                  list_position)
 
 
 class ControllerQueue(IController, CommandQueue):
@@ -127,8 +128,10 @@ class ControllerQueue(IController, CommandQueue):
         """Gère la demande de construction d'un bâtiment.
         :param planet: La planète.
         :param type_building: Le type de bâtiment.
+        :param i: La position dans la liste de bâtiments.
         """
-        self._add("handle_building_construct_request", planet, type_building)
+        self._add("handle_building_construct_request",
+                  planet, type_building, i)
 
     def handle_message(self, message):
         """Gère un message.
