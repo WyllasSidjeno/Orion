@@ -40,7 +40,7 @@ class GameView(Frame):
         self.canvas.etoile_window.construct_building_menu.register_command_queue(
             command_queue)
 
-        self.canvas.science_window.show_science()
+       # self.canvas.science_window.show_science() todo : à implémenter avec la science (vérifier les paramètres)
 
         # todo : à déplacer dans le constructeur de la fenêtre
 
