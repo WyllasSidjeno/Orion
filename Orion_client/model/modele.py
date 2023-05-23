@@ -23,6 +23,8 @@ from Orion_client.model.ships import Ship, Flotte
 from Orion_client.model.space_object import TrouDeVers, Etoile, Artefact
 import math
 
+from Orion_client.model.building import PowerPlant, ResearchCenter, ConcreteFactory, Farm, Mine
+
 
 import math
 
@@ -147,6 +149,7 @@ class Modele(IModel):
                 planet.needs_refresh = True
 
     def add_artefact_to_player(self, artefact_id: str, owner: None):
+        """Ajouter un artéfact au joueur en sa possession."""
         artefact = self.get_object(artefact_id, StringTypes.ARTEFACT)
         self.joueurs[owner].artefacte_reclames.add(artefact_id)
         self.joueurs[owner].claim_artefact(artefact)
@@ -174,20 +177,15 @@ class Modele(IModel):
         :return: L'objet demandé
         """
         temp_object = None
-        print("Quel est l'object_type:", object_type)
         if object_type:
             if object_type in StringTypes.ship_types():
-                print("pas supposé")
                 temp_object = self.__get_ship(object_id, owner=owner)
 
             elif object_type in StringTypes.planet_types():
-                print("pas supposé non plus!")
                 temp_object = self.__get_etoile(object_id)
 
             elif object_type in StringTypes.artefact_type():
-                print("print object_type 1 : ", object_type)
                 temp_object = self.__get_artefacte(object_id)
-                print("object_type 2 : ", self.__get_artefacte(object_id))
 
         else:
             temp_object = self.__get_ship(object_id, owner=owner)
@@ -197,18 +195,20 @@ class Modele(IModel):
         if not temp_object:
             print(f"Object not found in get_object with parameter : "
                   f"{object_id}, {object_type}, {owner}")
-        print("print de return temp_object: ", temp_object)
         return temp_object
 
     def __get_artefacte(self, artefact_id):
         """Retourne un artefact"""
         for artefact in self.artefacts:
             if artefact.id == artefact_id:
-                print("getArtefact", artefact.id)
                 return artefact
 
     def __get_etoile(self, etoile_id):
-        """Retourne une étoile."""
+        """Retourne une étoile.
+          :param etoile_id: l'id de étoile.
+          :ivar etoile: Recherche de l'id de l'étoile
+          :ivar joueur: Recherche du nom du joueur
+        """
         for etoile in self.etoiles:
             if etoile.id == etoile_id:
                 return etoile
@@ -327,14 +327,13 @@ class Modele(IModel):
             for _ in range(nb_etoiles)]
 
 
-    def creer_artefacts(self, nb_artefacts: int):  # Avec le calcul du constructeur de modèle: 108 artéfacts (0 à 107)
-        id_artefact: int = -1
-        bordure = 10
+    def creer_artefacts(self, nb_artefacts: int):
+        """Crée les artéfacts au moment de générer le monde.
+        :param nb_artefacts: Quantité d'Artéfact dans l'espace."""
 
         for _ in range(nb_artefacts):
             x1 = randrange(10, self.largeur - 10)
             y1 = randrange(10, self.hauteur - 10)
-            id_artefact += 1
             self.artefacts.append(Artefact(x1, y1, self.local_queue, False))
 
     def creer_joueurs(self, joueurs: list, star_name_csv):
@@ -494,8 +493,7 @@ class Joueur(IJoueur):
         self.etoiles_controlees.append(etoile)
 
     def claim_artefact(self, artefact: Artefact):
-        """
-        """
+        """Rend un artéfact inaccessible à d'autres joueurs."""
         artefact.claimed = True
         self.artefacte_reclames.append(artefact)
 
@@ -575,6 +573,8 @@ class Joueur(IJoueur):
         Compile la quantité d'énergie consommée que requiert les différents
         bâtiments et vaisseaux à la disposition du joueur puis réaffecte la
         quantité d'énergie disponible au joueur.
+        :ivar conso_structures: Consommation d'énergie par chaque bâtiment sur une planète contrôlée par l'empire.
+        :ivar conso_vaisseaux: Consommation d'énergie par chaque vaisseau (s'il n'est pas docké) sur une planète contrôlée par l'empire.
         """
         conso_structures: int = 0
         conso_vaisseaux: int = 0
@@ -636,7 +636,6 @@ class Joueur(IJoueur):
         getattr(self, funct)(*args)
 
     def tick(self):
-
         """Fonction de jeu du joueur pour un tour."""
         self.cadre_consommation += 1
 
@@ -654,7 +653,8 @@ class Joueur(IJoueur):
             self.cadre_consommation = 0
 
     def ressources_cumul(self):
-        """Fonction pour cumuler les ressources du joueur"""
+        """Fonction pour cumuler les ressources du joueur
+        de chaque planète connectée au système de transit."""
         for e in self.etoiles_controlees:
             if e.transit:
                 planet_res: Ressource = Ressource()
@@ -673,6 +673,14 @@ class Joueur(IJoueur):
                 self.ressources += planet_res
 
     def increment_pop(self):
+        """Met à niveau la population d'une planète selon
+        la quantité de nourriture disponible à travers
+        toutes les étoiles constrôlées dans l'empire d'un joueur.
+        :ivar tot_population: Population totale de l'empire.
+        :ivar cpt_transit: Quantité de planètes connectées au système de transit.
+        :ivar nourriture_apres_conso: Quantité de nourriture à la disposition de l'empire
+                                      après avoire nourri sa population.
+        """
         tot_population: int = 0
         cpt_transit = 0
         """passer a travers les etoiles"""

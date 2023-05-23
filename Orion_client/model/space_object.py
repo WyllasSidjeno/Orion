@@ -118,6 +118,8 @@ class Etoile:
                 }
 
 class Artefact:
+    """Objet céleste qui abrite une énigme,
+    les artéfacts sont générés aléatoirement dans l'espace au début d'une partie."""
     def __init__(self, x: int, y: int, local_queue, claimed: bool) -> None:
         self.x = x
         self.y = y
@@ -131,6 +133,8 @@ class Artefact:
         self.local_queue = local_queue
 
     def set_solved_enigma(self) -> None:
+        """Si le joueur réussi l'énigme, l'artéfact associé est maintenant
+        réclamé à son nom, privant les autres joueurs de pouvoir le récupérer."""
         self.claimed = True
 
     def tick(self) -> None:

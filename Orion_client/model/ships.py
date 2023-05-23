@@ -31,7 +31,7 @@ class Ship(ABC):
     :param owner: Le proprietaire du vaisseau.
     """
 
-    def __init__(self, local_queue : ModelQueue, player_local_queue : JoueurQueue,
+    def __init__(self, local_queue: ModelQueue, player_local_queue: JoueurQueue,
                  pos: tuple, vitesse: int,
                  resistance: int, owner: str, attack_strength: int = 0,
                  defense_strength: int = 0, attack_range: int = 0, consommation: int = 0):
@@ -75,7 +75,6 @@ class Ship(ABC):
             self.position = \
                 (self.position[0] + self.vitesse * cos(self.direction_angle),
                  self.position[1] + self.vitesse * sin(self.direction_angle))
-
 
         if self.position == self.position_cible:
             self.target_change(None)
@@ -274,7 +273,9 @@ class Reconnaissance(Ship):
                          pos=pos, vitesse=3, resistance=100, owner=owner, consommation=15)
 
     def tick(self) -> None:
-       # valeur :int = str.split(self.cible.id, _ ,  )
+        """vérification de la proximité d'une étoile ou d'un artéfact,
+          si l'objet célest est trop loin, il se rapporche de la cible.
+          S'il est assez près, le joueur sera propriétaire de l'objet."""
         valeur = self.cible.id[3:]
         if self.position_cible:
             if (49 <= valeur <= 210) or 320 <= valeur <= 324:
@@ -292,7 +293,7 @@ class Reconnaissance(Ship):
                 else:
                     print("tag artefact ? se déplace")
                     self.move()
-            else: #except self.cible.tag is None:
+            else:  # except self.cible.tag is None:
                 self.move()
 
     # def tick(self) -> None:
