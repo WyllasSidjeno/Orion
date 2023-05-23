@@ -22,6 +22,8 @@ from model.ships import Ship, Flotte
 from model.space_object import TrouDeVers, Etoile
 import math
 
+from Orion_client.model.building import PowerPlant, ResearchCenter, ConcreteFactory, Farm, Mine
+
 
 class Modele(IModel):
     """Classe du modèle.
@@ -173,6 +175,9 @@ class Modele(IModel):
 
     def __get_etoile(self, etoile_id):
         """Retourne une étoile.
+          :param etoile_id: l'id de étoile.
+          :ivar etoile: Recherche de l'id de l'étoile
+          :ivar joueur: Recherche du nom du joueur
         """
         for etoile in self.etoiles:
             if etoile.id == etoile_id:
@@ -505,6 +510,8 @@ class Joueur(IJoueur):
         Compile la quantité d'énergie consommée que requiert les différents
         bâtiments et vaisseaux à la disposition du joueur puis réaffecte la
         quantité d'énergie disponible au joueur.
+        :ivar conso_structures: Consommation d'énergie par chaque bâtiment sur une planète contrôlée par l'empire.
+        :ivar conso_vaisseaux: Consommation d'énergie par chaque vaisseau (s'il n'est pas docké) sur une planète contrôlée par l'empire.
         """
         conso_structures: int = 0
         conso_vaisseaux: int = 0
@@ -566,7 +573,6 @@ class Joueur(IJoueur):
         getattr(self, funct)(*args)
 
     def tick(self):
-
         """Fonction de jeu du joueur pour un tour."""
         self.cadre_consommation += 1
 
@@ -584,7 +590,8 @@ class Joueur(IJoueur):
             self.cadre_consommation = 0
 
     def ressources_cumul(self):
-        """Fonction pour cumuler les ressources du joueur"""
+        """Fonction pour cumuler les ressources du joueur
+        de chaque planète connectée au système de transit."""
         for e in self.etoiles_controlees:
             if e.transit:
                 planet_res: Ressource = Ressource()
@@ -603,6 +610,14 @@ class Joueur(IJoueur):
                 self.ressources += planet_res
 
     def increment_pop(self):
+        """Met à niveau la population d'une planète selon
+        la quantité de nourriture disponible à travers
+        toutes les étoiles constrôlées dans l'empire d'un joueur.
+        :ivar tot_population: Population totale de l'empire.
+        :ivar cpt_transit: Quantité de planètes connectées au système de transit.
+        :ivar nourriture_apres_conso: Quantité de nourriture à la disposition de l'empire
+                                      après avoire nourri sa population.
+        """
         tot_population: int = 0
         cpt_transit = 0
         """passer a travers les etoiles"""
