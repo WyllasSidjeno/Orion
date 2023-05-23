@@ -42,6 +42,7 @@ class ArbreScience(Frame):
         """Affiche les sciences"""
         max_row = 0
         max_column = 4
+
         for i, science in enumerate(sciences):
             prix = sciences.get(science)[0]
             con_frame = Frame(

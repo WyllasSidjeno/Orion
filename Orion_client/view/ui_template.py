@@ -11,6 +11,7 @@ from helpers.CommandQueues import ControllerQueue
 from helpers.helper import StringTypes
 from model.ships import Ship
 from view.star_template import EtoileWindow
+from science import ArbreScience
 from view.view_common_ressources import *
 
 if TYPE_CHECKING:
@@ -39,6 +40,8 @@ class GameCanvas(Canvas):
         self.etoile_window = EtoileWindow(master, proprietaire)
         """Représente la fenêtre de planète de la vue du jeu."""
         self.etoile_window.hide()
+
+        self.science_window = ArbreScience(master)
 
         self.photo_cache = {
             "white": Image.open("assets/star/star_white.png"),
