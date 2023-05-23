@@ -26,42 +26,42 @@ class ArbreScience(Frame):
     def __init__(self, master, **kwargs):
         """Constructeur de la classe"""
         super().__init__(master, **kwargs,
-                         background=hexGrey, pady=10, padx=10)
+                         background=Color.grey.value, pady=10, padx=10)
         self.grid_propagate(True)
-        self.science_points = 10
+        self.science_points = 4
 
-        self.title = Label(self, text="Arbre de science", bg=hexGrey,
+        self.title = Label(self, text="Arbre de science", bg=Color.grey.value,
                            fg="white", font=(police, 20))
 
         self.title.grid(row=0, column=0, sticky="nsew")
 
-        self.science_frame = Frame(self, bg=hexGrey)
+        self.science_frame = Frame(self, bg=Color.grey.value)
         self.science_frame.grid(row=1, column=0, sticky="nsew")
 
-        self.show_science(ArbreScience.sciences)
-
-    def show_science(self, sciences):
+    def show_science(self, event, sciences):
         """Affiche les sciences"""
         max_row = 0
         max_column = 4
+
         for i, science in enumerate(sciences):
             prix = sciences.get(science)[0]
             con_frame = Frame(
-                self.science_frame, bg=hexGrey,
+                self.science_frame, bg=Color.grey.value,
                 highlightbackground="black",
                 highlightthickness=3
             )
 
             if self.science_acquises(science, sciences):
                 lbl = Label(con_frame, text=f"{science} prix : {prix}",
-                            height=5, width=15, bg=hexDarkGreen)
+                            height=5, width=15, bg=Color.darkGreen.value)
+
             else:
                 lbl = Label(con_frame, text=f"{science} prix : {prix}",
-                            height=5, width=15, bg=hexGreyGreen)
+                            height=5, width=15, bg=Color.greyGreen.value)
 
             if self.science_achetable(science, sciences):
                 lbl = Label(con_frame, text=f"{science} prix : {prix}",
-                            height=5, width=15, bg=hexYellowGreen)
+                            height=5, width=15, bg=Color.yellowGreen.value)
 
             if i % max_column == 0 and i != 0:
                 max_row += 1
@@ -110,21 +110,21 @@ class ArbreScience(Frame):
 
         self.choix_temporaire = event.widget.cget("text")
 
-        self.buyscience = Frame(self, bg=hexDarkGrey,
-                                highlightbackground=hexBrightYellow,
+        self.buyscience = Frame(self, bg=Color.darkGrey.value,
+                                highlightbackground=Color.brightYellow.value,
                                 highlightthickness=2)
         buy_label = Label(self.buyscience, text="Buy science?",
-                          fg=hexBrightYellow, bg=hexDarkGrey,
+                          fg=Color.brightYellow.value, bg=Color.darkGrey.value,
                           font=("Arial", 10))
 
         self.buyscience.place(relx=0.5, rely=0.8, anchor="center")
         buy_label.place(relx=0.06, rely=0.65)
 
         oui_bouton = Button(self.buyscience, text="Oui", width=10,
-                            height=1, bg=hexBrightGreen
+                            height=1, bg=Color.brightGreen.value
                             )
         annuler_bouton = Button(self.buyscience, text="Annuler", width=10,
-                                height=1, bg=hexRed,
+                                height=1, bg=Color.red.value,
                                 command=self.buyscience.destroy
                                 )
         oui_bouton.bind("<Button-1>", self.buy_science)

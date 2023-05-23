@@ -1,29 +1,32 @@
-"""Module des modeles de donnees du jeu
+"""Modartefact_id=Nonede donnees du jeu
 Ce module contient les classes qui representent les objets du jeu ainsi
 que le modèle de base du jeu.
 """
 from __future__ import annotations
 
+import json
 import os
 from ast import literal_eval
 from random import randrange, choice
 from typing import Generator
 
-from interface import IModel, IJoueur
-from helpers.CommandQueues import JoueurQueue, ModelQueue
-from helpers.helper import AlwaysInt, StringTypes, \
+from Orion_client.interface import IModel, IJoueur
+from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
+from Orion_client.helpers.helper import AlwaysInt, StringTypes, \
     get_prochain_id, MessageManager
-from model.building import *
+from Orion_client.model.building import *
 
-from model import ships
-from model.building import Building
-from model.ressource import Ressource
-from model.ships import Ship, Flotte
-from model.space_object import TrouDeVers, Etoile
+from Orion_client.model import ships
+from Orion_client.model.building import Building
+from Orion_client.model.ressource import Ressource
+from Orion_client.model.ships import Ship, Flotte
+from Orion_client.model.space_object import TrouDeVers, Etoile, Artefact
 import math
 
 from Orion_client.model.building import PowerPlant, ResearchCenter, ConcreteFactory, Farm, Mine
 
+
+import math
 
 class Modele(IModel):
     """Classe du modèle.
@@ -51,10 +54,13 @@ class Modele(IModel):
 
         self.trou_de_vers: list = []
         self.etoiles: list = []
+        self.artefacts: list = []
         self.joueurs: dict = {}
 
         self.local_queue = ModelQueue()
         self.log: dict = {}
+
+        self.science = json.loads(open("data/json/sciences.json").read())
 
         self.message_manager = MessageManager()
         self.message_manager.add_message(f"Serveur : Bienvenue dans Orion, "
@@ -66,6 +72,7 @@ class Modele(IModel):
         self.creer_trou_de_vers(int((self.hauteur * self.largeur) / 5000000))
         self.creer_etoiles(int((self.hauteur * self.largeur) / 500000),
                            star_name_csv)
+        self.creer_artefacts(int((self.hauteur * self.largeur) / 750000))
         self.creer_joueurs(joueurs, star_name_csv)
         self.creer_ias()
 
@@ -79,7 +86,8 @@ class Modele(IModel):
         return {
             StringTypes.VAISSEAU.value: self.get_vaisseau_in_view(x1, x2, y1, y2),
             StringTypes.ETOILE.value: self.get_etoiles_in_view(x1, x2, y1, y2),
-            StringTypes.TROUDEVERS.value: self.get_porte_de_vers_in_view(x1, x2, y1, y2)
+            StringTypes.TROUDEVERS.value: self.get_porte_de_vers_in_view(x1, x2, y1, y2),
+            StringTypes.ARTEFACT.value: self.get_artefacts_in_view(x1, x2, y1, y2)
         }
 
     def get_etoiles_in_view(self, x1, y1, x2, y2) \
@@ -91,6 +99,13 @@ class Modele(IModel):
             for etoile in self.joueurs[username].etoiles_controlees:
                 if x1 <= etoile.x <= x2 and y1 <= etoile.y <= y2:
                     yield etoile
+
+    def get_artefacts_in_view(self, x1, y1, x2, y2):
+        # \
+        #     -> Generator[Artefact, None, None]:
+        for artefact in self.artefacts:
+            if x1 <= artefact.x <= x2 and y1 <= artefact.y <= y2:
+                yield artefact
 
     def get_porte_de_vers_in_view(self, x1, y1, x2, y2):
         for trou in self.trou_de_vers:
@@ -133,21 +148,27 @@ class Modele(IModel):
                 self.joueurs[new_owner].conquer_planet(planet)
                 planet.needs_refresh = True
 
+    def add_artefact_to_player(self, artefact_id: str, owner: None):
+        artefact = self.get_object(artefact_id, StringTypes.ARTEFACT)
+        self.joueurs[owner].artefacte_reclames.add(artefact_id)
+        self.joueurs[owner].claim_artefact(artefact)
+
     def target_change_request(self, ship_informations: dict, target: dict):
         """Demande de changement de cible d'un vaisseau.
         """
         player_ship = self.get_object(ship_informations["id"],
                                       ship_informations["type"])
-
+        print("print de target_change_request", ship_informations, target)
         new_pos = target["pos"]
         if "id" in target:
             new_target = self.get_object(target["id"], target["type"])
+            print("Quel est le target:", target, "new target:", new_target)
             player_ship.target_change(new_pos, new_target)
         else:
             player_ship.target_change(new_pos)
 
     def get_object(self, object_id, object_type=None,
-                   owner=None) -> None | Ship | Flotte | TrouDeVers | Etoile:
+                   owner=None) -> None | Ship | Flotte | TrouDeVers | Etoile | Artefact:
         """Retourne un objet du jeu.
         :param object_id: L'id de l'objet
         :param object_type: Le type de l'objet
@@ -155,12 +176,20 @@ class Modele(IModel):
         :return: L'objet demandé
         """
         temp_object = None
+        print("Quel est l'object_type:", object_type)
         if object_type:
             if object_type in StringTypes.ship_types():
+                print("pas supposé")
                 temp_object = self.__get_ship(object_id, owner=owner)
 
             elif object_type in StringTypes.planet_types():
+                print("pas supposé non plus!")
                 temp_object = self.__get_etoile(object_id)
+
+            elif object_type in StringTypes.artefact_type():
+                print("print object_type 1 : ", object_type)
+                temp_object = self.__get_artefacte(object_id)
+                print("object_type 2 : ", self.__get_artefacte(object_id))
 
         else:
             temp_object = self.__get_ship(object_id, owner=owner)
@@ -170,8 +199,15 @@ class Modele(IModel):
         if not temp_object:
             print(f"Object not found in get_object with parameter : "
                   f"{object_id}, {object_type}, {owner}")
-
+        print("print de return temp_object: ", temp_object)
         return temp_object
+
+    def __get_artefacte(self, artefact_id):
+        """Retourne un artefact"""
+        for artefact in self.artefacts:
+            if artefact.id == artefact_id:
+                print("getArtefact", artefact.id)
+                return artefact
 
     def __get_etoile(self, etoile_id):
         """Retourne une étoile.
@@ -248,6 +284,9 @@ class Modele(IModel):
         for i in self.trou_de_vers:
             i.tick()
 
+        for i in self.artefacts:
+            i.tick()
+
         # Command queues
         self.execute_commands(self.local_queue)
         for i in self.joueurs:
@@ -293,6 +332,17 @@ class Modele(IModel):
                    self.local_queue, star_name_csv)
             for _ in range(nb_etoiles)]
 
+
+    def creer_artefacts(self, nb_artefacts: int):  # Avec le calcul du constructeur de modèle: 108 artéfacts (0 à 107)
+        id_artefact: int = -1
+        bordure = 10
+
+        for _ in range(nb_artefacts):
+            x1 = randrange(10, self.largeur - 10)
+            y1 = randrange(10, self.hauteur - 10)
+            id_artefact += 1
+            self.artefacts.append(Artefact(x1, y1, self.local_queue, False))
+
     def creer_joueurs(self, joueurs: list, star_name_csv):
         """Créé les joueurs et leur attribue une etoile mère.
         :param joueurs: la liste des joueurs à créer
@@ -312,7 +362,8 @@ class Modele(IModel):
             etoile = etoiles_occupee[i]
             self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0),
                                           self.local_queue,
-                                          self.controller_username)
+                                          self.controller_username,
+                                          self.science)
             for e in range(5):
                 self.etoiles.append(
                     Etoile(randrange(etoile.x - 500, etoile.x + 500),
@@ -385,7 +436,7 @@ class Joueur(IJoueur):
 
     def __init__(self, nom: str, etoile_mere: Etoile, couleur: str,
                  local_queue,
-                 controller_owner: str):
+                 controller_owner: str, science):
         """Initialise le joueur.
         :param nom: le nom du joueur
         :param etoile_mere: l'etoile mere du joueur
@@ -407,12 +458,25 @@ class Joueur(IJoueur):
         """Flotte du joueur."""
         self.etoiles_controlees: list = [etoile_mere]
         """Liste des etoiles controlees par le joueur."""
+        self.artefacte_reclames: list = []
+        """Artefact réclamées par le joueur"""
         self.consommation_energie_joueur = AlwaysInt(10)
         """Ressources totales du joueur."""
 
         self.local_queue = local_queue
         """Queue de commandes du modèle au controller."""
         self.player_local_queue = JoueurQueue()
+        self.sciences_status = {}
+
+
+        science = json.loads(open("data/json/sciences.json").read())
+
+        for key in science.keys():
+            temp_science = key
+        for key2 in science[key].keys():
+            self.sciences_status[temp_science] =[science[key]["price"], science[key]["bonus"]]
+
+        """Sciences du joueur."""
 
         self.ressources = Ressource(metal=100, beton=100, energie=100,
                                     nourriture=100,
@@ -434,6 +498,12 @@ class Joueur(IJoueur):
         etoile.resistance = 50
         etoile.need_refresh = False
         self.etoiles_controlees.append(etoile)
+
+    def claim_artefact(self, artefact: Artefact):
+        """
+        """
+        artefact.claimed = True
+        self.artefacte_reclames.append(artefact)
 
     def construct_ship(self, planet_id, type_ship):
         """
@@ -502,6 +572,7 @@ class Joueur(IJoueur):
                 print("pas asser de ressources")
 
         print(etoile.buildinglist)
+
 
     def deplete_energy(self):
         """
