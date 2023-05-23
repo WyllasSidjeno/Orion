@@ -57,6 +57,9 @@ class ModelQueue(IModel, CommandQueue):
         self._add("change_planet_ownership", planet_id,
                   new_owner, old_owner)
 
+    def add_artefact_to_player(self, artefact_id: str, owner: None):
+        self._add("add_artefact_to_player", artefact_id, owner)
+
     def target_change_request(self, ship_informations: dict,
                               target: dict) -> None:
         """Change la cible d'un vaisseau.
@@ -64,7 +67,7 @@ class ModelQueue(IModel, CommandQueue):
         :param target: La nouvelle cible.
         """
         self._add("target_change_request", ship_informations, target)
-
+        print("target change de command Queue", ship_informations, target)
 
 class JoueurQueue(IJoueur, CommandQueue):
     def construct_ship_request(self, planet_id: str, type_ship: str) -> None:
