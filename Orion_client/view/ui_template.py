@@ -163,7 +163,8 @@ class GameCanvas(Canvas):
             self.mouse_over_view.on_mouse_over(obj.to_mouse_over_dict())
 
     def generate_porte_de_vers(self, porte: PorteDeVers):
-
+        """Crée une porte de vers sur le canvas.
+               :param porte: La porte de vers à créer"""
         x = porte.x - self.bounding_box.x
         y = porte.y - self.bounding_box.y
 
@@ -173,6 +174,8 @@ class GameCanvas(Canvas):
                          tags=(porte.id, StringTypes.TROUDEVERS.value))
 
     def generate_artefact(self, artefact: Artefact):
+        """Crée un artéfact sur le canvas.
+               :param artefact: L'artéfact à créer"""
         x = artefact.x - self.bounding_box.x
         y = artefact.y - self.bounding_box.y
         photo = self.photo_cache["artefact"]
@@ -186,6 +189,8 @@ class GameCanvas(Canvas):
 
 
     def generate_vaisseau(self, vaisseau: Ship):
+        """Crée un vaisseau sur le canvas.
+            :param vaisseau: Le vaisseau à créer"""
         x = vaisseau.position[0] - self.bounding_box.x
         y = vaisseau.position[1] - self.bounding_box.y
         if vaisseau.type() == "transportation":
