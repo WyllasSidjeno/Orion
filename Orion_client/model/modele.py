@@ -9,19 +9,18 @@ from ast import literal_eval
 from random import randrange, choice
 from typing import Generator
 
-from interface import IModel, IJoueur
-from helpers.CommandQueues import JoueurQueue, ModelQueue
-from helpers.helper import AlwaysInt, StringTypes, \
+from Orion_client.interface import IModel, IJoueur
+from Orion_client.helpers.CommandQueues import JoueurQueue, ModelQueue
+from Orion_client.helpers.helper import AlwaysInt, StringTypes, \
     get_prochain_id, MessageManager
-from model.building import *
+from Orion_client.model.building import *
 
-from model import ships
-from model.building import Building
-from model.ressource import Ressource
-from model.ships import Ship, Flotte
-from model.space_object import TrouDeVers, Etoile, Artefact
+from Orion_client.model import ships
+from Orion_client.model.building import Building
+from Orion_client.model.ressource import Ressource
+from Orion_client.model.ships import Ship, Flotte
+from Orion_client.model.space_object import TrouDeVers, Etoile, Artefact
 import math
-
 
 class Modele(IModel):
     """Classe du modèle.
