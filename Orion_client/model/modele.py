@@ -4,6 +4,7 @@ que le modèle de base du jeu.
 """
 from __future__ import annotations
 
+import json
 import os
 from ast import literal_eval
 from random import randrange, choice
@@ -20,6 +21,9 @@ from Orion_client.model.building import Building
 from Orion_client.model.ressource import Ressource
 from Orion_client.model.ships import Ship, Flotte
 from Orion_client.model.space_object import TrouDeVers, Etoile, Artefact
+import math
+
+
 import math
 
 class Modele(IModel):
@@ -53,6 +57,8 @@ class Modele(IModel):
 
         self.local_queue = ModelQueue()
         self.log: dict = {}
+
+        self.science = json.loads(open("data/json/sciences.json").read())
 
         self.message_manager = MessageManager()
         self.message_manager.add_message(f"Serveur : Bienvenue dans Orion, "
@@ -350,7 +356,8 @@ class Modele(IModel):
             etoile = etoiles_occupee[i]
             self.joueurs[joueur] = Joueur(joueur, etoile, couleurs.pop(0),
                                           self.local_queue,
-                                          self.controller_username)
+                                          self.controller_username,
+                                          self.science)
             for e in range(5):
                 self.etoiles.append(
                     Etoile(randrange(etoile.x - 500, etoile.x + 500),
@@ -423,7 +430,7 @@ class Joueur(IJoueur):
 
     def __init__(self, nom: str, etoile_mere: Etoile, couleur: str,
                  local_queue,
-                 controller_owner: str):
+                 controller_owner: str, science):
         """Initialise le joueur.
         :param nom: le nom du joueur
         :param etoile_mere: l'etoile mere du joueur
@@ -453,6 +460,17 @@ class Joueur(IJoueur):
         self.local_queue = local_queue
         """Queue de commandes du modèle au controller."""
         self.player_local_queue = JoueurQueue()
+        self.sciences_status = {}
+
+
+        science = json.loads(open("data/json/sciences.json").read())
+
+        for key in science.keys():
+            temp_science = key
+        for key2 in science[key].keys():
+            self.sciences_status[temp_science] =[science[key]["price"], science[key]["bonus"]]
+
+        """Sciences du joueur."""
 
         self.ressources = Ressource(metal=100, beton=100, energie=100,
                                     nourriture=100,
@@ -548,6 +566,7 @@ class Joueur(IJoueur):
                 print("pas asser de ressources")
 
         print(etoile.buildinglist)
+
 
     def deplete_energy(self):
         """

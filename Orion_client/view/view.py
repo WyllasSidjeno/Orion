@@ -5,6 +5,8 @@ from view.ui_template import GameCanvas, SideBar, Hud, ChatBox
 
 from view.ui_template import Color
 
+from Orion_client.science import ArbreScience
+
 
 class GameView(Frame):
     id: str
@@ -28,12 +30,18 @@ class GameView(Frame):
         self.chat = ChatBox(self, command_queue)
 
         self.pack(fill="both", expand=True)
+        self.fenetre_science = ArbreScience(self)
+
+        self.sciences = {}
 
         self.canvas.etoile_window.construct_ship_menu.register_command_queue(
             command_queue)
 
         self.canvas.etoile_window.construct_building_menu.register_command_queue(
             command_queue)
+
+       # self.canvas.science_window.show_science() todo : à implémenter avec la science (vérifier les paramètres)
+
         # todo : à déplacer dans le constructeur de la fenêtre
 
         self.bind_game_requests()  # todo : à déplacer dans le constructeur de la fenêtre
@@ -47,6 +55,12 @@ class GameView(Frame):
 
         self.bind("<Return>",
                   self.chat.show)  # todo : à déplacer dans le constructeur de la fenêtre
+
+        self.science_menu = ArbreScience(self)
+        self.hud.science_button.bind("<Button-1>", self.affichage_science)
+
+    def affichage_science(self, event):
+        self.fenetre_science.show_science(event, self.sciences)
 
     def configure_grid(self):
         """Configures la grid de la vue principale du jeu."""
@@ -84,6 +98,8 @@ class GameView(Frame):
 
         self.side_bar.minimap.user_square_move(
             self.canvas.bounding_box.__tuple__())
+
+        self.sciences = mod.joueurs[mod.controller_username].sciences_status
 
     def on_minimap_click(self, event) -> None:
         """ Bouge le canvas vers la position du clic sur la minimap."""
