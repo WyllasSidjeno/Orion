@@ -103,6 +103,8 @@ class StringTypes(Enum):
     ETOILE_OCCUPEE = "etoile_occupee"
     ETOILE = "etoile"
     TROUDEVERS = "TrouDeVers"
+    ARTEFACT = "artefact"
+    ARTEFACT_CLAIMED = "artefact_claimed"
 
     # Les éléments de joueurs
     VAISSEAU = "vaisseau"
@@ -136,7 +138,9 @@ class StringTypes(Enum):
         return [cls.ETOILE_OCCUPEE.value, cls.ETOILE.value,
                 cls.TROUDEVERS.value]
 
-
+    @classmethod
+    def artefact_type(cls) -> list[str]:
+        return [cls.ARTEFACT.value]
 class MessageManager:
     def __init__(self):
         self.messages: list[tuple[str, str]] = []

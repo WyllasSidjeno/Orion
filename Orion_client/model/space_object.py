@@ -24,6 +24,7 @@ class TrouDeVers:
         self.portes = [PorteDeVers(self.id, x1, y1, taille),
                           PorteDeVers(self.id, x2, y2, taille)]
         self.liste_transit = []
+        self.tag = "trouDeVers"
 
     def tick(self) -> None:
         """Envoie le signal de jouer_prochain_coup
@@ -115,3 +116,23 @@ class Etoile:
                 "output": self.output,
                 "population": self.population
                 }
+
+class Artefact:
+    def __init__(self, x: int, y: int, local_queue, claimed: bool) -> None:
+        self.x = x
+        self.y = y
+        self.position = (x, y)
+        self.claimed = claimed
+        self.id: str = get_prochain_id()
+        print("artefact id ", self.id)
+        self.game_list = ["Game1", "Game2", "Game3", "Game4"]
+        self.hosted_mini_game = random.choice(self.game_list)
+        self.taille = 6
+        self.local_queue = local_queue
+
+    def set_solved_enigma(self) -> None:
+        self.claimed = True
+
+    def tick(self) -> None:
+        if self.claimed:
+            self.claimed = False

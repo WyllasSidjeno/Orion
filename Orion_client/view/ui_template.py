@@ -16,7 +16,7 @@ from view.view_common_ressources import *
 
 if TYPE_CHECKING:
     from model.modele import Modele
-    from model.space_object import PorteDeVers
+    from model.space_object import PorteDeVers, Artefact
 
 
 class GameCanvas(Canvas):
@@ -53,6 +53,7 @@ class GameCanvas(Canvas):
             "militaire": Image.open("assets/ships/fighter.png"),
             "reconnaissance": Image.open("assets/ships/reconnaissance.png"),
             "transportation": Image.open("assets/ships/transportation.png"),
+            "artefact": Image.open("assets/artefact/artefact.png"),
         }
         for key, photo in self.photo_cache.items():
             if key != "background":
@@ -140,6 +141,7 @@ class GameCanvas(Canvas):
         self.delete(StringTypes.ETOILE_OCCUPEE.value)
         self.delete(StringTypes.TROUDEVERS.value)
         self.delete(StringTypes.VAISSEAU.value)
+        self.delete(StringTypes.ARTEFACT.value)
 
         for etoile in mod.get_etoiles_in_view(*self.bounding_box.__tuple__()):
             self.generate_etoile(etoile)
@@ -147,6 +149,10 @@ class GameCanvas(Canvas):
         for porte in mod.get_porte_de_vers_in_view(
                 *self.bounding_box.__tuple__()):
             self.generate_porte_de_vers(porte)
+
+        for artefact in mod.get_artefacts_in_view(
+                *self.bounding_box.__tuple__()):
+            self.generate_artefact(artefact)
 
         for vaisseau in mod.get_vaisseau_in_view(
                 *self.bounding_box.__tuple__()):
@@ -165,6 +171,19 @@ class GameCanvas(Canvas):
                          x + porte.pulse, y + porte.pulse,
                          fill="black",
                          tags=(porte.id, StringTypes.TROUDEVERS.value))
+
+    def generate_artefact(self, artefact: Artefact):
+        x = artefact.x - self.bounding_box.x
+        y = artefact.y - self.bounding_box.y
+        photo = self.photo_cache["artefact"]
+
+        photo = photo.resize((artefact.taille * 12, artefact.taille * 12), Image.ANTIALIAS)
+
+        photo = ImageTk.PhotoImage(photo)
+        self.cache.append(photo)
+
+        self.create_image(x, y, image=photo, tags=(StringTypes.ARTEFACT.value, artefact.id))
+
 
     def generate_vaisseau(self, vaisseau: Ship):
         x = vaisseau.position[0] - self.bounding_box.x
