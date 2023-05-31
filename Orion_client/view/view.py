@@ -5,7 +5,7 @@ from view.ui_template import GameCanvas, SideBar, Hud, ChatBox
 
 from view.ui_template import Color
 
-from Orion_client.science import ArbreScience
+from science import ArbreScience
 
 
 class GameView(Frame):
