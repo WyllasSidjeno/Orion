@@ -11,8 +11,8 @@ class QueueSubjectInterface:
 class IModel(ABC, QueueSubjectInterface):
     @abstractmethod
     def change_planet_ownership(self, planet_id: str,
-                                new_owner: None | str = None,
-                                old_owner: None | str = None):
+                                new_owner=None,
+                                old_owner=None):
         raise NotImplementedError
 
     @abstractmethod

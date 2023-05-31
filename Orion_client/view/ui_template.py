@@ -4,14 +4,15 @@ import math
 from tkinter import Frame, Label, Canvas, Text, Entry, Button, Tk, NW, END
 from typing import TYPE_CHECKING
 
-from PIL import Image
-from PIL import ImageTk
+# If asked, import from Pillow, not PIl
+import PIL.Image as Image
+import PIL.ImageTk as ImageTk
 
 from helpers.CommandQueues import ControllerQueue
 from helpers.helper import StringTypes
 from model.ships import Ship
-from view.star_template import EtoileWindow
 from science import ArbreScience
+from view.star_template import EtoileWindow
 from view.view_common_ressources import *
 
 if TYPE_CHECKING:
